@@ -766,8 +766,10 @@
 			// TSTaskを終了する
 			if ($TSTask_shutdown == 'true'){ // 強制終了
 				win_exec('taskkill /F /IM '.$tstask_exe);
+				win_exec('taskkill /F /IM '.$tstask_SPHD_exe);
 			} else { // 通常終了
 				win_exec('taskkill /IM '.$tstask_exe);
+				win_exec('taskkill /IM '.$tstask_SPHD_exe);
 			}
 
 			// フォルダ内のTSを削除
