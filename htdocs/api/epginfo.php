@@ -5,11 +5,11 @@
 	require_once ('../../modules/module.php');
 
 	// BonDriverとチャンネルを取得
-	list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, // BonDriver
-		$ch, $ch_T, $ch_S, $ch_CS, // チャンネル番号
-		$sid, $sid_T, $sid_S, $sid_CS, // SID
-		$onid, $onid_T, $onid_S, $onid_CS, // ONID(NID)
-		$tsid, $tsid_T, $tsid_S, $tsid_CS) // TSID
+	list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, $BonDriver_dll_SPHD, // BonDriver
+		$ch, $ch_T, $ch_S, $ch_CS, $ch_SPHD, // チャンネル番号
+		$sid, $sid_T, $sid_S, $sid_CS, $sid_SPHD, // SID
+		$onid, $onid_T, $onid_S, $onid_CS, $onid_SPHD, // ONID(NID)
+		$tsid, $tsid_T, $tsid_S, $tsid_CS, $tsid_SPHD) // TSID
 		= initBonChannel($BonDriver_dir);
 
     // ストリーム番号を取得
