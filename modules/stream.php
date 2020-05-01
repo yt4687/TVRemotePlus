@@ -11,12 +11,14 @@
 		require_once (dirname(__FILE__).'/module.php');
 
 		// BonDriverとチャンネルを取得
-		list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, // BonDriver
-			$ch, $ch_T, $ch_S, $ch_CS, // チャンネル番号
-			$sid, $sid_T, $sid_S, $sid_CS, // SID
-			$onid, $onid_T, $onid_S, $onid_CS, // ONID(NID)
-			$tsid, $tsid_T, $tsid_S, $tsid_CS) // TSID
+		// BonDriverとチャンネルを取得
+		list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, $BonDriver_dll_SPHD, // BonDriver
+			$ch, $ch_T, $ch_S, $ch_CS, $ch_SPHD, // チャンネル番号
+			$sid, $sid_T, $sid_S, $sid_CS, $sid_SPHD, // SID
+			$onid, $onid_T, $onid_S, $onid_CS, $onid_SPHD, // ONID(NID)
+			$tsid, $tsid_T, $tsid_S, $tsid_CS, $tsid_SPHD) // TSID
 			= initBonChannel($BonDriver_dir);
+
 
 		// 設定読み込み
 		$ini = json_decode(file_get_contents($inifile), true);
@@ -88,9 +90,13 @@
 
 			// BonDriver
 			if (!isset($argv[7]) or $argv[7] == 'default'){
+				// ネットワークIDが10かどうか(スカパーか)
+				if (intval($onid[$ini[$stream]['channel']]) == 10){
+					$ini[$stream]['BonDriver'] = $BonDriver_default_SPHD;
 				// チャンネルの値が100より上(=BS・CSか・ショップチャンネルは055なので例外指定)
-				if (intval($ini[$stream]['channel']) >= 100 or intval($ini[$stream]['channel']) === 55){
+				} else if (intval($ini[$stream]['channel']) >= 100 or intval($ini[$stream]['channel']) === 55){ 
 					$ini[$stream]['BonDriver'] = $BonDriver_default_S;
+				// チャンネルの値が100より上(=BS・CSか・ショップチャンネルは055なので例外指定)
 				} else { // 地デジなら
 					$ini[$stream]['BonDriver'] = $BonDriver_default_T;
 				}
@@ -103,6 +109,7 @@
 			echo '   Stream   : '.$stream."\n";
 			echo '   Channel  : '.$ini[$stream]['channel']."\n";
 			echo '   SID      : '.$sid[$ini[$stream]['channel']]."\n";
+			echo '   ONID     : '.$onid[$ini[$stream]['channel']]."\n";
 			echo '   TSID     : '.$tsid[$ini[$stream]['channel']]."\n";
 			echo '   Quality  : '.$ini[$stream]['quality']."\n";
 			echo '   Encoder  : '.$ini[$stream]['encoder']."\n";
@@ -192,8 +199,8 @@
 	}
 
 	// ライブ配信を開始する関数
-	function stream_start($stream, $ch, $sid, $tsid, $BonDriver, $quality, $encoder, $subtitle){
-		global $udp_port, $ffmpeg_path, $qsvencc_path, $nvencc_path, $vceencc_path, $tstask_path, $segment_folder, $hlslive_time, $hlslive_list, $base_dir, $encoder_log, $encoder_window, $TSTask_window;
+	function stream_start($stream, $ch, $sid,　$onid, $tsid, $BonDriver, $quality, $encoder, $subtitle){
+		global $udp_port, $ffmpeg_path, $qsvencc_path, $nvencc_path, $vceencc_path, $tstask_path, $tstask_SPHD_path,$segment_folder, $hlslive_time, $hlslive_list, $base_dir, $encoder_log, $encoder_window, $TSTask_window;
 		
 		// 設定
 
@@ -316,8 +323,15 @@
 			break;
 		}
 
+		//スカパー用のTSTask切り替え
+		if($onid == 10){
+			$tstask_path2 = $tstask_path.$tstask_SPHD_exe;
+		} else {
+			$tstask_path2 = $tstask_path.$tstask_exe;
+		}
+
 		// TSTask.exeを起動する
-		$tstask_cmd = '"'.$tstask_path.'" '.($TSTask_window == 'true' ? '/xclient' : '/min /xclient-').' /udp /port '.$stream_port.' /sid '.$sid.' /tsid '.$tsid.
+		$tstask_cmd = '"'.$tstask_path2.'" '.($TSTask_window == 'true' ? '/xclient' : '/min /xclient-').' /udp /port '.$stream_port.' /sid '.$sid.' /tsid '.$tsid.
 		              ' /d '.$BonDriver.' /sendservice 1 /logfile '.$base_dir.'logs/stream'.$stream.'.tstask.log';
 		$tstask_cmd = 'start "TSTask Process" /B /min cmd.exe /C "'.win_exec_escape($tstask_cmd).'"';
 		win_exec($tstask_cmd);
