@@ -832,6 +832,17 @@
 					// echo 'TSTask Killed. Stream: '.$stream.' Cmd:'.$value['CommandLine']."\n\n";
 				}
 
+				// TSTask_SPHD
+				if (strpos($value['CommandLine'], $tstask_SPHD_exe) !== false and 
+				(@strpos($value['CommandLine'], strval($stream_port)) !== false) or (@strpos($value['CommandLine'], $filepath) !== false)){
+					if ($TSTask_shutdown == 'true'){ // 強制終了
+						win_exec('taskkill /F /PID '.$value['ProcessId']);
+					} else { // 通常終了
+						win_exec('taskkill /PID '.$value['ProcessId']);
+					}
+					// echo 'TSTask Killed. Stream: '.$stream.' Cmd:'.$value['CommandLine']."\n\n";
+				}
+
 			}
 
 			// CSVファイル自体はもういらないので削除
