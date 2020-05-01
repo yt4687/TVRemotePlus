@@ -5,6 +5,25 @@
 ・変更後、番組情報を取得できない状態です。わかる方助けてください。  
 <その他>  
 ・改善の方法など知恵を貸してください。  
+・本家同様動かなくても保証はできません。
+・改善も中の人の余裕を見ながらになります。
+
+動作環境  
+  - サーバー：Windows Server 2016 Standard + BOnDriverProxyEx +PLEX PX-W3PE4
+    - スペック：
+      - CPU：Pentium G4560
+      - RAM：8GB
+   - 中部圏で利用を検証しました
+  - クライアント：
+    - Windows・Mac  
+      - Chrome  
+      - Edge(Chromium版)  
+      - Firefox  
+    - Android
+      - Chrome
+    - iOS
+      - Safari
+      - Chrome
 
 最後に、本家TVRemotePlusの作者様このような素晴らしいものを作っていただきありがとうございます。  
 (素人なため改造はできても1から作るのは無理なのでほんとに助かりました)  
