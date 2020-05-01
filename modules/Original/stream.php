@@ -11,12 +11,14 @@
 		require_once (dirname(__FILE__).'/module.php');
 
 		// BonDriverとチャンネルを取得
+		// BonDriverとチャンネルを取得
 		list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, $BonDriver_dll_SPHD, // BonDriver
 			$ch, $ch_T, $ch_S, $ch_CS, $ch_SPHD, // チャンネル番号
 			$sid, $sid_T, $sid_S, $sid_CS, $sid_SPHD, // SID
 			$onid, $onid_T, $onid_S, $onid_CS, $onid_SPHD, // ONID(NID)
 			$tsid, $tsid_T, $tsid_S, $tsid_CS, $tsid_SPHD) // TSID
 			= initBonChannel($BonDriver_dir);
+
 
 		// 設定読み込み
 		$ini = json_decode(file_get_contents($inifile), true);
@@ -120,7 +122,7 @@
 			stream_stop($stream);
 
 			// ストリームを開始する
-			stream_start($stream, $ini[$stream]['channel'], $sid[$ini[$stream]['channel']], $onid[$ini[$stream]['channel']], $tsid[$ini[$stream]['channel']], $ini[$stream]['BonDriver'], $ini[$stream]['quality'], $ini[$stream]['encoder'], $ini[$stream]['subtitle']);
+			stream_start($stream, $ini[$stream]['channel'], $sid[$ini[$stream]['channel']], $tsid[$ini[$stream]['channel']], $ini[$stream]['BonDriver'], $ini[$stream]['quality'], $ini[$stream]['encoder'], $ini[$stream]['subtitle']);
 
 			// 準備中用の動画を流すためにm3u8をコピー
 			if ($silent == 'true'){
@@ -197,8 +199,8 @@
 	}
 
 	// ライブ配信を開始する関数
-	function stream_start($stream, $ch, $sid, $onid, $tsid, $BonDriver, $quality, $encoder, $subtitle){
-		global $udp_port, $ffmpeg_path, $qsvencc_path, $nvencc_path, $vceencc_path, $tstask_path, $tstask_exe, $tstask_SPHD_exe, $segment_folder, $hlslive_time, $hlslive_list, $base_dir, $encoder_log, $encoder_window, $TSTask_window;
+	function stream_start($stream, $ch, $sid,　$onid, $tsid, $BonDriver, $quality, $encoder, $subtitle){
+		global $udp_port, $ffmpeg_path, $qsvencc_path, $nvencc_path, $vceencc_path, $tstask_path, $tstask_SPHD_path,$segment_folder, $hlslive_time, $hlslive_list, $base_dir, $encoder_log, $encoder_window, $TSTask_window;
 		
 		// 設定
 
@@ -320,6 +322,7 @@
 				$volume = 2.0; // 音量(元の音量の何倍か)
 			break;
 		}
+
 		//スカパー用のTSTask切り替え
 		if($onid == 10){
 			$tstask_path2 = $tstask_path.$tstask_SPHD_exe;
@@ -743,7 +746,7 @@
 	// ストリームを終了する関数
 	// flgがtrueの場合は全てのストリームを終了する
 	function stream_stop($stream, $flg=false){
-		global $inifile, $udp_port, $process_csv, $ffmpeg_exe, $qsvencc_exe, $nvencc_exe, $vceencc_exe, $tstask_exe, $tstask_SPHD_exe, $segment_folder, $TSTask_shutdown;
+		global $inifile, $udp_port, $process_csv, $ffmpeg_exe, $qsvencc_exe, $nvencc_exe, $vceencc_exe, $tstask_exe, $segment_folder, $TSTask_shutdown;
 
 		// 全てのストリームを終了する
 		if ($flg){
@@ -762,11 +765,11 @@
 			
 			// TSTaskを終了する
 			if ($TSTask_shutdown == 'true'){ // 強制終了
-				win_exec('taskkill /F /IM '.tstask_exe);
-				win_exec('taskkill /F /IM '.tstask_SPHD_exe);
+				win_exec('taskkill /F /IM '.$tstask_exe);
+				win_exec('taskkill /F /IM '.$tstask_SPHD_exe);
 			} else { // 通常終了
-				win_exec('taskkill /IM '.tstask_exe);
-				win_exec('taskkill /IM '.tstask_SPHD_exe);
+				win_exec('taskkill /IM '.$tstask_exe);
+				win_exec('taskkill /IM '.$tstask_SPHD_exe);
 			}
 
 			// フォルダ内のTSを削除
@@ -828,6 +831,7 @@
 					} else { // 通常終了
 						win_exec('taskkill /PID '.$value['ProcessId']);
 					}
+					// echo 'TSTask Killed. Stream: '.$stream.' Cmd:'.$value['CommandLine']."\n\n";
 				}
 
 				// TSTask_SPHD

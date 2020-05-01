@@ -8,7 +8,7 @@
     setInterval(clock, 1000);
 
     // 最初に実行
-    if (Cookies.get('twitter')){
+    if (Cookies.get('twitter_session')){
       $('#tweet-status').html('<a id="tweet-logout" href="javascript:void(0)"><i class="fas fa-sign-out-alt"></i>ログアウト</a>');
     } else {
       $('#tweet-status').html('<a id="tweet-login" href="/tweet/auth"><i class="fas fa-sign-in-alt"></i>ログイン</a>');
@@ -381,6 +381,7 @@
       $('.bluebutton').addClass('disabled');
     });
 
+
     // キャンセル
     $('.redbutton').click(function(event){
       $('#nav-close').removeClass('open');
@@ -682,7 +683,7 @@
             if (limit > 0){
               $('#tweet-submit').prop('disabled', false).removeClass('disabled');
             }
-            $('#tweet-status').html('キャプチャしました。');
+            $('#tweet-status').html('キャプチャした画像を選択しました。');
           }, 'image/jpeg', 1);
         });
 
@@ -697,7 +698,7 @@
             if (limit > 0){
               $('#tweet-submit').prop('disabled', false).removeClass('disabled');
             }
-            $('#tweet-status').html('キャプチャしました。');
+            $('#tweet-status').html('キャプチャした画像を選択しました。');
           }, 'image/jpeg', 1);
         });
 
@@ -750,7 +751,7 @@
           if (limit > 0){
             $('#tweet-submit').prop('disabled', false).removeClass('disabled');
           }
-          $('#tweet-status').html('コメント付きでキャプチャしました。');
+          $('#tweet-status').html('コメント付きでキャプチャした画像を選択しました。');
         }, "image/jpeg", 1);
       });
     }
@@ -1055,7 +1056,7 @@
       $('#tweet-file').val(null);
       $('#content-box').show();
       $('#footer').show();
-      if (Cookies.get('twitter')){
+      if (Cookies.get('twitter_session')){
         $("#tweet-status").html('<a id="tweet-logout" href="javascript:void(0)"><i class="fas fa-sign-out-alt"></i>ログアウト</a>');
       } else {
         $("#tweet-status").html('<a id="tweet-login" href="/tweet/auth"><i class="fas fa-sign-in-alt"></i>ログイン</a>');
@@ -1103,3 +1104,4 @@
     }
 
   });
+

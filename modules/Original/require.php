@@ -103,8 +103,8 @@ $process_csv = $base_dir.'data/process.csv';
 
 // TSTask の名前とパス
 $tstask_exe = 'TSTask-tvrp.exe';
-$tstask_path = $base_dir.'bin/TSTask/';
 $tstask_SPHD_exe = 'TSTask_SPHD-tvrp.exe';
+$tstask_path = $base_dir.'bin/TSTask/';
 
 // rplsinfo の名前とパス
 $rplsinfo_exe =  'rplsinfo-tvrp.exe';

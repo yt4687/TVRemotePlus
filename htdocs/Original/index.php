@@ -316,7 +316,7 @@
             <div class="broadcast-button swiper-slide">地デジ</div>
             <div class="broadcast-button swiper-slide">BS</div>
             <div class="broadcast-button swiper-slide">CS</div>
-            <div class="broadcast-button swiper-slide">スカパー！</div>
+	　　<div class="broadcast-button swiper-slide">スカパー！</div>
           </div>
         </div>
 
@@ -359,7 +359,7 @@
                       <span class="broadcast-title-id">取得中です…</span>
                     </div>
                     <div class="broadcast-next">
-                      <span>00:00</span>
+                      <span">00:00</span>
                       <span>～</span>
                       <span>00:00</span>
                       <span>取得中です…</span>
@@ -378,7 +378,7 @@
             <nav class="broadcast-nav swiper-slide">
 <?php	foreach ($ch_S as $i => $value){ // BSchの数だけ繰り返す ?>
 <?php		$ch_S_channel = 'Ch: '.sprintf('%03d', $i); ?>
-              <div id="ch"<?php echo $i; ?> class="broadcast-wrap" data-ch="<?php echo $i; ?>"
+              <div id="ch<?php echo $i; ?>" class="broadcast-wrap" data-ch="<?php echo $i; ?>"
                     data-channel="<?php echo $ch_S_channel; ?>" data-name="<?php echo $value; ?>">
 
                 <div class="broadcast">
@@ -398,7 +398,7 @@
                       <span class="broadcast-title-id">取得中です…</span>
                     </div>
                     <div class="broadcast-next">
-                      <span>00:00</span>
+                      <span">00:00</span>
                       <span>～</span>
                       <span>00:00</span>
                       <span>取得中です…</span>
@@ -437,7 +437,7 @@
                       <span class="broadcast-title-id">取得中です…</span>
                     </div>
                     <div class="broadcast-next">
-                      <span>00:00</span>
+                      <span">00:00</span>
                       <span>～</span>
                       <span>00:00</span>
                       <span>取得中です…</span>
@@ -491,7 +491,6 @@
               </div>
 <?php	} //括弧終了 ?>
             </nav>
-
 
           </div>
         </div>
@@ -634,7 +633,6 @@
           </div>
         </div>
 
-
         <div id="button-box" class="broadcast-button-box">
 <?php		if (!empty($BonDriver_dll) and !empty($ch)){ ?>
           <button class="bluebutton" type="submit"><i class="fas fa-play"></i>ストリーム開始</button>
@@ -746,13 +744,13 @@
             <div class="hotkey-list">
               <div class="hotkey-list-name">字幕の表示 / 非表示の切り替え</div>
               <div class="hotkey-list-key-box">
-                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">J</div>
+                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">S</div>
               </div>
             </div>
             <div class="hotkey-list">
               <div class="hotkey-list-name">コメントの表示 / 非表示の切り替え</div>
               <div class="hotkey-list-key-box">
-                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">K</div>
+                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">D</div>
               </div>
             </div>
           </div>
@@ -782,7 +780,7 @@
             <div class="hotkey-list">
               <div class="hotkey-list-name">ストリームを同期する（ライブ配信時のみ）</div>
               <div class="hotkey-list-key-box">
-                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">S</div>
+                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">L</div>
               </div>
             </div>
             <div class="hotkey-list">

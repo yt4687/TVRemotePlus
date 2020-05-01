@@ -147,6 +147,7 @@
 					} else { // 地デジなら
 						$ini[$stream]['BonDriver'] = $BonDriver_default_T;
 					}
+
 				}
 
 				// ストリーミング開始
@@ -165,7 +166,7 @@
 				if (!isset($_POST['allstop'])){
 
 					// ストリームを終了
-					stream_stop($stream, $onid[$ini[$stream]['channel']]);
+					stream_stop($stream);
 
 					// Offline に設定する
 					$ini[$stream]['state'] = 'Offline';
@@ -188,7 +189,7 @@
 				} else {
 
 					// ストリームを全て終了
-					stream_stop($stream, $true);
+					stream_stop($stream, true);
 
 					// ストリーム番号ごとに実行
 					foreach ($ini as $key => $value) {
@@ -312,12 +313,12 @@
             <h4><i class="fas fa-eye"></i>表示</h4>
 
             <div class="setting-form">
-              <span>Twitter 投稿フォーム</span>
+              <span>Twitter 投稿</span>
               <div class="toggle-switch">
-<?php	if (isSettingsItem('twitter_show', false)){ ?>
-                <input id="twitter_show" class="toggle-input" type="checkbox" value="true" />
-<?php	} else { ?>
+<?php	if (isSettingsItem('twitter_show', true, true)){ ?>
                 <input id="twitter_show" class="toggle-input" type="checkbox" value="true" checked />
+<?php	} else { ?>
+                <input id="twitter_show" class="toggle-input" type="checkbox" value="true" />
 <?php	} // 括弧終了 ?>
                 <label for="twitter_show" class="toggle-label"></label>
               </div>
@@ -326,10 +327,10 @@
             <div class="setting-form">
               <span>コメント一覧</span>
               <div class="toggle-switch">
-<?php	if (isSettingsItem('comment_show', false)){ ?>
-                <input id="comment_show" class="toggle-input" type="checkbox" value="true" />
-<?php	} else { ?>
+<?php	if (isSettingsItem('comment_show', true, true)){ ?>
                 <input id="comment_show" class="toggle-input" type="checkbox" value="true" checked />
+<?php	} else { ?>
+                <input id="comment_show" class="toggle-input" type="checkbox" value="true" />
 <?php	} // 括弧終了 ?>
                 <label for="comment_show" class="toggle-label"></label>
               </div>
@@ -399,11 +400,20 @@
             </div>
 
             <div class="setting-form setting-select">
-              <span>コメントの遅延時間（秒）</span>
+              <span>コメントの遅延時間（ライブ配信・秒）</span>
 <?php	if (isSettingsItem('comment_delay')){ ?>
               <input class="text-box" id="comment_delay" type="number" min="0" max="60" placeholder="5" value="<?php echo isSettingsItem('comment_delay'); ?>" required />
 <?php	} else { ?>
               <input class="text-box" id="comment_delay" type="number" min="0" max="60" placeholder="5" value="5" required />
+<?php	} // 括弧終了 ?>
+            </div>
+
+            <div class="setting-form setting-select">
+              <span>コメントの遅延時間（ファイル再生・秒）</span>
+<?php	if (isSettingsItem('comment_file_delay')){ ?>
+              <input class="text-box" id="comment_file_delay" type="number" min="0" max="60" placeholder="0" value="<?php echo isSettingsItem('comment_file_delay'); ?>" required />
+<?php	} else { ?>
+              <input class="text-box" id="comment_file_delay" type="number" min="0" max="60" placeholder="0" value="0" required />
 <?php	} // 括弧終了 ?>
             </div>
 
@@ -537,7 +547,7 @@
                 </select>
               </div>
             </div>
-
+		  
             <div class="setting-form setting-input">
               <div class="setting-content">
                 <span>デフォルトの BonDriver (スカパー！用)</span>
@@ -560,6 +570,7 @@
                 </select>
               </div>
             </div>
+
 
             <div class="setting-form setting-input">
               <div class="setting-content">
@@ -769,7 +780,7 @@
                   設定しなくても生放送のコメントは取得できますが、コメント投稿・過去ログの取得はできません<br>
                 </p>
               </div>
-              <input class="text-box" name="nicologin_mail" type="email" value="<?php echo $nicologin_mail; ?>" placeholder="example@gmail.com" />
+              <input class="text-box" name="nicologin_mail" type="email" value="<?php echo $nicologin_mail; ?>" placeholder="example@gmail.com" autocomplete="off" />
             </div>
 
             <div class="setting-form setting-input">
@@ -782,7 +793,7 @@
                 </p>
               </div>
               <div class="password-box-wrap">
-                <input class="password-box" name="nicologin_password" type="password" value="<?php echo $nicologin_password; ?>" placeholder="password" />
+                <input class="password-box" name="nicologin_password" type="password" value="<?php echo $nicologin_password; ?>" placeholder="password" autocomplete="new-password" />
                 <i class="password-box-input fas fa-eye-slash"></i>
               </div>
             </div>
@@ -884,7 +895,7 @@
                   デフォルトは user ですが、Basic 認証を利用する場合はできるだけ変更してください<br>
                 </p>
               </div>
-              <input class="text-box" name="basicauth_user" type="text" pattern="^[0-9A-Za-z]+$" value="<?php echo $basicauth_user; ?>" placeholder="user" required />
+              <input class="text-box" name="basicauth_user" type="text" pattern="^[0-9A-Za-z]+$" value="<?php echo $basicauth_user; ?>" placeholder="user" required autocomplete="off" />
             </div>
 
             <div class="setting-form setting-input">
@@ -896,7 +907,7 @@
                 </p>
               </div>
               <div class="password-box-wrap">
-                <input class="password-box" name="basicauth_password" type="password" value="<?php echo $basicauth_password; ?>" placeholder="password" required />
+                <input class="password-box" name="basicauth_password" type="password" value="<?php echo $basicauth_password; ?>" placeholder="password" required autocomplete="new-password" />
                 <i class="password-box-input fas fa-eye-slash"></i>
               </div>
             </div>

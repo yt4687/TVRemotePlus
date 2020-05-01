@@ -202,13 +202,14 @@
 	// Cookie内の設定に指定の項目が指定された値であるかどうかを確認する関数
 	// あれば true・ないもしくは設定自体が存在しない場合は false を返す
 	// matchを省略した場合はその項目の値を返す
-	function isSettingsItem($item, $match = ''){
+	function isSettingsItem($item, $match = null, $default = false){
+		// Cookieが存在する
 		if (isset($_COOKIE['settings'])){
 			$settings = json_decode($_COOKIE['settings'], true);
 			if (isset($settings[$item])){
-				if ($settings[$item] == $match){
+				if ($settings[$item] === $match){
 					return true;
-				} else if ($match === ''){ // === にしないとbool値が '' と判断されることが…
+				} else if ($match === null){ // === にしないとおかしくなることが
 					return $settings[$item];
 				} else {
 					return false;
@@ -216,8 +217,9 @@
 			} else {
 				return false;
 			}
+		// Cookie が存在しない
 		} else {
-			return false;
+			return $default; // default に指定した値を返す
 		}
 	}
 
@@ -537,7 +539,6 @@
 				if ($value === $value2){
 					unset($BonDriver_dll_raw[$key]);
 				}
-
 			}
 			foreach ($BonDriver_dll_SPHD as $key2 => $value2) {
 				if ($value === $value2){
@@ -568,7 +569,6 @@
 			glob($BonDriver_dir.'[bB]on[dD]river_*-[sS][0-9]*.ch2')
 		);
 
-		// スカパー！用
 		$BonDriver_ch2_file_SPHD = array_merge(
 			glob($BonDriver_dir.'[bB]on[dD]river_*[phdPHD].ch2'),
 			glob($BonDriver_dir.'[bB]on[dD]river_*_[phdPHD][0-9]*.ch2'),
@@ -730,6 +730,7 @@
 				$onid_CS = array();
 				$tsid_CS = array();
 			}
+
 		} else {
 			$ch_S = array();
 			$ch_CS = array();
@@ -740,7 +741,7 @@
 			$tsid_S = array();
 			$tsid_CS = array();
 		}
-
+		
 		// スカパーのch2があれば
 		// スカパー用はないが無印ch2はある場合も含める（混合チューナー用）
 		if (!empty($BonDriver_ch2_file_SPHD) || empty($BonDriver_ch2_file_SPHD) && !empty($BonDriver_ch2_file_raw)){
