@@ -1,29 +1,29 @@
 <?php
 
-	// Shift-JISに
+	// Shift-JIS��
 	ini_set('default_charset', 'sjis-win');
 	
-	// べースフォルダ
+	// �ׁ[�X�t�H���_
 	$base_dir = rtrim(str_replace('\\','/',dirname(__FILE__)), '/');
 
-	// バージョン
+	// �o�[�W����
 	$version = file_get_contents(dirname(__FILE__).'/data/version.txt');
 
-	// Shift-JISのダメ文字対策
+	// Shift-JIS�̃_�������΍�
 	function sj_str($text) {
-		$str_arr = array('―\','ソ\','Ы\','Ⅸ\','噂\','浬\','欺\','圭\','構\','蚕\','十\','申\','曾\','箪\','貼\','能\','表\','暴\','予\',
-						'禄\','兔\','喀\','媾\','彌\','拿\','杤\','歃\','濬\','畚\','秉\','綵\','臀\','藹\','觸\','軆\','鐔\','饅\','鷭\', "");
+		$str_arr = array('�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\',
+						'�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\','�\\', "");
 		$text = str_replace("\\\\", "\\", $text);
 		for ($i = 0; $str_arr[$i] != ""; $i++) {
-			$text = str_replace($str_arr[$i] . "\\", mb_substr($str_arr[$i], 0, 1), $text); // 先に\がついていたら消して
-			$text = str_replace($str_arr[$i], $str_arr[$i] . "\\", $text); // \つける
+			$text = str_replace($str_arr[$i] . "\\", mb_substr($str_arr[$i], 0, 1), $text); // ���\�����Ă����������
+			$text = str_replace($str_arr[$i], $str_arr[$i] . "\\", $text); // \����
 		}
 		return $text;
 	}
 	
-	// ' // ←エディタの表示がおかしくなる現象への対策
+	// ' // ���G�f�B�^�̕\�������������Ȃ錻�ۂւ̑΍�
 
-	// フォルダコピー関数
+	// �t�H���_�R�s�[�֐�
 	function dir_copy($dir_name, $new_dir){
 
 		if (!is_dir($dir_name)) {
@@ -52,77 +52,77 @@
 		return true;
 	}
 
-	// フォルダがない場合にのみディレクトリを作成する
+	// �t�H���_���Ȃ��ꍇ�ɂ̂݃f�B���N�g�����쐬����
 	function if_mkdir($mkdir){
 		global $serverroot;
 		if (!file_exists($serverroot.$mkdir)){
 			mkdir($serverroot.$mkdir);
-			echo '    フォルダ '.$serverroot.$mkdir.' を作成しました。'."\n";
+			echo '    �t�H���_ '.$serverroot.$mkdir.' ���쐬���܂����B'."\n";
 			echo "\n";
 		}
 	}
 
-	// コピー
+	// �R�s�[
 	function if_copy($copy, $flg = false){
 		global $base_dir, $serverroot;
 		if (!file_exists($serverroot.$copy) or $flg == true){
 			dir_copy($base_dir.$copy, $serverroot.$copy);
-			echo '    '.$base_dir.$copy.' を'."\n";
-			echo '    '.$serverroot.$copy.' にコピーしました。'."\n";
+			echo '    '.$base_dir.$copy.' ��'."\n";
+			echo '    '.$serverroot.$copy.' �ɃR�s�[���܂����B'."\n";
 			echo "\n";
 		}
 	}
 
-	// 出力
+	// �o��
 	echo "\n";
 	echo '  -------------------------------------------------------------------'."\n";
-	echo '                    TVRemotePlus '.$version.' インストーラー'."\n";
+	echo '                    TVRemotePlus '.$version.' �C���X�g�[���['."\n";
 	echo '  -------------------------------------------------------------------'."\n";
 	echo "\n";
-	echo '    TVRemotePlus のセットアップを行うインストーラーです。'."\n";
-	echo '    途中でキャンセルする場合はそのままウインドウを閉じてください。'."\n";
+	echo '    TVRemotePlus �̃Z�b�g�A�b�v���s���C���X�g�[���[�ł��B'."\n";
+	echo '    �r���ŃL�����Z������ꍇ�͂��̂܂܃E�C���h�E����Ă��������B'."\n";
 	echo "\n";
 	echo '  -------------------------------------------------------------------'."\n";
 
 	echo "\n";
-	echo '    1. TVRemotePlus をインストールするフォルダを指定します。'."\n";
+	echo '    1. TVRemotePlus ���C���X�g�[������t�H���_���w�肵�܂��B'."\n";
 	echo "\n";
-	echo '      フォルダをドラッグ&ドロップするか、フォルダパスを入力してください。'."\n";
-	echo '      なお、Users・Program Files 以下と、日本語(全角)が含まれるパス、'."\n";
-	echo '      半角スペースを含むパスは正常に動作しなくなる原因となるため、避けてください。'."\n";
+	echo '      �t�H���_���h���b�O&�h���b�v���邩�A�t�H���_�p�X����͂��Ă��������B'."\n";
+	echo '      �Ȃ��AUsers�EProgram Files �ȉ��ƁA���{��(�S�p)���܂܂��p�X�A'."\n";
+	echo '      ���p�X�y�[�X���܂ރp�X�͐���ɓ��삵�Ȃ��Ȃ錴���ƂȂ邽�߁A�����Ă��������B'."\n";
 	echo "\n";
-	echo '      インストールするフォルダ：';
-	// TVRemotePlusをインストールするフォルダ
+	echo '      �C���X�g�[������t�H���_�F';
+	// TVRemotePlus���C���X�g�[������t�H���_
 	$serverroot = trim(fgets(STDIN));
 	$serverroot = str_replace('"', '', $serverroot);
 	echo "\n";
-	// 空だったら
+	// �󂾂�����
 	if (empty($serverroot)){
 		while(empty($serverroot)){
-			echo '     入力欄が空です。もう一度入力してください。'."\n";
+			echo '     ���͗�����ł��B������x���͂��Ă��������B'."\n";
 			echo "\n";
-			echo '     インストールするフォルダ：';
+			echo '     �C���X�g�[������t�H���_�F';
 			$serverroot = trim(fgets(STDIN));
 			$serverroot = str_replace('"', '', $serverroot);
 			echo "\n";
 		}
 	}
-	// 置換
+	// �u��
 	$serverroot = str_replace('\\', '/', $serverroot);
 	$serverroot = rtrim($serverroot, '/');
 
-	// フォルダが存在する場合アップデート
+	// �t�H���_�����݂���ꍇ�A�b�v�f�[�g
 	if (file_exists($serverroot) and file_exists($serverroot.'/config.php')){
-		echo '      既に指定されたフォルダにインストールされていると判定しました。'."\n";
-		echo '      アップデートモードでインストールします。'."\n";
-		echo '      このままアップデートモードでインストールするには 1 を、'."\n";
-		echo '      全て新規インストールする場合は 2 を入力してください。'."\n";
+		echo '      ���Ɏw�肳�ꂽ�t�H���_�ɃC���X�g�[������Ă���Ɣ��肵�܂����B'."\n";
+		echo '      �A�b�v�f�[�g���[�h�ŃC���X�g�[�����܂��B'."\n";
+		echo '      ���̂܂܃A�b�v�f�[�g���[�h�ŃC���X�g�[������ɂ� 1 ���A'."\n";
+		echo '      �S�ĐV�K�C���X�g�[������ꍇ�� 2 ����͂��Ă��������B'."\n";
 		echo "\n";
-		echo '      Enter キーで次に進む場合、自動でアップデートモードを選択します。'."\n";
+		echo '      Enter �L�[�Ŏ��ɐi�ޏꍇ�A�����ŃA�b�v�f�[�g���[�h��I�����܂��B'."\n";
 		echo "\n";
-		echo '      インストールモード：';
+		echo '      �C���X�g�[�����[�h�F';
 		$update_flg = trim(fgets(STDIN));
-		// 判定
+		// ����
 		if ($update_flg == 2) $update = false;
 		else $update = true;
 		echo "\n";
@@ -131,130 +131,130 @@
 	}
 
 
-	// 新規インストールの場合はIPとポートを訊く
+	// �V�K�C���X�g�[���̏ꍇ��IP�ƃ|�[�g��u��
 	if ($update === false){
-		echo '    2. TVRemotePlus をインストールする PC の、ローカル IP アドレスを入力してください。'."\n";
+		echo '    2. TVRemotePlus ���C���X�g�[������ PC �́A���[�J�� IP �A�h���X����͂��Ă��������B'."\n";
 		echo "\n";
-		echo '      ローカル IP アドレスは、通常 192.168.x.xx のような形式の家の中用の IP アドレスです。'."\n";
-		echo '      インストーラーで検知したローカル IP アドレスは '.getHostByName(getHostName()).' です。'."\n";
-		echo '      判定が間違っている場合もあります (VPN 等を使っていて複数の仮想デバイスがある場合など)'."\n";
-		echo '      その場合、メインで利用しているローカル IP アドレスを ipconfig で調べ、入力してください。'."\n";
+		echo '      ���[�J�� IP �A�h���X�́A�ʏ� 192.168.x.xx �̂悤�Ȍ`���̉Ƃ̒��p�� IP �A�h���X�ł��B'."\n";
+		echo '      �C���X�g�[���[�Ō��m�������[�J�� IP �A�h���X�� '.getHostByName(getHostName()).' �ł��B'."\n";
+		echo '      ���肪�Ԉ���Ă���ꍇ������܂� (VPN �����g���Ă��ĕ����̉��z�f�o�C�X������ꍇ�Ȃ�)'."\n";
+		echo '      ���̏ꍇ�A���C���ŗ��p���Ă��郍�[�J�� IP �A�h���X�� ipconfig �Œ��ׁA���͂��Ă��������B'."\n";
 		echo "\n";
-		echo '      よくわからない場合は、Enter キーを押し、次に進んでください。'."\n";
+		echo '      �悭�킩��Ȃ��ꍇ�́AEnter �L�[�������A���ɐi��ł��������B'."\n";
 		echo "\n";
-		echo '      ローカル IP アドレス：';
-		// TVRemotePlusを稼働させるPC(サーバー)のローカルLAN内IP
+		echo '      ���[�J�� IP �A�h���X�F';
+		// TVRemotePlus���ғ�������PC(�T�[�o�[)�̃��[�J��LAN��IP
 		$serverip = trim(fgets(STDIN));
-		// 空だったら
+		// �󂾂�����
 		if (empty($serverip)){
 			$serverip = getHostByName(getHostName());
 		}
 		echo "\n";
 
-		echo '    3. 必要な場合、TVRemotePlus が利用するポートを設定してください。'."\n";
+		echo '    3. �K�v�ȏꍇ�ATVRemotePlus �����p����|�[�g��ݒ肵�Ă��������B'."\n";
 		echo "\n";
-		echo '      通常は、ブラウザの URL 欄から http://'.$serverip.':8000 でアクセスできます。'."\n";
-		echo '      この 8000 の番号を変えたい場合は、ポート番号を入力してください。'."\n";
-		echo '      HTTPS 接続時はポート番号が ここで設定した番号 + 100 になります。'."\n";
+		echo '      �ʏ�́A�u���E�U�� URL ������ http://'.$serverip.':8000 �ŃA�N�Z�X�ł��܂��B'."\n";
+		echo '      ���� 8000 �̔ԍ���ς������ꍇ�́A�|�[�g�ԍ�����͂��Ă��������B'."\n";
+		echo '      HTTPS �ڑ����̓|�[�g�ԍ��� �����Őݒ肵���ԍ� + 100 �ɂȂ�܂��B'."\n";
 		echo "\n";
-		echo '      よくわからない場合は、Enter キーを押し、次に進んでください。'."\n";
+		echo '      �悭�킩��Ȃ��ꍇ�́AEnter �L�[�������A���ɐi��ł��������B'."\n";
 		echo "\n";
-		echo '      利用ポート番号：';
-		// TVRemotePlusを稼働させるポート
+		echo '      ���p�|�[�g�ԍ��F';
+		// TVRemotePlus���ғ�������|�[�g
 		$http_port = trim(fgets(STDIN));
-		// 空だったら
+		// �󂾂�����
 		if (empty($http_port)){
 			$http_port = 8000;
 		}
-		$https_port = $http_port + 100; // SSL用ポート
+		$https_port = $http_port + 100; // SSL�p�|�[�g
 		echo "\n";
 
-		echo '    4. お使いの TVTest の BonDriver は 32bit ですか？ 64bit ですか？'."\n";
+		echo '    4. ���g���� TVTest �� BonDriver �� 32bit �ł����H 64bit �ł����H'."\n";
 		echo "\n";
-		echo '      32bit の場合は 1 、64bit の場合は 2 と入力してください。'."\n";
-		echo '      この設定で 32bit 版・64bit 版どちらの TSTask を使うかが決まります。'."\n";
-		echo '      インストール終了後、お使いの TVTest の BonDriver と ch2 ファイルを'."\n";
-		echo '      '.$serverroot.'/bin/TSTask/BonDriver/ にコピーしてください。'."\n";
+		echo '      32bit �̏ꍇ�� 1 �A64bit �̏ꍇ�� 2 �Ɠ��͂��Ă��������B'."\n";
+		echo '      ���̐ݒ�� 32bit �ŁE64bit �łǂ���� TSTask ���g���������܂�܂��B'."\n";
+		echo '      �C���X�g�[���I����A���g���� TVTest �� BonDriver �� ch2 �t�@�C����'."\n";
+		echo '      '.$serverroot.'/bin/TSTask/BonDriver/ �ɃR�s�[���Ă��������B'."\n";
 		echo "\n";
-		echo '      Enter キーで次に進む場合、自動で 32bit の TSTask を選択します。'."\n";
+		echo '      Enter �L�[�Ŏ��ɐi�ޏꍇ�A������ 32bit �� TSTask ��I�����܂��B'."\n";
 		echo "\n";
-		echo '      TVTest の BonDriver：';
-		// TVTestのBonDriver
+		echo '      TVTest �� BonDriver�F';
+		// TVTest��BonDriver
 		$bondriver = trim(fgets(STDIN));
-		// 判定
+		// ����
 		if ($bondriver != 2) $bondriver = 1;
 		echo "\n";
 
-		echo '    5. EDCB Material WebUI (EMWUI) の API がある URL を入力してください。'."\n";
+		echo '    5. EDCB Material WebUI (EMWUI) �� API ������ URL ����͂��Ă��������B'."\n";
 		echo "\n";
-		echo '      通常は http://(EDCBのあるPCのIPアドレス):5510/api/ になっています。'."\n";
-		echo '      EDCB Material WebUI のポートやフォルダ構成を変更していたり、'."\n";
-		echo '      EDCB が別の PC に入っている場合は、適宜設定を変更してください。'."\n";
+		echo '      �ʏ�� http://(EDCB�̂���PC��IP�A�h���X):5510/api/ �ɂȂ��Ă��܂��B'."\n";
+		echo '      EDCB Material WebUI �̃|�[�g��t�H���_�\����ύX���Ă�����A'."\n";
+		echo '      EDCB ���ʂ� PC �ɓ����Ă���ꍇ�́A�K�X�ݒ��ύX���Ă��������B'."\n";
 		echo "\n";
-		echo '      Enter キーで次に進む場合、同じ PC に EDCB が導入されていると仮定し、'."\n";
-		echo '      自動で http://'.$serverip.':5510/api/ に設定します。'."\n";
-		echo '      この設定は ≡ サイドメニュー → 設定 → 環境設定 からも変更できます。'."\n";
+		echo '      Enter �L�[�Ŏ��ɐi�ޏꍇ�A���� PC �� EDCB ����������Ă���Ɖ��肵�A'."\n";
+		echo '      ������ http://'.$serverip.':5510/api/ �ɐݒ肵�܂��B'."\n";
+		echo '      ���̐ݒ�� �� �T�C�h���j���[ �� �ݒ� �� ���ݒ� ������ύX�ł��܂��B'."\n";
 		echo "\n";
-		echo '      EMWUI の API がある URL：';
-		// TVTestのBonDriver
+		echo '      EMWUI �� API ������ URL�F';
+		// TVTest��BonDriver
 		$EDCB_http_url = trim(fgets(STDIN));
-		// 判定
+		// ����
 		if (empty($EDCB_http_url)){
 			$EDCB_http_url = 'http://'.$serverip.':5510/api/';
 		}
 		echo "\n";
 
-		echo '    6. 録画ファイルのあるフォルダを指定します。'."\n";
+		echo '    6. �^��t�@�C���̂���t�H���_���w�肵�܂��B'."\n";
 		echo "\n";
-		echo '      フォルダをドラッグ&ドロップするか、フォルダパスを入力してください。'."\n";
-		echo '      なお、特殊なパス (UNCパス等) の場合、正常に動作しない可能性があります。'."\n";
+		echo '      �t�H���_���h���b�O&�h���b�v���邩�A�t�H���_�p�X����͂��Ă��������B'."\n";
+		echo '      �Ȃ��A����ȃp�X (UNC�p�X��) �̏ꍇ�A����ɓ��삵�Ȃ��\��������܂��B'."\n";
 		echo "\n";
-		echo '      この設定は ≡ サイドメニュー → 設定 → 環境設定 からも変更できます。'."\n";
+		echo '      ���̐ݒ�� �� �T�C�h���j���[ �� �ݒ� �� ���ݒ� ������ύX�ł��܂��B'."\n";
 		echo "\n";
-		echo '      録画ファイルのあるフォルダ：';
-		// 録画ファイルのあるフォルダ
+		echo '      �^��t�@�C���̂���t�H���_�F';
+		// �^��t�@�C���̂���t�H���_
 		$TSfile_dir = trim(fgets(STDIN));
 		$TSfile_dir = str_replace('"', '', $TSfile_dir);
 		echo "\n";
-		// 空だったら
+		// �󂾂�����
 		if (empty($TSfile_dir)){
 			while(empty($TSfile_dir)){
-				echo '      入力欄が空です。もう一度入力してください。'."\n";
+				echo '      ���͗�����ł��B������x���͂��Ă��������B'."\n";
 				echo "\n";
-				echo '      録画ファイルのあるフォルダ：';
+				echo '      �^��t�@�C���̂���t�H���_�F';
 				$TSfile_dir = trim(fgets(STDIN));
 				$TSfile_dir = str_replace('"', '', $TSfile_dir);
 				echo "\n";
 			}
 		}
-		// フォルダがなかったら
+		// �t�H���_���Ȃ�������
 		if (!file_exists($TSfile_dir)){
 			while(!file_exists($TSfile_dir)){
-				echo '      フォルダが存在しません。もう一度入力してください。'."\n";
+				echo '      �t�H���_�����݂��܂���B������x���͂��Ă��������B'."\n";
 				echo "\n";
-				echo '      録画ファイルのあるフォルダ：';
+				echo '      �^��t�@�C���̂���t�H���_�F';
 				$TSfile_dir = trim(fgets(STDIN));
 				$TSfile_dir = str_replace('"', '', $TSfile_dir);
 				echo "\n";
 			}
 		}
-		// 置換
+		// �u��
 		$TSfile_dir = str_replace('\\', '/', $TSfile_dir);
 		$TSfile_dir = rtrim($TSfile_dir, '/').'/';
 	}
 
 	echo '  -------------------------------------------------------------------'."\n";
 	echo "\n";
-	echo '    インストールを開始します。'."\n";
+	echo '    �C���X�g�[�����J�n���܂��B'."\n";
 	echo "\n";
 	echo '  -------------------------------------------------------------------'."\n";
 	echo "\n";
-	echo '    TVRemotePlus をインストールしています…'."\n";
+	echo '    TVRemotePlus ���C���X�g�[�����Ă��܂��c'."\n";
 	echo "\n";
 
-	sleep(1); // 1秒
+	sleep(1); // 1�b
 
-	// フォルダを作る
+	// �t�H���_�����
 	if_mkdir('/');
 	if_copy ('/config.default.php', true);
 	if_copy ('/createcert.bat', true);
@@ -268,28 +268,28 @@
 	if_copy ('/logs', true);
 	if_copy ('/modules', true);
 
-	// 設定ファイル
+	// �ݒ�t�@�C��
 	$tvrp_conf_file = $serverroot.'/config.php';
 	$tvrp_default_file = $serverroot.'/config.default.php';
 
-	// 新規インストールのみの処理
+	// �V�K�C���X�g�[���݂̂̏���
 	if ($update === false){
 
-		// Apache の設定ファイル
+		// Apache �̐ݒ�t�@�C��
 		$httpd_conf_file = $serverroot.'/bin/Apache/conf/httpd.conf';
 		$httpd_default_file = $serverroot.'/bin/Apache/conf/httpd.default.conf';
-		// PHP の設定ファイル
+		// PHP �̐ݒ�t�@�C��
 		$php_ini_file = $serverroot.'/bin/PHP/php.ini';
 		$php_default_file = $serverroot.'/bin/PHP/php.default.ini';
 
-		// config.default.php を config.php にコピー
+		// config.default.php �� config.php �ɃR�s�[
 		copy($tvrp_default_file, $tvrp_conf_file);
-		// httpd.default.conf を httpd.conf にコピー
+		// httpd.default.conf �� httpd.conf �ɃR�s�[
 		copy($httpd_default_file, $httpd_conf_file);
-		// php.default.ini を php.ini にコピー
+		// php.default.ini �� php.ini �ɃR�s�[
 		copy($php_default_file, $php_ini_file);
 		
-		// TSTask のコピー
+		// TSTask �̃R�s�[
 		if ($bondriver == 2){
 			copy($serverroot.'/bin/TSTask/64bit/BonDriver_TSTask.dll', $serverroot.'/bin/TSTask/BonDriver_TSTask.dll');
 			copy($serverroot.'/bin/TSTask/64bit/TSTask.exe', $serverroot.'/bin/TSTask/TSTask-tvrp.exe');
@@ -302,39 +302,39 @@
 			copy($serverroot.'/bin/TSTask/32bit/TSTaskCentre.exe', $serverroot.'/bin/TSTask/TSTaskCentre-tvrp.exe');
 		}
 
-		// 状態設定ファイルを初期化
+		// ��Ԑݒ�t�@�C����������
 		$jsonfile = $serverroot.'/data/settings.json';
 		$json['1']['state'] = 'Offline';
 		$json['1']['channel'] = '0';
 		if (!file_exists($jsonfile)) file_put_contents($jsonfile, json_encode($json, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT));
 
-		// TVRemotePlus の設定ファイル
+		// TVRemotePlus �̐ݒ�t�@�C��
 		$tvrp_conf = file_get_contents($tvrp_conf_file);
-		// 置換
+		// �u��
 		$tvrp_conf = preg_replace('/^\$EDCB_http_url =.*/m', '$EDCB_http_url = \''.mb_convert_encoding($EDCB_http_url, 'UTF-8', 'SJIS, SJIS-WIN').'\';', $tvrp_conf);
 		$tvrp_conf = preg_replace('/^\$TSfile_dir =.*/m', '$TSfile_dir = \''.mb_convert_encoding($TSfile_dir, 'UTF-8', 'SJIS, SJIS-WIN').'\';', $tvrp_conf);
-		// 書き込み
+		// ��������
 		file_put_contents($tvrp_conf_file, $tvrp_conf);
 
-		// Apache の設定ファイル
+		// Apache �̐ݒ�t�@�C��
 		$httpd_conf = file_get_contents($httpd_conf_file);
-		// 置換
+		// �u��
 		$httpd_conf = preg_replace("/Define SRVROOT.*/", 'Define SRVROOT "'.$serverroot.'"', $httpd_conf);
 		$httpd_conf = preg_replace("/Define SRVIP.*/", 'Define SRVIP "'.$serverip.'"', $httpd_conf);
 		$httpd_conf = preg_replace("/Define HTTP_PORT.*/", 'Define HTTP_PORT "'.$http_port.'"', $httpd_conf);
 		$httpd_conf = preg_replace("/Define HTTPS_PORT.*/", 'Define HTTPS_PORT "'.$https_port.'"', $httpd_conf);
-		// 書き込み
+		// ��������
 		file_put_contents($httpd_conf_file, $httpd_conf);
 
-		// PHP の設定ファイル
+		// PHP �̐ݒ�t�@�C��
 		$php_ini = file_get_contents($php_ini_file);
-		// 置換
+		// �u��
 		$php_ini = preg_replace('/^extension_dir =.*/m', 'extension_dir = "'.mb_convert_encoding($serverroot.'/bin/PHP/ext/', 'UTF-8', 'SJIS, SJIS-WIN').'"', $php_ini);
-		// 書き込み
+		// ��������
 		file_put_contents($php_ini_file, $php_ini);
 
-		// HTTPS 接続用オレオレ証明書の作成
-		echo '    HTTPS 接続用の自己署名証明書を作成します。'."\n";
+		// HTTPS �ڑ��p�I���I���ؖ����̍쐬
+		echo '    HTTPS �ڑ��p�̎��ȏ����ؖ������쐬���܂��B'."\n";
 		echo "\n";
 		echo '  -------------------------------------------------------------------'."\n";
 		echo "\n";
@@ -349,17 +349,17 @@
 		echo '  -------------------------------------------------------------------'."\n";
 		echo "\n";
 		if ($return1 == 0){
-			echo '    自己署名証明書を正常に作成しました。'."\n";
+			echo '    ���ȏ����ؖ����𐳏�ɍ쐬���܂����B'."\n";
 		} else {
-			echo '    自己署名証明書の作成に失敗しました…'."\n\n";
-			echo '    自己署名証明書が正常に作成されていない場合、Apache の起動に失敗します。'."\n";
-			echo '    インストール先にコピーされている createcert.bat を実行して自己署名証明書を作成するか、'."\n";
-			echo '    再インストールし、'.$serverroot.'/bin/Apache/conf/ に server.crt と server.key'."\n";
-			echo '    が作成されていることを確認してから TVRemotePlus を起動してください。'."\n";
+			echo '    ���ȏ����ؖ����̍쐬�Ɏ��s���܂����c'."\n\n";
+			echo '    ���ȏ����ؖ���������ɍ쐬����Ă��Ȃ��ꍇ�AApache �̋N���Ɏ��s���܂��B'."\n";
+			echo '    �C���X�g�[����ɃR�s�[����Ă��� createcert.bat �����s���Ď��ȏ����ؖ������쐬���邩�A'."\n";
+			echo '    �ăC���X�g�[�����A'.$serverroot.'/bin/Apache/conf/ �� server.crt �� server.key'."\n";
+			echo '    ���쐬����Ă��邱�Ƃ��m�F���Ă��� TVRemotePlus ���N�����Ă��������B'."\n";
 		}
 
-		// ショートカット作成
-		// 既にショートカットがある場合は上書きしないようショートカット名を変える
+		// �V���[�g�J�b�g�쐬
+		// ���ɃV���[�g�J�b�g������ꍇ�͏㏑�����Ȃ��悤�V���[�g�J�b�g����ς���
 		if (file_exists(getenv('USERPROFILE').'\Desktop\TVRemotePlus - launch.lnk')){
 			$shortcut_file = '\Desktop\TVRemotePlus - launch (1).lnk';
 			$shortcut_count = 1;
@@ -380,21 +380,21 @@
 					  '$lnk.Save()';
 		exec('powershell -Command "'.$powershell.'"', $opt2, $return2);
 		echo "\n";
-		if ($return2 == 0) echo '    ショートカットを作成しました。'."\n";
-		else echo '    ショートカットの作成に失敗しました…'."\n";
+		if ($return2 == 0) echo '    �V���[�g�J�b�g���쐬���܂����B'."\n";
+		else echo '    �V���[�g�J�b�g�̍쐬�Ɏ��s���܂����c'."\n";
 		
 		echo "\n";
 
-	// アップデート処理
+	// �A�b�v�f�[�g����
 	} else {
 
-		// 古い設定ファイルを読み込む
+		// �Â��ݒ�t�@�C����ǂݍ���
 		require_once ($tvrp_conf_file);
 
-		// config.default.php を config.php にコピー
+		// config.default.php �� config.php �ɃR�s�[
 		copy($tvrp_default_file, $tvrp_conf_file);
 
-		// 設定を配列に格納
+		// �ݒ��z��Ɋi�[
 		@$config['quality_default'] = $quality_default;
 		@$config['encoder_default'] = $encoder_default;
 		@$config['BonDriver_default_T'] = $BonDriver_default_T;
@@ -431,58 +431,58 @@
 		@$config['hlslive_list'] = $hlslive_list;
 
 
-		// 新しくコピーした設定ファイルに以前の設定をインポートする
+		// �V�����R�s�[�����ݒ�t�@�C���ɈȑO�̐ݒ���C���|�[�g����
 		$tvrp_conf = file_get_contents($tvrp_conf_file);
 
 		foreach ($config as $key => $value) {
 
-			// 空でなければ
+			// ��łȂ����
 			if (!empty($value)){
 
-				// シングルクォーテーションを取る（セキュリティ対策）
+				// �V���O���N�H�[�e�[�V���������i�Z�L�����e�B�΍�j
 				$value = str_replace('\'', '', $value);
 
-				// 数値化できるものは数値に変換しておく
+				// ���l���ł�����̂͐��l�ɕϊ����Ă���
 				if (is_numeric($value) and mb_substr($value, 0, 1) != '0'){
 					$set = intval($value);
 				} else {
 					$set = '\''.strval($value).'\'';
 				}
 
-				// バックスラッシュ(\)を見つけたらスラッシュに変換
+				// �o�b�N�X���b�V��(\)����������X���b�V���ɕϊ�
 				if (strpos($set, '\\') !== false){
 					$set = str_replace('\\', '/', $set);
 				}
 				
-				// config.php を書き換え
-				$tvrp_conf = preg_replace("/^\\$$key =.*;/m", '$'.$key.' = '.$set.';', $tvrp_conf); // 置換
+				// config.php ����������
+				$tvrp_conf = preg_replace("/^\\$$key =.*;/m", '$'.$key.' = '.$set.';', $tvrp_conf); // �u��
 				
 			}
 		}
 
-		file_put_contents($tvrp_conf_file, $tvrp_conf); // 書き込み
+		file_put_contents($tvrp_conf_file, $tvrp_conf); // ��������
 	}
 
 	echo '  -------------------------------------------------------------------'."\n";
 	echo "\n";
-	echo '    インストールを完了しました。'."\n";
+	echo '    �C���X�g�[�����������܂����B'."\n";
 	echo "\n";
-	sleep(1); // 1秒
+	sleep(1); // 1�b
 
-	// 新規インストールのみの処理
+	// �V�K�C���X�g�[���݂̂̏���
 	if ($update === false){
-		echo '    セットアップはまだ終わっていません。'."\n\n";
-		echo '    BonDriver と TVTest のチャンネル設定ファイル (.ch2) は '."\n";
-		echo '    '.$serverroot .'/bin/TSTask/BonDriver/ に忘れずに入れてください。'."\n\n";
-		echo '    終わったら、デスクトップのショートカットから TVRemotePlus を起動し、'."\n";
-		echo '    ブラウザから http://'.$serverip.':'.$http_port.'/ へアクセスします。'."\n";
-		echo '    その後、≡ サイドメニュー → 設定 → 環境設定 から必要な箇所を設定してください。'."\n\n";
-		echo '    PWA 機能を使用する場合は、設定ページからダウンロードできる自己署名証明書を'."\n";
-		echo '    あらかじめ端末にインストールした上で、 https://'.$serverip.':'.$https_port.'/ にアクセスしてください。'."\n";
+		echo '    �Z�b�g�A�b�v�͂܂��I����Ă��܂���B'."\n\n";
+		echo '    BonDriver �� TVTest �̃`�����l���ݒ�t�@�C�� (.ch2) �� '."\n";
+		echo '    '.$serverroot .'/bin/TSTask/BonDriver/ �ɖY�ꂸ�ɓ���Ă��������B'."\n\n";
+		echo '    �I�������A�f�X�N�g�b�v�̃V���[�g�J�b�g���� TVRemotePlus ���N�����A'."\n";
+		echo '    �u���E�U���� http://'.$serverip.':'.$http_port.'/ �փA�N�Z�X���܂��B'."\n";
+		echo '    ���̌�A�� �T�C�h���j���[ �� �ݒ� �� ���ݒ� ����K�v�ȉӏ���ݒ肵�Ă��������B'."\n\n";
+		echo '    PWA �@�\���g�p����ꍇ�́A�ݒ�y�[�W����_�E�����[�h�ł��鎩�ȏ����ؖ�����'."\n";
+		echo '    ���炩���ߒ[���ɃC���X�g�[��������ŁA https://'.$serverip.':'.$https_port.'/ �ɃA�N�Z�X���Ă��������B'."\n";
 		echo "\n";
 	}
 
-	echo '    終了するには何かキーを押してください。'."\n";
+	echo '    �I������ɂ͉����L�[�������Ă��������B'."\n";
 	echo "\n";
 	echo '  -------------------------------------------------------------------'."\n";
 	echo "\n";
