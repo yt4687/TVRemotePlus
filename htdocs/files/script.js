@@ -1,4 +1,4 @@
-  $(function(){
+    $(function(){
 
     // 生放送・ファイル再生共通
 
@@ -8,7 +8,7 @@
     setInterval(clock, 1000);
 
     // 最初に実行
-    if (Cookies.get('twitter')){
+    if (Cookies.get('twitter_session')){
       $('#tweet-status').html('<a id="tweet-logout" href="javascript:void(0)"><i class="fas fa-sign-out-alt"></i>ログアウト</a>');
     } else {
       $('#tweet-status').html('<a id="tweet-login" href="/tweet/auth"><i class="fas fa-sign-in-alt"></i>ログイン</a>');
@@ -342,17 +342,28 @@
       $('#broadcast-stream-title').html($elem.data('channel') + ' ' + $elem.data('name'));
       $('#broadcast-stream-info').html($elem.find('.broadcast-title-id').html());
       $('#broadcast-stream-channel').val($elem.data('ch'));
-      // 地デジ・BSCS判定
-      if ($('.swiper-slide-thumb-active').text() == '地デジ'){
+      // 地デジ・BSCS・スカパー！判定
+    if ($('.swiper-slide-thumb-active').text() == '地デジ'){
         $('#broadcast-BonDriver-T').show();
         $('#broadcast-BonDriver-T').find('select').prop('disabled', false);
         $('#broadcast-BonDriver-S').hide();
         $('#broadcast-BonDriver-S').find('select').prop('disabled', true);
+        $('#broadcast-BonDriver-SPHD').hide();
+        $('#broadcast-BonDriver-SPHD').find('select').prop('disabled', true);
+      } else if ($('.swiper-slide-thumb-active').text() == 'スカパー！'){
+        $('#broadcast-BonDriver-SPHD').show();
+        $('#broadcast-BonDriver-SPHD').find('select').prop('disabled', false);
+        $('#broadcast-BonDriver-S').hide();
+        $('#broadcast-BonDriver-S').find('select').prop('disabled', true);
+        $('#broadcast-BonDriver-T').hide();
+        $('#broadcast-BonDriver-T').find('select').prop('disabled', true);
       } else {
         $('#broadcast-BonDriver-S').show();
         $('#broadcast-BonDriver-S').find('select').prop('disabled', false);
         $('#broadcast-BonDriver-T').hide();
         $('#broadcast-BonDriver-T').find('select').prop('disabled', true);
+        $('#broadcast-BonDriver-SPHD').hide();
+        $('#broadcast-BonDriver-SPHD').find('select').prop('disabled', true);
       }
       // 開閉
       $('#nav-close').addClass('open');
@@ -369,6 +380,7 @@
     $('.bluebutton').click(function(){
       $('.bluebutton').addClass('disabled');
     });
+
 
     // キャンセル
     $('.redbutton').click(function(event){
@@ -671,7 +683,7 @@
             if (limit > 0){
               $('#tweet-submit').prop('disabled', false).removeClass('disabled');
             }
-            $('#tweet-status').html('キャプチャしました。');
+            $('#tweet-status').html('キャプチャした画像を選択しました。');
           }, 'image/jpeg', 1);
         });
 
@@ -686,7 +698,7 @@
             if (limit > 0){
               $('#tweet-submit').prop('disabled', false).removeClass('disabled');
             }
-            $('#tweet-status').html('キャプチャしました。');
+            $('#tweet-status').html('キャプチャした画像を選択しました。');
           }, 'image/jpeg', 1);
         });
 
@@ -739,7 +751,7 @@
           if (limit > 0){
             $('#tweet-submit').prop('disabled', false).removeClass('disabled');
           }
-          $('#tweet-status').html('コメント付きでキャプチャしました。');
+          $('#tweet-status').html('コメント付きでキャプチャした画像を選択しました。');
         }, "image/jpeg", 1);
       });
     }
@@ -1044,7 +1056,7 @@
       $('#tweet-file').val(null);
       $('#content-box').show();
       $('#footer').show();
-      if (Cookies.get('twitter')){
+      if (Cookies.get('twitter_session')){
         $("#tweet-status").html('<a id="tweet-logout" href="javascript:void(0)"><i class="fas fa-sign-out-alt"></i>ログアウト</a>');
       } else {
         $("#tweet-status").html('<a id="tweet-login" href="/tweet/auth"><i class="fas fa-sign-in-alt"></i>ログイン</a>');
@@ -1092,4 +1104,5 @@
     }
 
   });
+
 
