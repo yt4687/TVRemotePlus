@@ -348,6 +348,8 @@
         $('#broadcast-BonDriver-T').find('select').prop('disabled', false);
         $('#broadcast-BonDriver-S').hide();
         $('#broadcast-BonDriver-S').find('select').prop('disabled', true);
+        $('#broadcast-BonDriver-SPHD').hide();
+        $('#broadcast-BonDriver-SPHD').find('select').prop('disabled', true);
       } else if ($('.swiper-slide-thumb-active').text() == 'スカパー！'){
         $('#broadcast-BonDriver-SPHD').show();
         $('#broadcast-BonDriver-SPHD').find('select').prop('disabled', false);
@@ -360,6 +362,8 @@
         $('#broadcast-BonDriver-S').find('select').prop('disabled', false);
         $('#broadcast-BonDriver-T').hide();
         $('#broadcast-BonDriver-T').find('select').prop('disabled', true);
+        $('#broadcast-BonDriver-SPHD').hide();
+        $('#broadcast-BonDriver-SPHD').find('select').prop('disabled', true);
       }
       // 開閉
       $('#nav-close').addClass('open');
