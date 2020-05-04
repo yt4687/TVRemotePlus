@@ -342,14 +342,12 @@
       $('#broadcast-stream-title').html($elem.data('channel') + ' ' + $elem.data('name'));
       $('#broadcast-stream-info').html($elem.find('.broadcast-title-id').html());
       $('#broadcast-stream-channel').val($elem.data('ch'));
-      // 地デジ・BSCS・スカパー！判定
-    if ($('.swiper-slide-thumb-active').text() == '地デジ'){
+      // 地デジ・BSCS判定
+      if ($('.swiper-slide-thumb-active').text() == '地デジ'){
         $('#broadcast-BonDriver-T').show();
         $('#broadcast-BonDriver-T').find('select').prop('disabled', false);
         $('#broadcast-BonDriver-S').hide();
         $('#broadcast-BonDriver-S').find('select').prop('disabled', true);
-        $('#broadcast-BonDriver-SPHD').hide();
-        $('#broadcast-BonDriver-SPHD').find('select').prop('disabled', true);
       } else if ($('.swiper-slide-thumb-active').text() == 'スカパー！'){
         $('#broadcast-BonDriver-SPHD').show();
         $('#broadcast-BonDriver-SPHD').find('select').prop('disabled', false);
@@ -362,8 +360,6 @@
         $('#broadcast-BonDriver-S').find('select').prop('disabled', false);
         $('#broadcast-BonDriver-T').hide();
         $('#broadcast-BonDriver-T').find('select').prop('disabled', true);
-        $('#broadcast-BonDriver-SPHD').hide();
-        $('#broadcast-BonDriver-SPHD').find('select').prop('disabled', true);
       }
       // 開閉
       $('#nav-close').addClass('open');
@@ -380,7 +376,6 @@
     $('.bluebutton').click(function(){
       $('.bluebutton').addClass('disabled');
     });
-
 
     // キャンセル
     $('.redbutton').click(function(event){

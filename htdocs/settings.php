@@ -46,7 +46,7 @@
 
 			// 一旦現在のストリームを終了する
 			// state に関わらず実行
-			stream_stop($stream);
+			stream_stop($stream, $false, $onid[$ini[$stream]['channel']]);
 
 			// File
 			if ($ini[$stream]['state'] == 'File'){
@@ -165,7 +165,7 @@
 				if (!isset($_POST['allstop'])){
 
 					// ストリームを終了
-					stream_stop($stream, $onid[$ini[$stream]['channel']]);
+					stream_stop($stream, $false ,$onid[$ini[$stream]['channel']]);
 
 					// Offline に設定する
 					$ini[$stream]['state'] = 'Offline';

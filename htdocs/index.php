@@ -359,7 +359,7 @@
                       <span class="broadcast-title-id">取得中です…</span>
                     </div>
                     <div class="broadcast-next">
-                      <span>00:00</span>
+                      <span">00:00</span>
                       <span>～</span>
                       <span>00:00</span>
                       <span>取得中です…</span>
@@ -378,7 +378,7 @@
             <nav class="broadcast-nav swiper-slide">
 <?php	foreach ($ch_S as $i => $value){ // BSchの数だけ繰り返す ?>
 <?php		$ch_S_channel = 'Ch: '.sprintf('%03d', $i); ?>
-              <div id="ch"<?php echo $i; ?> class="broadcast-wrap" data-ch="<?php echo $i; ?>"
+              <div id="ch<?php echo $i; ?>" class="broadcast-wrap" data-ch="<?php echo $i; ?>"
                     data-channel="<?php echo $ch_S_channel; ?>" data-name="<?php echo $value; ?>">
 
                 <div class="broadcast">
@@ -398,7 +398,7 @@
                       <span class="broadcast-title-id">取得中です…</span>
                     </div>
                     <div class="broadcast-next">
-                      <span>00:00</span>
+                      <span">00:00</span>
                       <span>～</span>
                       <span>00:00</span>
                       <span>取得中です…</span>
@@ -437,7 +437,7 @@
                       <span class="broadcast-title-id">取得中です…</span>
                     </div>
                     <div class="broadcast-next">
-                      <span>00:00</span>
+                      <span">00:00</span>
                       <span>～</span>
                       <span>00:00</span>
                       <span>取得中です…</span>
@@ -452,7 +452,6 @@
               </div>
 <?php	} //括弧終了 ?>
             </nav>
-
             <nav class="broadcast-nav swiper-slide">
 <?php	foreach ($ch_SPHD as $i => $value){ // スカパー！chの数だけ繰り返す ?>
 <?php		$ch_SPHD_channel = 'Ch: '.sprintf('%03d', $i); ?>
@@ -491,7 +490,6 @@
               </div>
 <?php	} //括弧終了 ?>
             </nav>
-
 
           </div>
         </div>
@@ -633,7 +631,6 @@
             </select>
           </div>
         </div>
-
 
         <div id="button-box" class="broadcast-button-box">
 <?php		if (!empty($BonDriver_dll) and !empty($ch)){ ?>

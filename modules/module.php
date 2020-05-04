@@ -503,17 +503,6 @@
 		}
 		if (!isset($BonDriver_dll_T)) $BonDriver_dll_T = array();
 
-		// BonDriver_dirからBSCS用BonDriverを検索
-		$search_S = array_merge(
-			glob($BonDriver_dir.'[bB]on[dD]river_*[sS].dll'),
-			glob($BonDriver_dir.'[bB]on[dD]river_*_[sS][0-9]*.dll'),
-			glob($BonDriver_dir.'[bB]on[dD]river_*-[sS][0-9]*.dll')
-		);
-		foreach ($search_S as $i => $file) {
-			$BonDriver_dll_S[$i] = str_replace($BonDriver_dir, '', $file);
-		}
-		if (!isset($BonDriver_dll_S)) $BonDriver_dll_S = array();
-
 		// BonDriver_dirからスカパー！用BonDriverを検索
 		$search_SPHD = array_merge(
 			glob($BonDriver_dir.'[bB]on[dD]river_*[phdPHD].dll'),
@@ -524,6 +513,17 @@
 			$BonDriver_dll_SPHD[$i] = str_replace($BonDriver_dir, '', $file);
 		}
 		if (!isset($BonDriver_dll_SPHD)) $BonDriver_dll_SPHD = array();
+
+		// BonDriver_dirからBSCS用BonDriverを検索
+		$search_S = array_merge(
+			glob($BonDriver_dir.'[bB]on[dD]river_*[sS].dll'),
+			glob($BonDriver_dir.'[bB]on[dD]river_*_[sS][0-9]*.dll'),
+			glob($BonDriver_dir.'[bB]on[dD]river_*-[sS][0-9]*.dll')
+		);
+		foreach ($search_S as $i => $file) {
+			$BonDriver_dll_S[$i] = str_replace($BonDriver_dir, '', $file);
+		}
+		if (!isset($BonDriver_dll_S)) $BonDriver_dll_S = array();
 
 		// 無印BonDriverを洗い出す
 		$BonDriver_dll_raw = $BonDriver_dll;
@@ -537,7 +537,6 @@
 				if ($value === $value2){
 					unset($BonDriver_dll_raw[$key]);
 				}
-
 			}
 			foreach ($BonDriver_dll_SPHD as $key2 => $value2) {
 				if ($value === $value2){
@@ -552,6 +551,7 @@
 		// 無印BonDriverを配列の末尾に足す
 		$BonDriver_dll_T = array_merge($BonDriver_dll_T, $BonDriver_dll_raw);
 		$BonDriver_dll_S = array_merge($BonDriver_dll_S, $BonDriver_dll_raw);
+		$BonDriver_dll_SPHD = array_merge($BonDriver_dll_SPHD, $BonDriver_dll_raw);
 
 		// ch2を検索する
 		// 地デジ用
@@ -574,6 +574,7 @@
 			glob($BonDriver_dir.'[bB]on[dD]river_*_[phdPHD][0-9]*.ch2'),
 			glob($BonDriver_dir.'[bB]on[dD]river_*-[phdPHD][0-9]*.ch2')
 		);
+
 
 		// その他（混合チューナー用）
 		$BonDriver_ch2_file_raw = glob($BonDriver_dir.'[bB]on[dD]river_*.ch2');
@@ -730,6 +731,7 @@
 				$onid_CS = array();
 				$tsid_CS = array();
 			}
+
 		} else {
 			$ch_S = array();
 			$ch_CS = array();

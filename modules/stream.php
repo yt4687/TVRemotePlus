@@ -742,7 +742,7 @@
 
 	// ストリームを終了する関数
 	// flgがtrueの場合は全てのストリームを終了する
-	function stream_stop($stream, $flg=false){
+	function stream_stop($stream, $flg=false, $onid){
 		global $inifile, $udp_port, $process_csv, $ffmpeg_exe, $qsvencc_exe, $nvencc_exe, $vceencc_exe, $tstask_exe, $tstask_SPHD_exe, $segment_folder, $TSTask_shutdown;
 
 		// 全てのストリームを終了する
@@ -820,26 +820,30 @@
 				}
 
 
-				// TSTask
-				if (strpos($value['CommandLine'], $tstask_exe) !== false and 
-				(@strpos($value['CommandLine'], strval($stream_port)) !== false) or (@strpos($value['CommandLine'], $filepath) !== false)){
-					if ($TSTask_shutdown == 'true'){ // 強制終了
-						win_exec('taskkill /F /PID '.$value['ProcessId']);
-					} else { // 通常終了
-						win_exec('taskkill /PID '.$value['ProcessId']);
-					}
-				}
+				if ($onid == 10 ){
 
-				// TSTask_SPHD
-				if (strpos($value['CommandLine'], $tstask_SPHD_exe) !== false and 
-				(@strpos($value['CommandLine'], strval($stream_port)) !== false) or (@strpos($value['CommandLine'], $filepath) !== false)){
-					if ($TSTask_shutdown == 'true'){ // 強制終了
-						win_exec('taskkill /F /PID '.$value['ProcessId']);
-					} else { // 通常終了
-						win_exec('taskkill /PID '.$value['ProcessId']);
+					// TSTask_SPHD
+					if (strpos($value['CommandLine'], $tstask_SPHD_exe) !== false and 
+					(@strpos($value['CommandLine'], strval($stream_port)) !== false) or (@strpos($value['CommandLine'], $filepath) !== false)){
+						if ($TSTask_shutdown == 'true'){ // 強制終了
+							win_exec('taskkill /F /PID '.$value['ProcessId']);
+						} else { // 通常終了
+							win_exec('taskkill /PID '.$value['ProcessId']);
+						}
+						// echo 'TSTask Killed. Stream: '.$stream.' Cmd:'.$value['CommandLine']."\n\n";
+					} 
+				} else {
+
+						// TSTask
+						if (strpos($value['CommandLine'], $tstask_exe) !== false and 
+						(@strpos($value['CommandLine'], strval($stream_port)) !== false) or (@strpos($value['CommandLine'], $filepath) !== false)){
+							if ($TSTask_shutdown == 'true'){ // 強制終了
+								win_exec('taskkill /F /PID '.$value['ProcessId']);
+							} else { // 通常終了
+								win_exec('taskkill /PID '.$value['ProcessId']);
+							}
+						}
 					}
-					// echo 'TSTask Killed. Stream: '.$stream.' Cmd:'.$value['CommandLine']."\n\n";
-				}
 
 			}
 
