@@ -11,6 +11,7 @@ date_default_timezone_set('Asia/Tokyo');
 
 // べースディレクトリ(フォルダ)
 $base_dir = str_replace('/modules', '', str_replace('\\', '/', dirname(__FILE__)).'/');
+$base_dir_reverse = str_replace('\modules', '', dirname(__FILE__).'\\');
 
 // バージョン
 $version = file_get_contents($base_dir.'data/version.txt');
@@ -142,7 +143,11 @@ require_once ($base_dir.'/config.php');
 // リバースプロキシからのアクセス時は site_url と OAUTH_CALLBACK を差し替える
 if ($reverse_proxy and !empty($reverse_proxy_url)){
 
-	$site_url = rtrim($reverse_proxy_url, '/').'/';
+	// 末尾に常にスラッシュをつける
+	$reverse_proxy_url = rtrim($reverse_proxy_url, '/').'/';
+
+	// URLを差し替え
+	$site_url = $reverse_proxy_url;
 	$OAUTH_CALLBACK = $site_url.'tweet/callback.php';
 
 // リバースプロキシからのアクセスだがリバースプロキシのURLが指定されていない

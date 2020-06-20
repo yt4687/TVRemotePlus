@@ -31,7 +31,7 @@
   <!-- Style -->
   <link rel="manifest" href="/manifest.json">
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" type="text/css" href="https://use.fontawesome.com/releases/v5.12.1/css/all.css">
+  <link rel="stylesheet" type="text/css" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css">
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap">
   <link rel="stylesheet" type="text/css" href="/files/toastr.min.css">
@@ -246,7 +246,8 @@
     </a>
 <?php
 	if ($update_confirm == 'true'){
-		$update = file_get_contents('https://raw.githubusercontent.com/tsukumijima/TVRemotePlus/master/data/version.txt?_='.time());
+		$update_context = stream_context_create( array('http' => array('timeout' => 5)) );
+		$update = file_get_contents('https://raw.githubusercontent.com/tsukumijima/TVRemotePlus/master/data/version.txt?_='.time(), false, $update_context);
 		// 取得したバージョンと現在のバージョンが違う場合のみ
 		if ($update != $version){
 			echo '    <a class="nav-link" href="https://github.com/tsukumijima/TVRemotePlus/releases" target="_blank" '.
