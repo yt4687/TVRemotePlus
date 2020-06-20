@@ -293,12 +293,12 @@
 		if ($bondriver == 2){
 			copy($serverroot.'/bin/TSTask/64bit/BonDriver_TSTask.dll', $serverroot.'/bin/TSTask/BonDriver_TSTask.dll');
 			copy($serverroot.'/bin/TSTask/64bit/TSTask.exe', $serverroot.'/bin/TSTask/TSTask-tvrp.exe');
-			copy($serverroot.'/bin/TSTask/64bit/TSTask.exe', $serverroot.'/bin/TSTask/TSTask_SPHD-tvrp.exe');
+			copy($serverroot.'/bin/TSTask/64bit/TSTask_SPHD.exe', $serverroot.'/bin/TSTask/TSTask_SPHD-tvrp.exe');
 			copy($serverroot.'/bin/TSTask/64bit/TSTaskCentre.exe', $serverroot.'/bin/TSTask/TSTaskCentre-tvrp.exe');
 		} else {
 			copy($serverroot.'/bin/TSTask/32bit/BonDriver_TSTask.dll', $serverroot.'/bin/TSTask/BonDriver_TSTask.dll');
 			copy($serverroot.'/bin/TSTask/32bit/TSTask.exe', $serverroot.'/bin/TSTask/TSTask-tvrp.exe');
-			copy($serverroot.'/bin/TSTask/32bit/TSTask.exe', $serverroot.'/bin/TSTask/TSTask_SPHD-tvrp.exe');
+			copy($serverroot.'/bin/TSTask/32bit/TSTask_SPHD.exe', $serverroot.'/bin/TSTask/TSTask_SPHD-tvrp.exe');
 			copy($serverroot.'/bin/TSTask/32bit/TSTaskCentre.exe', $serverroot.'/bin/TSTask/TSTaskCentre-tvrp.exe');
 		}
 
