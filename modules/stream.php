@@ -198,7 +198,7 @@
 
 	// ライブ配信を開始する関数
 	function stream_start($stream, $ch, $sid, $onid, $tsid, $BonDriver, $quality, $encoder, $subtitle){
-		global $udp_port, $ffmpeg_path, $qsvencc_path, $nvencc_path, $vceencc_path, $tstask_path, $segment_folder, $hlslive_time, $hlslive_list, $base_dir, $base_dir_reverse, $encoder_log, $encoder_window, $TSTask_window;
+		global $udp_port, $ffmpeg_path, $qsvencc_path, $nvencc_path, $vceencc_path, $tstask_path, $tstask_exe, $tstask_SPHD_exe, $segment_folder, $hlslive_time, $hlslive_list, $base_dir, $base_dir_reverse, $encoder_log, $encoder_window, $TSTask_window;
 		
 		// 設定
 
@@ -320,18 +320,13 @@
 				$volume = 2.0; // 音量(元の音量の何倍か)
 			break;
 		}
+
 		//スカパー用のTSTask切り替え
 		if($onid == 10){
 			$tstask_path2 = $tstask_path.$tstask_SPHD_exe;
 		} else {
 			$tstask_path2 = $tstask_path.$tstask_exe;
 		}
-
-		// TSTask.exeを起動する
-		$tstask_cmd = '"'.$tstask_path2.'" '.($TSTask_window == 'true' ? '/xclient' : '/min /xclient-').' /udp /port '.$stream_port.' /sid '.$sid.' /tsid '.$tsid.
-		              ' /d '.$BonDriver.' /sendservice 1 /logfile '.$base_dir.'logs/stream'.$stream.'.tstask.log';
-		$tstask_cmd = 'start "TSTask Process" /B /min cmd.exe /C "'.win_exec_escape($tstask_cmd).'"';
-		win_exec($tstask_cmd);
 
 		// 変換コマンド切り替え
 		switch ($encoder) {
@@ -456,18 +451,32 @@
 				break;
 		}
 
-		// ログを書き出すかどうか
+		// TSTask.exeを起動する
+		if (file_exists($base_dir.'logs/stream'.$stream.'.tstask.log')){
+			// 既にTSTaskのログがあれば削除する
+			@unlink($base_dir.'logs/stream'.$stream.'.tstask.log');
+		}
+
+		$tstask_cmd = '"'.$tstask_path2.'" '.($TSTask_window == 'true' ? '/xclient' : '/min /xclient-').' /udp /port '.$stream_port.' /sid '.$sid.' /tsid '.$tsid.
+		              ' /d '.$BonDriver.' /sendservice 1 /logfile '.$base_dir.'logs/stream'.$stream.'.tstask.log';
+		$tstask_cmd = 'start "TSTask Process" /B /min cmd.exe /C "'.win_exec_escape($tstask_cmd).'"';
+		win_exec($tstask_cmd);
+
+		// ストリームを開始する（エンコーダーを起動する）
 		if ($encoder_log == 'true'){
+			// 既にエンコーダーのログがあれば削除する
+			if (file_exists($base_dir.'logs/stream'.$stream.'.encoder.log')){
+				@unlink($base_dir.'logs/stream'.$stream.'.encoder.log');
+			}
 			$stream_cmd = 'start "'.$encoder.' Encoding..." '.($encoder_window == 'true' ? '' : '/B /min').' cmd.exe /C "'.win_exec_escape($stream_cmd).
 			              ' > '.$base_dir.'logs/stream'.$stream.'.encoder.log 2>&1"';
 		} else {
 			$stream_cmd = 'start "'.$encoder.' Encoding..." '.($encoder_window == 'true' ? '' : '/B /min').' cmd.exe /C "'.win_exec_escape($stream_cmd).'"';
 		}
 
-		// ストリームを開始する
 		win_exec('pushd "'.$segment_folder.'" && '.$stream_cmd);
 
-		// ここでチャンネルを変更する
+		// チャンネルを変更
 		$ini[$stream]['channel'] = $ch;
 
 		// エンコードコマンドとTSTaskのコマンドを返す
