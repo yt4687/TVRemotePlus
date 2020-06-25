@@ -350,7 +350,7 @@
         $('#broadcast-BonDriver-S').find('select').prop('disabled', true);
         $('#broadcast-BonDriver-SPHD').hide();
         $('#broadcast-BonDriver-SPHD').find('select').prop('disabled', true);
-      } else if ($('.swiper-slide-thumb-active').text() == 'スカパー！'){
+      } else if ($('.swiper-slide-thumb-active').text() == 'スカパー！' || 'スターデジオ'){
         $('#broadcast-BonDriver-SPHD').show();
         $('#broadcast-BonDriver-SPHD').find('select').prop('disabled', false);
         $('#broadcast-BonDriver-S').hide();

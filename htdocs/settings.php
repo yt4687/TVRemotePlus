@@ -564,6 +564,44 @@
 
             <div class="setting-form setting-input">
               <div class="setting-content">
+                <span>スカパープレミアムサービスを利用する</span>
+                <p>
+		　この設定はスカパープレミアムサービスを利用する場合にオンにするようにしてください。<br>
+                  この設定をオンにすると、「スカパー！」タブが表示され、番組情報を取得するようになります。<br>
+                </p>
+              </div>
+              <div class="toggle-switch">
+                <input type="hidden" name="BonDriver_using_SPHD" value="false" />
+<?php	if ($BonDriver_using_SPHD == 'true'){ ?>
+                <input id="BonDriver_using_SPHD" name="BonDriver_using_SPHD" class="toggle-input" type="checkbox" value="true" checked />
+<?php	} else { ?>
+                <input id="BonDriver_using_SPHD" name="BonDriver_using_SPHD" class="toggle-input" type="checkbox" value="true" />
+<?php	} // 括弧終了 ?>
+                <label for="BonDriver_using_SPHD" class="toggle-label"></label>
+              </div>
+            </div>
+
+            <div class="setting-form setting-input">
+              <div class="setting-content">
+                <span>スターデジオを利用する</span>
+                <p>
+		　この設定はスターデジオを利用する場合にオンにするようにしてください。<br>
+                  この設定をオンにすると、「スターデジオ」タブが表示され、番組情報を取得するようになります。<br>
+                </p>
+              </div>
+              <div class="toggle-switch">
+                <input type="hidden" name="BonDriver_using_SPSD" value="false" />
+<?php	if ($BonDriver_using_SPSD == 'true'){ ?>
+                <input id="BonDriver_using_SPSD" name="BonDriver_using_SPSD" class="toggle-input" type="checkbox" value="true" checked />
+<?php	} else { ?>
+                <input id="BonDriver_using_SPSD" name="BonDriver_using_SPSD" class="toggle-input" type="checkbox" value="true" />
+<?php	} // 括弧終了 ?>
+                <label for="BonDriver_using_SPSD" class="toggle-label"></label>
+              </div>
+            </div>
+
+            <div class="setting-form setting-input">
+              <div class="setting-content">
                 <span>ライブ配信開始時に現在視聴中のストリームをデフォルトのストリームにする</span>
                 <p>
                   この設定をオンにすると、現在視聴中のストリームをライブ配信を開始するときのデフォルトのストリームにします（同時配信機能が追加される前の動作に近い）<br>

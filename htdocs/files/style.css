@@ -1786,7 +1786,7 @@ td {
 }
 
 .broadcast-button {
-    width: calc(100% / 4) !important;
+    width: calc(100% / 5) !important;
     color: var(--color-text-light);
     padding: 15px 20px;
     border-bottom: 5px solid var(--color-border);
