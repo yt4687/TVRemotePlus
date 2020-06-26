@@ -12,10 +12,10 @@
 
 		// BonDriverとチャンネルを取得
 		list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, $BonDriver_dll_SPHD, // BonDriver
-			$ch, $ch_T, $ch_S, $ch_CS, $ch_SPHD, // チャンネル番号
-			$sid, $sid_T, $sid_S, $sid_CS, $sid_SPHD, // SID
-			$onid, $onid_T, $onid_S, $onid_CS, $onid_SPHD, // ONID(NID)
-			$tsid, $tsid_T, $tsid_S, $tsid_CS, $tsid_SPHD) // TSID
+			$ch, $ch_T, $ch_S, $ch_CS, $ch_SPHD, $ch_SPSD, // チャンネル番号
+			$sid, $sid_T, $sid_S, $sid_CS, $sid_SPHD, $sid_SPSD, // SID
+			$onid, $onid_T, $onid_S, $onid_CS, $onid_SPHD, $onid_SPSD, // ONID(NID)
+			$tsid, $tsid_T, $tsid_S, $tsid_CS, $tsid_SPHD, $tsid_SPSD) // TSID
 			= initBonChannel($BonDriver_dir);
 
 		// 設定読み込み
@@ -89,7 +89,7 @@
 			// BonDriver
 			if (!isset($argv[7]) or $argv[7] == 'default'){
 				// ネットワークIDが10かどうか(スカパーか)
-				if (intval($onid[$ini[$stream]['channel']]) == 10){
+				if (intval($onid[$ini[$stream]['channel']]) == 10 || 1){
 					$ini[$stream]['BonDriver'] = $BonDriver_default_SPHD;
 				// チャンネルの値が100より上(=BS・CSか・ショップチャンネルは055なので例外指定)
 				} else if (intval($ini[$stream]['channel']) >= 100 or intval($ini[$stream]['channel']) === 55){ 
@@ -322,7 +322,7 @@
 		}
 
 		//スカパー用のTSTask切り替え
-		if($onid == 10){
+		if($onid == 10 || 1){
 			$tstask_path2 = $tstask_path.$tstask_SPHD_exe;
 		} else {
 			$tstask_path2 = $tstask_path.$tstask_exe;
@@ -377,7 +377,7 @@
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
 					' --vbr '.$vb.' --qp-max 24:26:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
-					' --quality balanced --profile Main --vpp-deinterlace normal --tff'.
+					'--quality balanced --profile Main --vpp-deinterlace normal --tff'.;
 					// 音声
 					' --audio-codec aac#dual_mono_mode=main --audio-stream :stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
 					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30 --audio-ignore-notrack-error'.

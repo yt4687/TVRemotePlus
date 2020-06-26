@@ -764,7 +764,7 @@
 			$BonDriver_ch2_SPHD = ch2ToArray(array_merge($BonDriver_ch2_file_SPHD, $BonDriver_ch2_file_raw)[0], 'スカパー');
 			$BonDriver_ch2_SPSD = ch2ToArray(array_merge($BonDriver_ch2_file_SPHD, $BonDriver_ch2_file_raw)[0], 'スカパー');
 
-			if (!empty($BonDriver_ch2_SPHD[0][0]) and ($BonDriver_using_SPHD  = "true")){
+			if (!empty($BonDriver_ch2_SPHD[0][0])){
 
 				// スカパー用チャンネルをセット
 				foreach ($BonDriver_ch2_SPHD as $key => $value) {
@@ -794,7 +794,7 @@
 				$tsid_SPHD = array();
 			}
 
-			if (!empty($BonDriver_ch2_SPSD[0][0]) and ($BonDriver_using_SPSD  = "true")){
+			if (!empty($BonDriver_ch2_SPSD[0][0])){
 
 				// SPSD用チャンネルをセット
 				foreach ($BonDriver_ch2_SPSD as $key => $value) {
@@ -802,7 +802,7 @@
 					// あとワンセグ(192)・データ放送(192)・ラジオチャンネル(2)はセットしない
 					// サブチャンネルはサブチャンネル表示がオンになっている場合のみ
 					if ($value[4] != 192 and
-						(($value[8] == 1 and !isset($ch_SPSD[strval($value[5])])) and ($value[3] < 500) )){
+						(($value[8] == 1 and !isset($ch_SPSD[strval($value[3])])) and ($value[3] < 500) )){
 						// 全角は半角に直す
 							// チャンネル名
 							$ch_SPSD[strval($value[5])] = mb_convert_kana($value[0], 'asv');

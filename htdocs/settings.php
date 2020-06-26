@@ -13,11 +13,11 @@
 
 	// BonDriverとチャンネルを取得
 	list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, $BonDriver_dll_SPHD, // BonDriver
-		$ch, $ch_T, $ch_S, $ch_CS, $ch_SPHD, // チャンネル番号
-		$sid, $sid_T, $sid_S, $sid_CS, $sid_SPHD, // SID
-		$onid, $onid_T, $onid_S, $onid_CS, $onid_SPHD,  // ONID(NID)
-		$tsid, $tsid_T, $tsid_S, $tsid_CS, $tsid_SPHD) // TSID
-        = initBonChannel($BonDriver_dir);
+		$ch, $ch_T, $ch_S, $ch_CS, $ch_SPHD, $ch_SPSD, // チャンネル番号
+		$sid, $sid_T, $sid_S, $sid_CS, $sid_SPHD, $sid_SPSD, // SID
+		$onid, $onid_T, $onid_S, $onid_CS, $onid_SPHD, $onid_SPSD, // ONID(NID)
+		$tsid, $tsid_T, $tsid_S, $tsid_CS, $tsid_SPHD, $tsid_SPSD) // TSID
+		= initBonChannel($BonDriver_dir);
 	
 	// 時計
 	$clock = date('Y/m/d H:i:s');
@@ -140,6 +140,8 @@
 				if ($ini[$stream]['BonDriver'] == 'default' or empty($ini[$stream]['BonDriver'])){
 					// ネットワークIDが10かどうか(スカパーか)
 					if (intval($onid[$ini[$stream]['channel']]) == 10){
+						$ini[$stream]['BonDriver'] = $BonDriver_default_SPHD;
+					}else if (intval($onid[$ini[$stream]['channel']]) == 1 and (intval($ini[$stream]['channel']) >= 400)){
 						$ini[$stream]['BonDriver'] = $BonDriver_default_SPHD;
 					// チャンネルの値が100より上(=BS・CSか・ショップチャンネルは055なので例外指定)
 					} else if (intval($ini[$stream]['channel']) >= 100 or intval($ini[$stream]['channel']) === 55){ 

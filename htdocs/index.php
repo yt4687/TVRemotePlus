@@ -379,11 +379,12 @@
             <nav class="broadcast-nav swiper-slide">
 <?php	foreach ($ch_S as $i => $value){ // BSchの数だけ繰り返す ?>
 <?php		$ch_S_channel = 'Ch: '.sprintf('%03d', $i); ?>
+<?php if ($sid == 531){ $icon2 = 'radio';} else{ $icon2 ='tv';} ?>
               <div id="ch<?php echo $i; ?>" class="broadcast-wrap" data-ch="<?php echo $i; ?>"
                     data-channel="<?php echo $ch_S_channel; ?>" data-name="<?php echo $value; ?>">
 
                 <div class="broadcast">
-                  <i class="broadcast-img material-icons">tv</i>
+                  <i class="broadcast-img material-icons"><?php echo $icon2  ?></i>
                   <div class="broadcast-content">
                     <div class="broadcast-channel-box">
                       <div class="broadcast-channel"><?php echo $ch_S_channel; ?></div>
@@ -417,9 +418,9 @@
 
                         <nav class="broadcast-nav swiper-slide">
 <?php	foreach ($ch_CS as $i => $value){ // CSchの数だけ繰り返す ?>
-<?php		$ch_S_channel = 'Ch: '.sprintf('%03d', $i); ?>
+<?php		$ch_CS_channel = 'Ch: '.sprintf('%03d', $i); ?>
               <div id="ch<?php echo $i; ?>" class="broadcast-wrap" data-ch="<?php echo $i; ?>"
-                    data-channel="<?php echo $ch_S_channel; ?>" data-name="<?php echo $value; ?>">
+                    data-channel="<?php echo $ch_CS_channel; ?>" data-name="<?php echo $value; ?>">
 
                 <div class="broadcast">
                   <i class="broadcast-img material-icons">tv</i>
