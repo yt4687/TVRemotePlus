@@ -463,7 +463,6 @@
 					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\).*;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // 地上波・BSを削除（混合チューナー用）
 					$ch2_data = preg_replace("/;#SPACE\(.\,BS\).*;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // BSを削除
 					$ch2_data = preg_replace("/;#SPACE\(.\,(CS|CS110)\).*$/s", "", $ch2_data); // CSを削除
-					$ch2_data = preg_replace("/;#SPACE\(.\,スカパー\).*;#SPACE\(.\,(スターデジオ)\)/s", "", $ch2_data); // スターデジオを削除
 				} else {
 					$ch2_data = '';
 				}
@@ -472,7 +471,6 @@
 					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\).*;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // 地上波・BSを削除（混合チューナー用）
 					$ch2_data = preg_replace("/;#SPACE\(.\,BS\).*;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // BSを削除
 					$ch2_data = preg_replace("/;#SPACE\(.\,(CS|CS110)\).*$/s", "", $ch2_data); // CSを削除
-					$ch2_data = preg_replace("/;#SPACE\(.\,(スカパー)\).*$/s", "", $ch2_data); // スカパーを削除
 				} else {
 					$ch2_data = '';
 				}
@@ -764,7 +762,7 @@
 
 			// ch2を連想配列に変換
 			$BonDriver_ch2_SPHD = ch2ToArray(array_merge($BonDriver_ch2_file_SPHD, $BonDriver_ch2_file_raw)[0], 'スカパー');
-			$BonDriver_ch2_SPSD = ch2ToArray(array_merge($BonDriver_ch2_file_SPHD, $BonDriver_ch2_file_raw)[0], 'スターデジオ');
+			$BonDriver_ch2_SPSD = ch2ToArray(array_merge($BonDriver_ch2_file_SPHD, $BonDriver_ch2_file_raw)[0], 'スカパー');
 
 			if (!empty($BonDriver_ch2_SPHD[0][0]) and ($BonDriver_using_SPHD  = "true")){
 
@@ -775,7 +773,7 @@
 					// あとワンセグ(192)・データ放送(192)・ラジオチャンネル(2)はセットしない
 					// サブチャンネルはサブチャンネル表示がオンになっている場合のみ
 					if ($value[4] != 192 and
-						(($value[8] == 1 and !isset($ch_SPHD[strval($value[3])])) )){
+						(($value[8] == 1 and !isset($ch_SPHD[strval($value[3])])) ) and ($value[3] >= 500) ){
 						// 全角は半角に直す
 						// チャンネル名
 						$ch_SPHD[strval($value[3])] = mb_convert_kana($value[0], 'asv');
@@ -804,7 +802,7 @@
 					// あとワンセグ(192)・データ放送(192)・ラジオチャンネル(2)はセットしない
 					// サブチャンネルはサブチャンネル表示がオンになっている場合のみ
 					if ($value[4] != 192 and
-						(($value[8] == 1 and !isset($ch_SPSD[strval($value[5])])) or isSettingsItem('subchannel_show', true))){
+						(($value[8] == 1 and !isset($ch_SPSD[strval($value[5])])) and ($value[3] < 500) )){
 						// 全角は半角に直す
 							// チャンネル名
 							$ch_SPSD[strval($value[5])] = mb_convert_kana($value[0], 'asv');

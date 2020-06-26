@@ -415,11 +415,11 @@
 <?php	} //括弧終了 ?>
             </nav>
 
-            <nav class="broadcast-nav swiper-slide">
+                        <nav class="broadcast-nav swiper-slide">
 <?php	foreach ($ch_CS as $i => $value){ // CSchの数だけ繰り返す ?>
-<?php		$ch_CS_channel = 'Ch: '.sprintf('%03d', $i); ?>
+<?php		$ch_S_channel = 'Ch: '.sprintf('%03d', $i); ?>
               <div id="ch<?php echo $i; ?>" class="broadcast-wrap" data-ch="<?php echo $i; ?>"
-                    data-channel="<?php echo $ch_CS_channel; ?>" data-name="<?php echo $value; ?>">
+                    data-channel="<?php echo $ch_S_channel; ?>" data-name="<?php echo $value; ?>">
 
                 <div class="broadcast">
                   <i class="broadcast-img material-icons">tv</i>
@@ -453,6 +453,7 @@
               </div>
 <?php	} //括弧終了 ?>
             </nav>
+
 
             <nav class="broadcast-nav swiper-slide">
 <?php	foreach ($ch_SPHD as $i => $value){ // スカパー！chの数だけ繰り返す ?>
@@ -493,7 +494,8 @@
 <?php	} //括弧終了 ?>
             </nav>
 
-<?php	foreach ($ch_SPSD as $i => $value){ // スターデジオchの数だけ繰り返す ?>
+            <nav class="broadcast-nav swiper-slide">
+<?php	foreach ($ch_SPSD as $i => $value){ // 	スターデジオchの数だけ繰り返す ?>
 <?php		$ch_SPSD_channel = 'Ch: '.sprintf('%03d', $i); ?>
               <div id="ch<?php echo $i; ?>" class="broadcast-wrap" data-ch="<?php echo $i; ?>"
                     data-channel="<?php echo $ch_SPSD_channel; ?>" data-name="<?php echo $value; ?>">
@@ -515,7 +517,7 @@
                       <span class="broadcast-title-id">取得中です…</span>
                     </div>
                     <div class="broadcast-next">
-                      <span>00:00</span>
+                      <span">00:00</span>
                       <span>～</span>
                       <span>00:00</span>
                       <span>取得中です…</span>
@@ -530,6 +532,7 @@
               </div>
 <?php	} //括弧終了 ?>
             </nav>
+
 
           </div>
         </div>
