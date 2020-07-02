@@ -28,6 +28,8 @@
   <meta charset="UTF-8">
   <meta name="theme-color" content="#191919">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <link rel="manifest" href="<?php echo $reverse_proxy_url.'manifest.json'?>">
+  <link rel="shortcut icon" type="image/x-icon" href="<?php echo $reverse_proxy_url.'favicon.ico'?>">
   <!-- Style -->
   <link rel="manifest" href="/manifest.json">
   <link rel="manifest" href="/manifest.webmanifest">
