@@ -29,6 +29,7 @@
       settings['dark_theme'] = $('#dark_theme').prop('checked');
       settings['subchannel_show'] = $('#subchannel_show').prop('checked');
       settings['list_view'] = $('#list_view').prop('checked');
+      settings['logo_show'] = $('#logo_show').prop('checked');
       settings['comment_size'] = $('#comment_size').val();
       settings['comment_delay'] = $('#comment_delay').val();
       settings['list_view_number'] = $('#list_view_number').val();

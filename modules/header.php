@@ -57,7 +57,6 @@
   <script type="text/javascript" src="/files/DPlayer.min.js"></script>
   <script type="text/javascript" src="/files/hls.min.js"></script>
   <script type="text/javascript" src="/files/toastr.min.js"></script>
-  <script type="text/javascript" src="/files/push.min.js"></script>
   <script type="text/javascript" src="/files/js.cookie.min.js"></script>
   <script type="text/javascript" src="/files/velocity.min.js"></script>
   <script type="text/javascript" src="/files/css_browser_selector.js"></script>
@@ -86,6 +85,7 @@
       dark_theme: false,
       subchannel_show: false,
       list_view: false,
+      logo_show: true,
       comment_size: 35,
       comment_delay: 5,
       list_view_number: 30,

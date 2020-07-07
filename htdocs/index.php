@@ -9,11 +9,11 @@
 	echo '    <pre id="debug">';
 
 	// BonDriverとチャンネルを取得
-	list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, $BonDriver_dll_SPHD, // BonDriver
-		$ch, $ch_T, $ch_S, $ch_CS, $ch_SPHD, $ch_SPSD, // チャンネル番号
-		$sid, $sid_T, $sid_S, $sid_CS, $sid_SPHD, $sid_SPSD, // SID
-		$onid, $onid_T, $onid_S, $onid_CS, $onid_SPHD, $onid_SPSD, // ONID(NID)
-		$tsid, $tsid_T, $tsid_S, $tsid_CS, $tsid_SPHD, $tsid_SPSD) // TSID
+	list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, // BonDriver
+		$ch, $ch_T, $ch_S, $ch_CS, // チャンネル番号
+		$sid, $sid_T, $sid_S, $sid_CS, // SID
+		$onid, $onid_T, $onid_S, $onid_CS, // ONID(NID)
+		$tsid, $tsid_T, $tsid_S, $tsid_CS) // TSID
 		= initBonChannel($BonDriver_dir);
 
 	// ストリーム番号を取得
@@ -296,15 +296,8 @@
           ファイルがBonDriverフォルダに正しく配置されているか、確認してください。<br>
         </div>
 <?php	} //括弧終了
-	
-		// 自己署名証明書の許可用
-		// 参考：https://blog.hanhans.net/2018/06/16/simplexml-load-file/
-		$context = stream_context_create(array('ssl' => array(
-			'allow_self_signed'=> true,
-			'verify_peer' => false,
-		)));
 
-		if (empty($EDCB_http_url) or !@file_get_contents($EDCB_http_url.'/EnumEventInfo', false, $context)){ // EMWUI ?>
+		if (empty($EDCB_http_url) or !@file_get_contents($EDCB_http_url.'api/EnumEventInfo', false, $ssl_context)){ // EMWUI ?>
         <div class="error">
           EDCB Material WebUI の API がある URL が正しく設定されていないため、番組情報が表示できません。<br>
           設定ページの「EDCB Material WebUI (EMWUI) の API がある URL」が正しく設定されているかどうか、確認してください。<br>
@@ -316,8 +309,6 @@
             <div class="broadcast-button swiper-slide">地デジ</div>
             <div class="broadcast-button swiper-slide">BS</div>
             <div class="broadcast-button swiper-slide">CS</div>
-            <div class="broadcast-button swiper-slide">スカパー！</div>
-            <div class="broadcast-button swiper-slide">スターデジオ</div>
           </div>
         </div>
 
@@ -344,7 +335,9 @@
                     data-channel="<?php echo $ch_T_channel; ?>" data-name="<?php echo $value; ?>">
 
                 <div class="broadcast">
-                  <i class="broadcast-img material-icons">tv</i>
+                  <div class="broadcast-img material-icons">tv
+                    <div class="broadcast-logo" style="background-image: url(<?php echo getLogoURL($i); ?>);"></div>
+                  </div>
                   <div class="broadcast-content">
                     <div class="broadcast-channel-box">
                       <div class="broadcast-channel"><?php echo $ch_T_channel; ?></div>
@@ -379,12 +372,13 @@
             <nav class="broadcast-nav swiper-slide">
 <?php	foreach ($ch_S as $i => $value){ // BSchの数だけ繰り返す ?>
 <?php		$ch_S_channel = 'Ch: '.sprintf('%03d', $i); ?>
-<?php if ($sid == 531){ $icon2 = 'radio';} else{ $icon2 ='tv';} ?>
               <div id="ch<?php echo $i; ?>" class="broadcast-wrap" data-ch="<?php echo $i; ?>"
                     data-channel="<?php echo $ch_S_channel; ?>" data-name="<?php echo $value; ?>">
 
                 <div class="broadcast">
-                  <i class="broadcast-img material-icons"><?php echo $icon2  ?></i>
+                  <div class="broadcast-img material-icons">tv
+                    <div class="broadcast-logo" style="background-image: url(<?php echo getLogoURL($i); ?>);"></div>
+                  </div>
                   <div class="broadcast-content">
                     <div class="broadcast-channel-box">
                       <div class="broadcast-channel"><?php echo $ch_S_channel; ?></div>
@@ -416,14 +410,16 @@
 <?php	} //括弧終了 ?>
             </nav>
 
-                        <nav class="broadcast-nav swiper-slide">
+            <nav class="broadcast-nav swiper-slide">
 <?php	foreach ($ch_CS as $i => $value){ // CSchの数だけ繰り返す ?>
 <?php		$ch_CS_channel = 'Ch: '.sprintf('%03d', $i); ?>
               <div id="ch<?php echo $i; ?>" class="broadcast-wrap" data-ch="<?php echo $i; ?>"
                     data-channel="<?php echo $ch_CS_channel; ?>" data-name="<?php echo $value; ?>">
 
                 <div class="broadcast">
-                  <i class="broadcast-img material-icons">tv</i>
+                  <div class="broadcast-img material-icons">tv
+                    <div class="broadcast-logo" style="background-image: url(<?php echo getLogoURL($i); ?>);"></div>
+                  </div>
                   <div class="broadcast-content">
                     <div class="broadcast-channel-box">
                       <div class="broadcast-channel"><?php echo $ch_CS_channel; ?></div>
@@ -454,86 +450,6 @@
               </div>
 <?php	} //括弧終了 ?>
             </nav>
-
-
-            <nav class="broadcast-nav swiper-slide">
-<?php	foreach ($ch_SPHD as $i => $value){ // スカパー！chの数だけ繰り返す ?>
-<?php		$ch_SPHD_channel = 'Ch: '.sprintf('%03d', $i); ?>
-              <div id="ch<?php echo $i; ?>" class="broadcast-wrap" data-ch="<?php echo $i; ?>"
-                    data-channel="<?php echo $ch_SPHD_channel; ?>" data-name="<?php echo $value; ?>">
-
-                <div class="broadcast">
-                  <i class="broadcast-img material-icons">tv</i>
-                  <div class="broadcast-content">
-                    <div class="broadcast-channel-box">
-                      <div class="broadcast-channel"><?php echo $ch_SPHD_channel; ?></div>
-                      <div class="broadcast-name-box">
-                        <div class="broadcast-name"><?php echo $value; ?></div>
-                        <div class="broadcast-jikkyo">実況勢い: <span class="broadcast-ikioi"> - </span></div>
-                      </div>
-                    </div>
-                    <div class="broadcast-title">
-                      <span class="broadcast-start">00:00</span>
-                      <span class="broadcast-to">～</span>
-                      <span class="broadcast-end">00:00</span>
-                      <span class="broadcast-title-id">取得中です…</span>
-                    </div>
-                    <div class="broadcast-next">
-                      <span>00:00</span>
-                      <span>～</span>
-                      <span>00:00</span>
-                      <span>取得中です…</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="progressbar">
-                  <div class="progress"></div>
-                </div>
-
-              </div>
-<?php	} //括弧終了 ?>
-            </nav>
-
-            <nav class="broadcast-nav swiper-slide">
-<?php	foreach ($ch_SPSD as $i => $value){ // 	スターデジオchの数だけ繰り返す ?>
-<?php		$ch_SPSD_channel = 'Ch: '.sprintf('%03d', $i); ?>
-              <div id="ch<?php echo $i; ?>" class="broadcast-wrap" data-ch="<?php echo $i; ?>"
-                    data-channel="<?php echo $ch_SPSD_channel; ?>" data-name="<?php echo $value; ?>">
-
-                <div class="broadcast">
-                  <i class="broadcast-img material-icons">radio</i>
-                  <div class="broadcast-content">
-                    <div class="broadcast-channel-box">
-                      <div class="broadcast-channel"><?php echo $ch_SPSD_channel; ?></div>
-                      <div class="broadcast-name-box">
-                        <div class="broadcast-name"><?php echo $value; ?></div>
-                        <div class="broadcast-jikkyo">実況勢い: <span class="broadcast-ikioi"> - </span></div>
-                      </div>
-                    </div>
-                    <div class="broadcast-title">
-                      <span class="broadcast-start">00:00</span>
-                      <span class="broadcast-to">～</span>
-                      <span class="broadcast-end">00:00</span>
-                      <span class="broadcast-title-id">取得中です…</span>
-                    </div>
-                    <div class="broadcast-next">
-                      <span">00:00</span>
-                      <span>～</span>
-                      <span>00:00</span>
-                      <span>取得中です…</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="progressbar">
-                  <div class="progress"></div>
-                </div>
-
-              </div>
-<?php	} //括弧終了 ?>
-            </nav>
-
 
           </div>
         </div>
@@ -664,16 +580,6 @@
 <?php		} //括弧終了 ?>
             </select>
           </div>
-          <div id="broadcast-BonDriver-SPHD" class="select-wrap">
-            <select name="BonDriver">
-<?php		if (!empty($BonDriver_default_SPHD)){ ?>
-              <option value="default">デフォルトの BonDriver</option>
-<?php		} //括弧終了 ?>
-<?php		foreach ($BonDriver_dll_SPHD as $i => $value){ //chの数だけ繰り返す ?>
-              <option value="<?php echo $value; ?>"><?php echo $value; ?></option>
-<?php		} //括弧終了 ?>
-            </select>
-          </div>
         </div>
 
         <div id="button-box" class="broadcast-button-box">
@@ -787,13 +693,13 @@
             <div class="hotkey-list">
               <div class="hotkey-list-name">字幕の表示 / 非表示の切り替え</div>
               <div class="hotkey-list-key-box">
-                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">J</div>
+                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">S</div>
               </div>
             </div>
             <div class="hotkey-list">
               <div class="hotkey-list-name">コメントの表示 / 非表示の切り替え</div>
               <div class="hotkey-list-key-box">
-                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">K</div>
+                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">D</div>
               </div>
             </div>
           </div>
@@ -823,7 +729,7 @@
             <div class="hotkey-list">
               <div class="hotkey-list-name">ストリームを同期する（ライブ配信時のみ）</div>
               <div class="hotkey-list-key-box">
-                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">S</div>
+                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">L</div>
               </div>
             </div>
             <div class="hotkey-list">
