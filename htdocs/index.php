@@ -459,7 +459,9 @@
                     data-channel="<?php echo $ch_SPHD_channel; ?>" data-name="<?php echo $value; ?>">
 
                 <div class="broadcast">
-                  <i class="broadcast-img material-icons">tv</i>
+                  <div class="broadcast-img material-icons">tv
+                    <div class="broadcast-logo" style="background-image: url(<?php echo getLogoURL($i); ?>);"></div>
+                  </div>
                   <div class="broadcast-content">
                     <div class="broadcast-channel-box">
                       <div class="broadcast-channel"><?php echo $ch_SPHD_channel; ?></div>
@@ -497,7 +499,9 @@
                     data-channel="<?php echo $ch_SPSD_channel; ?>" data-name="<?php echo $value; ?>">
 
                 <div class="broadcast">
-                  <i class="broadcast-img material-icons">radio</i>
+                  <div class="broadcast-img material-icons">radio
+                    <div class="broadcast-logo" style="background-image: url(<?php echo getLogoURL($i); ?>);"></div>
+                  </div>
                   <div class="broadcast-content">
                     <div class="broadcast-channel-box">
                       <div class="broadcast-channel"><?php echo $ch_SPSD_channel; ?></div>
