@@ -377,7 +377,7 @@
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
 					' --vbr '.$vb.' --qp-max 24:26:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
-					'--quality balanced --profile Main --vpp-deinterlace normal --tff'.;
+					'--quality balanced --profile Main --vpp-deinterlace normal --tff'.
 					// 音声
 					' --audio-codec aac#dual_mono_mode=main --audio-stream :stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
 					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30 --audio-ignore-notrack-error'.
@@ -833,7 +833,7 @@
 				}
 
 
-				if ($onid == 10 ){
+				if ($onid == 10 || 1){
 
 					// TSTask_SPHD
 					if (strpos($value['CommandLine'], $tstask_SPHD_exe) !== false and 
