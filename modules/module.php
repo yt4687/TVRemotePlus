@@ -475,6 +475,14 @@
 				} else {
 					$ch2_data = '';
 				}
+			} else if ($flg == 'SPHD') {
+				if (preg_match("/;#SPACE\(.\,スカパー\)/", $ch2_data)){
+					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\).*;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // 地上波・BSを削除（混合チューナー用）
+					$ch2_data = preg_replace("/;#SPACE\(.\,BS\).*;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // BSを削除
+					$ch2_data = preg_replace("/;#SPACE\(.\,(CS|CS110)\).*$/s", "", $ch2_data); // CSを削除
+				} else {
+					$ch2_data = '';
+				}
 			}
 
 			//余計なコメントを削除
@@ -527,6 +535,18 @@
 		}
 		if (!isset($BonDriver_dll_S)) $BonDriver_dll_S = array();
 
+		// BonDriver_dirからスカパー！用BonDriverを検索
+		$search_SPHD = array_merge(
+			glob($BonDriver_dir.'[bB]on[dD]river_*[phdPHD].dll'),
+			glob($BonDriver_dir.'[bB]on[dD]river_*_[phdPHD][0-9]*.dll'),
+			glob($BonDriver_dir.'[bB]on[dD]river_*-[phdPHD][0-9]*.dll')
+		);
+		foreach ($search_SPHD as $i => $file) {
+			$BonDriver_dll_SPHD[$i] = str_replace($BonDriver_dir, '', $file);
+		}
+		if (!isset($BonDriver_dll_SPHD)) $BonDriver_dll_SPHD = array();
+
+
 		// 無印BonDriverを洗い出す
 		$BonDriver_dll_raw = $BonDriver_dll;
 		foreach ($BonDriver_dll as $key => $value) {
@@ -536,6 +556,11 @@
 				}
 			}
 			foreach ($BonDriver_dll_S as $key2 => $value2) {
+				if ($value === $value2){
+					unset($BonDriver_dll_raw[$key]);
+				}
+			}
+			foreach ($BonDriver_dll_SPHD as $key2 => $value2) {
 				if ($value === $value2){
 					unset($BonDriver_dll_raw[$key]);
 				}
@@ -564,6 +589,13 @@
 			glob($BonDriver_dir.'[bB]on[dD]river_*-[sS][0-9]*.ch2')
 		);
 
+		// スカパー！用
+		$BonDriver_ch2_file_SPHD = array_merge(
+			glob($BonDriver_dir.'[bB]on[dD]river_*[phdPHD].ch2'),
+			glob($BonDriver_dir.'[bB]on[dD]river_*_[phdPHD][0-9]*.ch2'),
+			glob($BonDriver_dir.'[bB]on[dD]river_*-[phdPHD][0-9]*.ch2')
+		);
+
 		// その他（混合チューナー用）
 		$BonDriver_ch2_file_raw = glob($BonDriver_dir.'[bB]on[dD]river_*.ch2');
 
@@ -582,7 +614,7 @@
 
 					// サービス状態が1の物のみセットする
 					// あとワンセグ(192)・データ放送(192)・ラジオチャンネル(2)・サブチャンネルはセットしない
-					if ($value[4] != 192 and $value[4] != 2 and $value[8] == 1){
+					if ($value[4] != 192 and $value[8] == 1){
 						// 全角は半角に直す
 						// 衝突回避でリモコン番号が衝突したら元番号 + 20にする
 						if (empty($ch_T[strval($value[3] . '_1')])){
@@ -658,7 +690,7 @@
 					// サービス状態が1の物のみセットする
 					// あとワンセグ(192)・データ放送(192)・ラジオチャンネル(2)はセットしない
 					// サブチャンネルはサブチャンネル表示がオンになっている場合のみ
-					if ($value[4] != 192 and $value[4] != 2 and
+					if ($value[4] != 192 and
 						(($value[8] == 1 and !isset($ch_S[strval($value[5])])) or isSettingsItem('subchannel_show', true))){
 						// 全角は半角に直す
 						// チャンネル名
@@ -686,7 +718,7 @@
 					// サービス状態が1の物のみセットする
 					// あとワンセグ(192)・データ放送(192)・ラジオチャンネル(2)はセットしない
 					// サブチャンネルはサブチャンネル表示がオンになっている場合のみ
-					if ($value[4] != 192 and $value[4] != 2 and
+					if ($value[4] != 192 and
 						(($value[8] == 1 and !isset($ch_CS[strval($value[5])])) or isSettingsItem('subchannel_show', true))){
 						// 全角は半角に直す
 						// BS-TBSとQVCバッティング問題
@@ -731,16 +763,94 @@
 			$tsid_CS = array();
 		}
 
+		// スカパーのch2があれば
+		// スカパー用はないが無印ch2はある場合も含める（混合チューナー用）
+		if (!empty($BonDriver_ch2_file_SPHD) || empty($BonDriver_ch2_file_SPHD) && !empty($BonDriver_ch2_file_raw)){
+
+			// ch2を連想配列に変換
+			$BonDriver_ch2_SPHD = ch2ToArray(array_merge($BonDriver_ch2_file_SPHD, $BonDriver_ch2_file_raw)[0], 'スカパー');
+			$BonDriver_ch2_SPSD = ch2ToArray(array_merge($BonDriver_ch2_file_SPHD, $BonDriver_ch2_file_raw)[0], 'スカパー');
+
+			if (!empty($BonDriver_ch2_SPHD[0][0])){
+
+				// スカパー用チャンネルをセット
+				foreach ($BonDriver_ch2_SPHD as $key => $value) {
+
+					// サービス状態が1の物のみセットする
+					// あとワンセグ(192)・データ放送(192)・ラジオチャンネル(2)はセットしない
+					// サブチャンネルはサブチャンネル表示がオンになっている場合のみ
+					if ($value[4] != 192 and
+						(($value[8] == 1 and !isset($ch_SPHD[strval($value[3])])) ) and ($value[3] >= 500) ){
+						// 全角は半角に直す
+						// チャンネル名
+						$ch_SPHD[strval($value[3])] = mb_convert_kana($value[0], 'asv');
+						// サービスID(SID)
+						$sid_SPHD[strval($value[3])] = mb_convert_kana($value[5], 'asv');
+						// ネットワークID(NID・ONID)
+						$onid_SPHD[strval($value[3])] = mb_convert_kana($value[6], 'asv');
+						// トランスポートストリームID(TSID)
+						$tsid_SPHD[strval($value[3])] = mb_convert_kana($value[7], 'asv');
+					}
+				}
+
+
+			} else {
+				$ch_SPHD = array();
+				$sid_SPHD = array();
+				$onid_SPHD = array();
+				$tsid_SPHD = array();
+			}
+
+			if (!empty($BonDriver_ch2_SPSD[0][0])){
+
+				// SPSD用チャンネルをセット
+				foreach ($BonDriver_ch2_SPSD as $key => $value) {
+					// サービス状態が1の物のみセットする
+					// あとワンセグ(192)・データ放送(192)・ラジオチャンネル(2)はセットしない
+					// サブチャンネルはサブチャンネル表示がオンになっている場合のみ
+					if ($value[4] != 192 and
+						(($value[8] == 1 and !isset($ch_SPSD[strval($value[3])])) and ($value[3] < 500) )){
+						// 全角は半角に直す
+							// チャンネル名
+							$ch_SPSD[strval($value[5])] = mb_convert_kana($value[0], 'asv');
+							// サービスID(SID)
+							$sid_SPSD[strval($value[5])] = mb_convert_kana($value[5], 'asv');
+							// ネットワークID(NID・ONID)
+							$onid_SPSD[strval($value[5])] = mb_convert_kana($value[6], 'asv');
+							// トランスポートストリームID(TSID)
+							$tsid_SPSD[strval($value[5])] = mb_convert_kana($value[7], 'asv');
+	
+					}
+				}
+
+			} else {
+				$ch_SPSD = array();
+				$sid_SPSD = array();
+				$onid_SPSD = array();
+				$tsid_SPSD = array();
+			}
+
+		} else {
+			$ch_SPHD = array();
+			$sid_SPHD = array();
+			$onid_SPHD = array();
+			$tsid_SPHD = array();
+			$ch_SPSD = array();
+			$sid_SPSD = array();
+			$onid_SPSD = array();
+			$tsid_SPSD = array();
+		}
+		
+
 		// 合体させる
-		$ch = $ch_T + $ch_S + $ch_CS;
-		$sid = $sid_T + $sid_S + $sid_CS;
-		$onid = $onid_T + $onid_S + $onid_CS;
-		$tsid = $tsid_T + $tsid_S + $tsid_CS;
+		$ch = $ch_T + $ch_S + $ch_CS + $ch_SPHD + $ch_SPSD;
+		$sid = $sid_T + $sid_S + $sid_CS + $sid_SPHD + $sid_SPSD;
+		$onid = $onid_T + $onid_S + $onid_CS + $onid_SPHD + $onid_SPSD;
+		$tsid = $tsid_T + $tsid_S + $tsid_CS + $tsid_SPHD + $tsid_SPSD;
 
-		return array($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, // BonDriver
-					 $ch, $ch_T, $ch_S, $ch_CS, // チャンネル番号
-					 $sid, $sid_T, $sid_S, $sid_CS, // SID
-					 $onid, $onid_T, $onid_S, $onid_CS, // ONID(NID)
-					 $tsid, $tsid_T, $tsid_S, $tsid_CS); // TSID
+		return array($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S,$BonDriver_dll_SPHD, // BonDriver
+					 $ch, $ch_T, $ch_S, $ch_CS, $ch_SPHD, $ch_SPSD, // チャンネル番号
+					 $sid, $sid_T, $sid_S, $sid_CS, $sid_SPHD, $sid_SPSD, // SID
+					 $onid, $onid_T, $onid_S, $onid_CS, $onid_SPHD, $onid_SPSD, // ONID(NID)
+					 $tsid, $tsid_T, $tsid_S, $tsid_CS, $tsid_SPHD, $tsid_SPSD); // TSID
 	}
-
