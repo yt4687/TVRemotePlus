@@ -322,7 +322,7 @@
 		}
 
 		//スカパー用のTSTask切り替え
-		if($onid == 10 || 1){
+		if($onid == 10 or 1){
 			$tstask_path2 = $tstask_path.$tstask_SPHD_exe;
 		} else {
 			$tstask_path2 = $tstask_path.$tstask_exe;
@@ -335,6 +335,7 @@
 
 				// ffmpeg用コマンド
 				$stream_cmd = '"'.$ffmpeg_path.'"'.
+
 
 					// 入力
 					' -dual_mono_mode main -i "'.$receive.'"'.
@@ -357,6 +358,7 @@
 					' -flags +loop+global_header -movflags +faststart -threads auto'.
 					// 出力
 					' stream'.$stream.'.m3u8';
+					
 
 				break;
 
@@ -377,7 +379,7 @@
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
 					' --vbr '.$vb.' --qp-max 24:26:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
-					'--quality balanced --profile Main --vpp-deinterlace normal --tff'.
+					' --quality balanced --profile Main --vpp-deinterlace normal --tff'.
 					// 音声
 					' --audio-codec aac#dual_mono_mode=main --audio-stream :stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
 					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30 --audio-ignore-notrack-error'.
@@ -457,10 +459,17 @@
 			@unlink($base_dir.'logs/stream'.$stream.'.tstask.log');
 		}
 
+		if($onid == 1){//スターデジオ用
 		$tstask_cmd = '"'.$tstask_path2.'" '.($TSTask_window == 'true' ? '/xclient' : '/min /xclient-').' /udp /port '.$stream_port.' /sid '.$sid.' /tsid '.$tsid.
-		              ' /d '.$BonDriver.' /sendservice 1 /logfile '.$base_dir.'logs/stream'.$stream.'.tstask.log';
+		              ' /d '.$BonDriver.' /sendservice 1 /logfile '.$base_dir.'logs/stream'.$stream.'.tstask.log'.' /ini TSTask_radio-tvrp.ini'.;
 		$tstask_cmd = 'start "TSTask Process" /B /min cmd.exe /C "'.win_exec_escape($tstask_cmd).'"';
 		win_exec($tstask_cmd);
+		} else{
+		$tstask_cmd = '"'.$tstask_path2.'" '.($TSTask_window == 'true' ? '/xclient' : '/min /xclient-').' /udp /port '.$stream_port.' /sid '.$sid.' /tsid '.$tsid.
+		              ' /d '.$BonDriver.' /sendservice 1 /logfile '.$base_dir.'logs/stream'.$stream.'.tstask.log'.;
+		$tstask_cmd = 'start "TSTask Process" /B /min cmd.exe /C "'.win_exec_escape($tstask_cmd).'"';
+		win_exec($tstask_cmd);
+		}
 
 		// ストリームを開始する（エンコーダーを起動する）
 		if ($encoder_log == 'true'){
@@ -833,7 +842,7 @@
 				}
 
 
-				if ($onid == 10 || 1){
+				if ($onid == 10 or 1){
 
 					// TSTask_SPHD
 					if (strpos($value['CommandLine'], $tstask_SPHD_exe) !== false and 
