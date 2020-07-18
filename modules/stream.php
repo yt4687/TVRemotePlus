@@ -322,7 +322,7 @@
 		}
 
 		//スカパー用のTSTask切り替え
-		if($onid == 10 or 1){
+		if($onid == 10 or $onid == 1){
 			$tstask_path2 = $tstask_path.$tstask_SPHD_exe;
 		} else {
 			$tstask_path2 = $tstask_path.$tstask_exe;
@@ -842,7 +842,7 @@
 				}
 
 
-				if ($onid == 10 or 1){
+				if ($onid == 10 or $onid == 1){
 
 					// TSTask_SPHD
 					if (strpos($value['CommandLine'], $tstask_SPHD_exe) !== false and 
