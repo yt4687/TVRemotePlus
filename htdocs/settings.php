@@ -190,7 +190,7 @@
 				} else {
 
 					// ストリームを全て終了
-					stream_stop($stream, $true);
+					stream_stop($stream, $true, $onid[$ini[$stream]['channel']]);
 
 					// ストリーム番号ごとに実行
 					foreach ($ini as $key => $value) {
