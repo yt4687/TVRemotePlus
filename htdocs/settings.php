@@ -12,12 +12,12 @@
 	echo '    <pre id="debug">';
 
 	// BonDriverとチャンネルを取得
-	list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, // BonDriver
-		$ch, $ch_T, $ch_S, $ch_CS, // チャンネル番号
-		$sid, $sid_T, $sid_S, $sid_CS, // SID
-		$onid, $onid_T, $onid_S, $onid_CS, // ONID(NID)
-		$tsid, $tsid_T, $tsid_S, $tsid_CS) // TSID
-        = initBonChannel($BonDriver_dir);
+	list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, $BonDriver_dll_SPHD, // BonDriver
+		$ch, $ch_T, $ch_S, $ch_CS, $ch_SPHD, $ch_SPSD, // チャンネル番号
+		$sid, $sid_T, $sid_S, $sid_CS, $sid_SPHD, $sid_SPSD, // SID
+		$onid, $onid_T, $onid_S, $onid_CS, $onid_SPHD, $onid_SPSD, // ONID(NID)
+		$tsid, $tsid_T, $tsid_S, $tsid_CS, $tsid_SPHD, $tsid_SPSD) // TSID
+	= initBonChannel($BonDriver_dir);
 	
 	// 時計
 	$clock = date('Y/m/d H:i:s');
@@ -47,9 +47,9 @@
 			// 一旦現在のストリームを終了する
 			// state に関わらず実行
 			if (isset($_POST['allstop'])) {
-				stream_stop($stream, true);
+				stream_stop($stream, true, $onid[$ini[$stream]['channel']]);
 			} else {
-				stream_stop($stream);
+				stream_stop($stream, false, $onid[$ini[$stream]['channel']]);
 			}
 
 			// File
@@ -142,7 +142,10 @@
 
 				// BonDriverのデフォルトを要求される or 何故かBonDriverが空
 				if ($ini[$stream]['BonDriver'] == 'default' or empty($ini[$stream]['BonDriver'])){
-					if (intval($ini[$stream]['channel']) >= 100 or intval($ini[$stream]['channel']) === 55){ // チャンネルの値が100より上(=BS・CSか・ショップチャンネルは055なので例外指定)
+					// ネットワークIDが10かどうか(スカパーか)
+					if (intval($onid[$ini[$stream]['channel']]) == 10 or intval($onid[$ini[$stream]['channel']]) == 1){
+						$ini[$stream]['BonDriver'] = $BonDriver_default_SPHD;
+					}else if (intval($ini[$stream]['channel']) >= 100 or intval($ini[$stream]['channel']) === 55){ // チャンネルの値が100より上(=BS・CSか・ショップチャンネルは055なので例外指定)
 						$ini[$stream]['BonDriver'] = $BonDriver_default_S;
 					} else { // 地デジなら
 						$ini[$stream]['BonDriver'] = $BonDriver_default_T;
@@ -150,7 +153,7 @@
 				}
 
 				// ストリーミング開始
-				list($stream_cmd, $tstask_cmd) = stream_start($stream, $ini[$stream]['channel'], $sid[$ini[$stream]['channel']], $tsid[$ini[$stream]['channel']], $ini[$stream]['BonDriver'], $ini[$stream]['quality'], $ini[$stream]['encoder'], $ini[$stream]['subtitle']);
+				list($stream_cmd, $tstask_cmd) = stream_start($stream, $ini[$stream]['channel'], $sid[$ini[$stream]['channel']], $onid[$ini[$stream]['channel']], $tsid[$ini[$stream]['channel']], $ini[$stream]['BonDriver'], $ini[$stream]['quality'], $ini[$stream]['encoder'], $ini[$stream]['subtitle']);
 
 				// 準備中用の動画を流すためにm3u8をコピー
 				if ($silent == 'true'){
@@ -547,6 +550,29 @@
                 <select name="BonDriver_default_S" required>
 <?php		foreach ($BonDriver_dll_S as $i => $value){ //chの数だけ繰り返す ?>
 <?php			if ($value == $BonDriver_default_S){ ?>
+                  <option value="<?php echo $value; ?>" selected><?php echo $value; ?></option>
+<?php			} else { ?>
+                  <option value="<?php echo $value; ?>"><?php echo $value; ?></option>
+<?php			} //括弧終了 ?>
+<?php		} //括弧終了 ?>
+                </select>
+              </div>
+            </div>
+
+            <div class="setting-form setting-input">
+              <div class="setting-content">
+                <span>デフォルトの BonDriver (スカパー！用)</span>
+                <p>
+                  デフォルトで利用する BonDriver (スカパー！) です<br>
+                  うまく再生出来ない場合、BonDriver_Spinel もしくは BonDriver_Proxy を利用すると安定して視聴できる場合があります<br>
+                  導入している場合は BonDriver_Spinel か BonDriver_Proxy を利用することをおすすめします<br>
+                  BonDriver_Spinel よりも BonDriver_Proxy の方がストリーム開始にかかる時間は短くなります<br>
+                </p>
+              </div>
+              <div class="select-wrap">
+                <select name="BonDriver_default_SPHD" required>
+<?php		foreach ($BonDriver_dll_SPHD as $i => $value){ //chの数だけ繰り返す ?>
+<?php			if ($value == $BonDriver_default_SPHD){ ?>
                   <option value="<?php echo $value; ?>" selected><?php echo $value; ?></option>
 <?php			} else { ?>
                   <option value="<?php echo $value; ?>"><?php echo $value; ?></option>
