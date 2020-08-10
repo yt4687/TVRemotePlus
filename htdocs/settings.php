@@ -12,12 +12,12 @@
 	echo '    <pre id="debug">';
 
 	// BonDriverとチャンネルを取得
-	list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, $BonDriver_dll_SPHD, // BonDriver
-		$ch, $ch_T, $ch_S, $ch_CS, $ch_SPHD, $ch_SPSD, // チャンネル番号
-		$sid, $sid_T, $sid_S, $sid_CS, $sid_SPHD, $sid_SPSD, // SID
-		$onid, $onid_T, $onid_S, $onid_CS, $onid_SPHD, $onid_SPSD, // ONID(NID)
-		$tsid, $tsid_T, $tsid_S, $tsid_CS, $tsid_SPHD, $tsid_SPSD) // TSID
-		= initBonChannel($BonDriver_dir);
+	list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, // BonDriver
+		$ch, $ch_T, $ch_S, $ch_CS, // チャンネル番号
+		$sid, $sid_T, $sid_S, $sid_CS, // SID
+		$onid, $onid_T, $onid_S, $onid_CS, // ONID(NID)
+		$tsid, $tsid_T, $tsid_S, $tsid_CS) // TSID
+        = initBonChannel($BonDriver_dir);
 	
 	// 時計
 	$clock = date('Y/m/d H:i:s');
@@ -46,7 +46,11 @@
 
 			// 一旦現在のストリームを終了する
 			// state に関わらず実行
-			stream_stop($stream, $false, $onid[$ini[$stream]['channel']]);
+			if (isset($_POST['allstop'])) {
+				stream_stop($stream, true);
+			} else {
+				stream_stop($stream);
+			}
 
 			// File
 			if ($ini[$stream]['state'] == 'File'){
@@ -138,13 +142,7 @@
 
 				// BonDriverのデフォルトを要求される or 何故かBonDriverが空
 				if ($ini[$stream]['BonDriver'] == 'default' or empty($ini[$stream]['BonDriver'])){
-					// ネットワークIDが10かどうか(スカパーか)
-					if (intval($onid[$ini[$stream]['channel']]) == 10){
-						$ini[$stream]['BonDriver'] = $BonDriver_default_SPHD;
-					}else if (intval($onid[$ini[$stream]['channel']]) == 1 and (intval($ini[$stream]['channel']) >= 400)){
-						$ini[$stream]['BonDriver'] = $BonDriver_default_SPHD;
-					// チャンネルの値が100より上(=BS・CSか・ショップチャンネルは055なので例外指定)
-					} else if (intval($ini[$stream]['channel']) >= 100 or intval($ini[$stream]['channel']) === 55){ 
+					if (intval($ini[$stream]['channel']) >= 100 or intval($ini[$stream]['channel']) === 55){ // チャンネルの値が100より上(=BS・CSか・ショップチャンネルは055なので例外指定)
 						$ini[$stream]['BonDriver'] = $BonDriver_default_S;
 					} else { // 地デジなら
 						$ini[$stream]['BonDriver'] = $BonDriver_default_T;
@@ -152,7 +150,7 @@
 				}
 
 				// ストリーミング開始
-				list($stream_cmd, $tstask_cmd) = stream_start($stream, $ini[$stream]['channel'], $sid[$ini[$stream]['channel']], $onid[$ini[$stream]['channel']], $tsid[$ini[$stream]['channel']], $ini[$stream]['BonDriver'], $ini[$stream]['quality'], $ini[$stream]['encoder'], $ini[$stream]['subtitle']);
+				list($stream_cmd, $tstask_cmd) = stream_start($stream, $ini[$stream]['channel'], $sid[$ini[$stream]['channel']], $tsid[$ini[$stream]['channel']], $ini[$stream]['BonDriver'], $ini[$stream]['quality'], $ini[$stream]['encoder'], $ini[$stream]['subtitle']);
 
 				// 準備中用の動画を流すためにm3u8をコピー
 				if ($silent == 'true'){
@@ -165,9 +163,6 @@
 			} else if ($_POST['state'] == 'Offline'){
 
 				if (!isset($_POST['allstop'])){
-
-					// ストリームを終了
-					stream_stop($stream, $false ,$onid[$ini[$stream]['channel']]);
 
 					// Offline に設定する
 					$ini[$stream]['state'] = 'Offline';
@@ -188,9 +183,6 @@
 					}
 
 				} else {
-
-					// ストリームを全て終了
-					stream_stop($stream, $true, $onid[$ini[$stream]['channel']]);
 
 					// ストリーム番号ごとに実行
 					foreach ($ini as $key => $value) {
@@ -316,12 +308,12 @@
             <h4><i class="fas fa-eye"></i>表示</h4>
 
             <div class="setting-form">
-              <span>Twitter 投稿フォーム</span>
+              <span>Twitter 投稿</span>
               <div class="toggle-switch">
-<?php	if (isSettingsItem('twitter_show', false)){ ?>
-                <input id="twitter_show" class="toggle-input" type="checkbox" value="true" />
-<?php	} else { ?>
+<?php	if (isSettingsItem('twitter_show', true, true)){ ?>
                 <input id="twitter_show" class="toggle-input" type="checkbox" value="true" checked />
+<?php	} else { ?>
+                <input id="twitter_show" class="toggle-input" type="checkbox" value="true" />
 <?php	} // 括弧終了 ?>
                 <label for="twitter_show" class="toggle-label"></label>
               </div>
@@ -330,10 +322,10 @@
             <div class="setting-form">
               <span>コメント一覧</span>
               <div class="toggle-switch">
-<?php	if (isSettingsItem('comment_show', false)){ ?>
-                <input id="comment_show" class="toggle-input" type="checkbox" value="true" />
-<?php	} else { ?>
+<?php	if (isSettingsItem('comment_show', true, true)){ ?>
                 <input id="comment_show" class="toggle-input" type="checkbox" value="true" checked />
+<?php	} else { ?>
+                <input id="comment_show" class="toggle-input" type="checkbox" value="true" />
 <?php	} // 括弧終了 ?>
                 <label for="comment_show" class="toggle-label"></label>
               </div>
@@ -415,11 +407,20 @@
             </div>
 
             <div class="setting-form setting-select">
-              <span>コメントの遅延時間（秒）</span>
+              <span>コメントの遅延時間（ライブ配信・秒）</span>
 <?php	if (isSettingsItem('comment_delay')){ ?>
               <input class="text-box" id="comment_delay" type="number" min="0" max="60" placeholder="5" value="<?php echo isSettingsItem('comment_delay'); ?>" required />
 <?php	} else { ?>
               <input class="text-box" id="comment_delay" type="number" min="0" max="60" placeholder="5" value="5" required />
+<?php	} // 括弧終了 ?>
+            </div>
+
+            <div class="setting-form setting-select">
+              <span>コメントの遅延時間（ファイル再生・秒）</span>
+<?php	if (isSettingsItem('comment_file_delay')){ ?>
+              <input class="text-box" id="comment_file_delay" type="number" min="0" max="60" placeholder="0" value="<?php echo isSettingsItem('comment_file_delay'); ?>" required />
+<?php	} else { ?>
+              <input class="text-box" id="comment_file_delay" type="number" min="0" max="60" placeholder="0" value="0" required />
 <?php	} // 括弧終了 ?>
             </div>
 
@@ -552,67 +553,6 @@
 <?php			} //括弧終了 ?>
 <?php		} //括弧終了 ?>
                 </select>
-              </div>
-            </div>
-
-            <div class="setting-form setting-input">
-              <div class="setting-content">
-                <span>デフォルトの BonDriver (スカパー！用)</span>
-                <p>
-                  デフォルトで利用する BonDriver (スカパー！) です<br>
-                  うまく再生出来ない場合、BonDriver_Spinel もしくは BonDriver_Proxy を利用すると安定して視聴できる場合があります<br>
-                  導入している場合は BonDriver_Spinel か BonDriver_Proxy を利用することをおすすめします<br>
-                  BonDriver_Spinel よりも BonDriver_Proxy の方がストリーム開始にかかる時間は短くなります<br>
-                </p>
-              </div>
-              <div class="select-wrap">
-                <select name="BonDriver_default_SPHD" required>
-<?php		foreach ($BonDriver_dll_SPHD as $i => $value){ //chの数だけ繰り返す ?>
-<?php			if ($value == $BonDriver_default_SPHD){ ?>
-                  <option value="<?php echo $value; ?>" selected><?php echo $value; ?></option>
-<?php			} else { ?>
-                  <option value="<?php echo $value; ?>"><?php echo $value; ?></option>
-<?php			} //括弧終了 ?>
-<?php		} //括弧終了 ?>
-                </select>
-              </div>
-            </div>
-
-            <div class="setting-form setting-input">
-              <div class="setting-content">
-                <span>スカパープレミアムサービスを利用する</span>
-                <p>
-		　この設定はスカパープレミアムサービスを利用する場合にオンにするようにしてください。<br>
-                  この設定をオンにすると、「スカパー！」タブが表示され、番組情報を取得するようになります。<br>
-                </p>
-              </div>
-              <div class="toggle-switch">
-                <input type="hidden" name="BonDriver_using_SPHD" value="false" />
-<?php	if ($BonDriver_using_SPHD == 'true'){ ?>
-                <input id="BonDriver_using_SPHD" name="BonDriver_using_SPHD" class="toggle-input" type="checkbox" value="true" checked />
-<?php	} else { ?>
-                <input id="BonDriver_using_SPHD" name="BonDriver_using_SPHD" class="toggle-input" type="checkbox" value="true" />
-<?php	} // 括弧終了 ?>
-                <label for="BonDriver_using_SPHD" class="toggle-label"></label>
-              </div>
-            </div>
-
-            <div class="setting-form setting-input">
-              <div class="setting-content">
-                <span>スターデジオを利用する</span>
-                <p>
-		　この設定はスターデジオを利用する場合にオンにするようにしてください。<br>
-                  この設定をオンにすると、「スターデジオ」タブが表示され、番組情報を取得するようになります。<br>
-                </p>
-              </div>
-              <div class="toggle-switch">
-                <input type="hidden" name="BonDriver_using_SPSD" value="false" />
-<?php	if ($BonDriver_using_SPSD == 'true'){ ?>
-                <input id="BonDriver_using_SPSD" name="BonDriver_using_SPSD" class="toggle-input" type="checkbox" value="true" checked />
-<?php	} else { ?>
-                <input id="BonDriver_using_SPSD" name="BonDriver_using_SPSD" class="toggle-input" type="checkbox" value="true" />
-<?php	} // 括弧終了 ?>
-                <label for="BonDriver_using_SPSD" class="toggle-label"></label>
               </div>
             </div>
 
@@ -825,7 +765,7 @@
                   設定しなくても生放送のコメントは取得できますが、コメント投稿・過去ログの取得はできません<br>
                 </p>
               </div>
-              <input class="text-box" name="nicologin_mail" type="email" value="<?php echo $nicologin_mail; ?>" placeholder="example@gmail.com" />
+              <input class="text-box" name="nicologin_mail" type="email" value="<?php echo $nicologin_mail; ?>" placeholder="example@gmail.com" autocomplete="off" />
             </div>
 
             <div class="setting-form setting-input">
@@ -838,7 +778,7 @@
                 </p>
               </div>
               <div class="password-box-wrap">
-                <input class="password-box" name="nicologin_password" type="password" value="<?php echo $nicologin_password; ?>" placeholder="password" />
+                <input class="password-box" name="nicologin_password" type="password" value="<?php echo $nicologin_password; ?>" placeholder="password" autocomplete="new-password" />
                 <i class="password-box-input fas fa-eye-slash"></i>
               </div>
             </div>
@@ -940,7 +880,7 @@
                   デフォルトは user ですが、Basic 認証を利用する場合はできるだけ変更してください<br>
                 </p>
               </div>
-              <input class="text-box" name="basicauth_user" type="text" pattern="^[0-9A-Za-z]+$" value="<?php echo $basicauth_user; ?>" placeholder="user" required />
+              <input class="text-box" name="basicauth_user" type="text" pattern="^[0-9A-Za-z]+$" value="<?php echo $basicauth_user; ?>" placeholder="user" required autocomplete="off" />
             </div>
 
             <div class="setting-form setting-input">
@@ -952,7 +892,7 @@
                 </p>
               </div>
               <div class="password-box-wrap">
-                <input class="password-box" name="basicauth_password" type="password" value="<?php echo $basicauth_password; ?>" placeholder="password" required />
+                <input class="password-box" name="basicauth_password" type="password" value="<?php echo $basicauth_password; ?>" placeholder="password" required autocomplete="new-password" />
                 <i class="password-box-input fas fa-eye-slash"></i>
               </div>
             </div>

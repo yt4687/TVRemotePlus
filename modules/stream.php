@@ -11,11 +11,11 @@
 		require_once (dirname(__FILE__).'/module.php');
 
 		// BonDriverとチャンネルを取得
-		list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, $BonDriver_dll_SPHD, // BonDriver
-			$ch, $ch_T, $ch_S, $ch_CS, $ch_SPHD, $ch_SPSD, // チャンネル番号
-			$sid, $sid_T, $sid_S, $sid_CS, $sid_SPHD, $sid_SPSD, // SID
-			$onid, $onid_T, $onid_S, $onid_CS, $onid_SPHD, $onid_SPSD, // ONID(NID)
-			$tsid, $tsid_T, $tsid_S, $tsid_CS, $tsid_SPHD, $tsid_SPSD) // TSID
+		list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, // BonDriver
+			$ch, $ch_T, $ch_S, $ch_CS, // チャンネル番号
+			$sid, $sid_T, $sid_S, $sid_CS, // SID
+			$onid, $onid_T, $onid_S, $onid_CS, // ONID(NID)
+			$tsid, $tsid_T, $tsid_S, $tsid_CS) // TSID
 			= initBonChannel($BonDriver_dir);
 
 		// 設定読み込み
@@ -88,13 +88,9 @@
 
 			// BonDriver
 			if (!isset($argv[7]) or $argv[7] == 'default'){
-				// ネットワークIDが10かどうか(スカパーか)
-				if (intval($onid[$ini[$stream]['channel']]) == 10 || 1){
-					$ini[$stream]['BonDriver'] = $BonDriver_default_SPHD;
 				// チャンネルの値が100より上(=BS・CSか・ショップチャンネルは055なので例外指定)
-				} else if (intval($ini[$stream]['channel']) >= 100 or intval($ini[$stream]['channel']) === 55){ 
+				if (intval($ini[$stream]['channel']) >= 100 or intval($ini[$stream]['channel']) === 55){
 					$ini[$stream]['BonDriver'] = $BonDriver_default_S;
-				// チャンネルの値が100より上(=BS・CSか・ショップチャンネルは055なので例外指定)
 				} else { // 地デジなら
 					$ini[$stream]['BonDriver'] = $BonDriver_default_T;
 				}
@@ -107,7 +103,6 @@
 			echo '   Stream   : '.$stream."\n";
 			echo '   Channel  : '.$ini[$stream]['channel']."\n";
 			echo '   SID      : '.$sid[$ini[$stream]['channel']]."\n";
-			echo '   ONID     : '.$onid[$ini[$stream]['channel']]."\n";
 			echo '   TSID     : '.$tsid[$ini[$stream]['channel']]."\n";
 			echo '   Quality  : '.$ini[$stream]['quality']."\n";
 			echo '   Encoder  : '.$ini[$stream]['encoder']."\n";
@@ -120,7 +115,7 @@
 			stream_stop($stream);
 
 			// ストリームを開始する
-			stream_start($stream, $ini[$stream]['channel'], $sid[$ini[$stream]['channel']], $onid[$ini[$stream]['channel']], $tsid[$ini[$stream]['channel']], $ini[$stream]['BonDriver'], $ini[$stream]['quality'], $ini[$stream]['encoder'], $ini[$stream]['subtitle']);
+			stream_start($stream, $ini[$stream]['channel'], $sid[$ini[$stream]['channel']], $tsid[$ini[$stream]['channel']], $ini[$stream]['BonDriver'], $ini[$stream]['quality'], $ini[$stream]['encoder'], $ini[$stream]['subtitle']);
 
 			// 準備中用の動画を流すためにm3u8をコピー
 			if ($silent == 'true'){
@@ -197,8 +192,8 @@
 	}
 
 	// ライブ配信を開始する関数
-	function stream_start($stream, $ch, $sid, $onid, $tsid, $BonDriver, $quality, $encoder, $subtitle){
-		global $udp_port, $ffmpeg_path, $qsvencc_path, $nvencc_path, $vceencc_path, $tstask_path, $tstask_exe, $tstask_SPHD_exe, $segment_folder, $hlslive_time, $hlslive_list, $base_dir, $base_dir_reverse, $encoder_log, $encoder_window, $TSTask_window;
+	function stream_start($stream, $ch, $sid, $tsid, $BonDriver, $quality, $encoder, $subtitle){
+		global $udp_port, $ffmpeg_path, $qsvencc_path, $nvencc_path, $vceencc_path, $tstask_path, $segment_folder, $hlslive_time, $hlslive_list, $base_dir, $base_dir_reverse, $encoder_log, $encoder_window, $TSTask_window;
 		
 		// 設定
 
@@ -321,13 +316,6 @@
 			break;
 		}
 
-		//スカパー用のTSTask切り替え
-		if($onid == 10 or $onid == 1){
-			$tstask_path2 = $tstask_path.$tstask_SPHD_exe;
-		} else {
-			$tstask_path2 = $tstask_path.$tstask_exe;
-		}
-
 		// 変換コマンド切り替え
 		switch ($encoder) {
 
@@ -335,7 +323,6 @@
 
 				// ffmpeg用コマンド
 				$stream_cmd = '"'.$ffmpeg_path.'"'.
-
 
 					// 入力
 					' -dual_mono_mode main -i "'.$receive.'"'.
@@ -358,7 +345,6 @@
 					' -flags +loop+global_header -movflags +faststart -threads auto'.
 					// 出力
 					' stream'.$stream.'.m3u8';
-					
 
 				break;
 
@@ -459,17 +445,10 @@
 			@unlink($base_dir.'logs/stream'.$stream.'.tstask.log');
 		}
 
-		if($onid == 1){//スターデジオ用
-		$tstask_cmd = '"'.$tstask_path2.'" '.($TSTask_window == 'true' ? '/xclient' : '/min /xclient-').' /udp /port '.$stream_port.' /sid '.$sid.' /tsid '.$tsid.
-		              ' /d '.$BonDriver.' /sendservice 1 /logfile '.$base_dir.'logs/stream'.$stream.'.tstask.log'.' /ini TSTask_radio-tvrp.ini';
-		$tstask_cmd = 'start "TSTask Process" /B /min cmd.exe /C "'.win_exec_escape($tstask_cmd).'"';
-		win_exec($tstask_cmd);
-		} else{
-		$tstask_cmd = '"'.$tstask_path2.'" '.($TSTask_window == 'true' ? '/xclient' : '/min /xclient-').' /udp /port '.$stream_port.' /sid '.$sid.' /tsid '.$tsid.
+		$tstask_cmd = '"'.$tstask_path.'" '.($TSTask_window == 'true' ? '/xclient' : '/min /xclient-').' /udp /port '.$stream_port.' /sid '.$sid.' /tsid '.$tsid.
 		              ' /d '.$BonDriver.' /sendservice 1 /logfile '.$base_dir.'logs/stream'.$stream.'.tstask.log';
 		$tstask_cmd = 'start "TSTask Process" /B /min cmd.exe /C "'.win_exec_escape($tstask_cmd).'"';
 		win_exec($tstask_cmd);
-		}
 
 		// ストリームを開始する（エンコーダーを起動する）
 		if ($encoder_log == 'true'){
@@ -764,8 +743,8 @@
 
 	// ストリームを終了する関数
 	// flgがtrueの場合は全てのストリームを終了する
-	function stream_stop($stream, $flg=false, $onid){
-		global $inifile, $udp_port, $process_csv, $ffmpeg_exe, $qsvencc_exe, $nvencc_exe, $vceencc_exe, $tstask_exe, $tstask_SPHD_exe, $segment_folder, $TSTask_shutdown;
+	function stream_stop($stream, $flg=false){
+		global $inifile, $udp_port, $process_csv, $ffmpeg_exe, $qsvencc_exe, $nvencc_exe, $vceencc_exe, $tstask_exe, $tstaskcentreex_path, $segment_folder, $TSTask_shutdown;
 
 		// 全てのストリームを終了する
 		if ($flg){
@@ -785,10 +764,16 @@
 			// TSTaskを終了する
 			if ($TSTask_shutdown == 'true'){ // 強制終了
 				win_exec('taskkill /F /IM '.$tstask_exe);
-				win_exec('taskkill /F /IM '.$tstask_SPHD_exe);
 			} else { // 通常終了
-				win_exec('taskkill /IM '.$tstask_exe);
-				win_exec('taskkill /IM '.$tstask_SPHD_exe);
+				// 起動している TSTask のプロセスを取得
+				exec($tstaskcentreex_path.' -m '.$tstask_exe.' -c list', $tstask_process_list);
+				// TSTask のプロセスごとに
+				foreach ($tstask_process_list as $key => $value) {
+					// PID を（強引に）取得
+					$tstask_pid = intval(str_replace('PID:', '', explode(' ', $value)[0]));
+					// TSTaskCentreEx で EndTask コマンドを送信
+					win_exec($tstaskcentreex_path.' -p '.$tstask_pid.' -c EndTask');
+				}
 			}
 
 			// フォルダ内のTSを削除
@@ -842,30 +827,17 @@
 				}
 
 
-				if ($onid == 10 or $onid == 1){
-
-					// TSTask_SPHD
-					if (strpos($value['CommandLine'], $tstask_SPHD_exe) !== false and 
-					(@strpos($value['CommandLine'], strval($stream_port)) !== false) or (@strpos($value['CommandLine'], $filepath) !== false)){
-						if ($TSTask_shutdown == 'true'){ // 強制終了
-							win_exec('taskkill /F /PID '.$value['ProcessId']);
-						} else { // 通常終了
-							win_exec('taskkill /PID '.$value['ProcessId']);
-						}
-						// echo 'TSTask Killed. Stream: '.$stream.' Cmd:'.$value['CommandLine']."\n\n";
-					} 
-				} else {
-
-						// TSTask
-						if (strpos($value['CommandLine'], $tstask_exe) !== false and 
-						(@strpos($value['CommandLine'], strval($stream_port)) !== false) or (@strpos($value['CommandLine'], $filepath) !== false)){
-							if ($TSTask_shutdown == 'true'){ // 強制終了
-								win_exec('taskkill /F /PID '.$value['ProcessId']);
-							} else { // 通常終了
-								win_exec('taskkill /PID '.$value['ProcessId']);
-							}
-						}
+				// TSTask
+				if (strpos($value['CommandLine'], $tstask_exe) !== false and 
+				(@strpos($value['CommandLine'], strval($stream_port)) !== false) or (@strpos($value['CommandLine'], $filepath) !== false)){
+					if ($TSTask_shutdown == 'true'){ // 強制終了
+						win_exec('taskkill /F /PID '.$value['ProcessId']);
+					} else { // 通常終了
+						// TSTaskCentreEx で EndTask コマンドを送信
+						win_exec($tstaskcentreex_path.' -p '.$value['ProcessId'].' -c EndTask');
 					}
+					// echo 'TSTask Killed. Stream: '.$stream.' Cmd:'.$value['CommandLine']."\n\n";
+				}
 
 			}
 
