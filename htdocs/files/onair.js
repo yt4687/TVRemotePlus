@@ -1,6 +1,7 @@
   $(function(){
 
-    var res = ''; // 初回だけ空にする
+    commentnumber = 0; // コメ番
+    res = ''; // リクエストごとのコメ番（初回だけ空にする）
     var autoscroll = true;  // 自動スクロール中かどうか
 
     // jQueryでSleep
@@ -20,6 +21,7 @@
 
     // コメント取得
     setInterval((function status(){
+
       $.ajax({
         url: '/api/jikkyo/' + stream + '?res=' + res,
         dataType: 'json',
@@ -31,7 +33,7 @@
           res = data["last_res"];
           last_res = data["res"];
 
-          // console.log('―― GetComment postres:' + last_res + ' getres:' + res + ' draw:' + (res - last_res) + ' ――');
+          // console.log('―― GetComment last_res:' + last_res + ' res:' + res + ' draw:' + (res - last_res) + ' ――');
           // console.log(data['data']);
 
           if (data['ikioi'] !== null && data['ikioi'] !== undefined){
@@ -39,10 +41,10 @@
             document.getElementById('ikioi').textContent = '実況勢い: ' + data['ikioi'];
           }
 
-          // n秒後に実行(コメント遅延分)
-          wait(settings['comment_delay']).done(function(){
+          if (data['data'] != null && data['data'][0]){ // data['data'] があれば(nullでなければ)
 
-            if (data['data'] != null && data['data'][0]){ //data['data'] があれば(nullでなければ)
+            // n秒後に実行(コメント遅延分)
+            wait(settings['comment_delay']).done(function(){
 
               // コメントを無制限に表示 がオンの場合は全て流す
               // オフの場合は一度に最大5個のみ
@@ -62,7 +64,15 @@
                 danmaku['text'] = data['data'][i][4].toString();
                 danmaku['color'] =　data['data'][i][2].toString();
 
-                if (danmaku['text'] !== ''){ // 空でないなら
+                if (commentnumber >= parseInt(data['data'][i][5])) {
+                  // console.log('【コメ番が古いため、描画をスキップします】')
+                }
+
+                // コメントが空でない && コメ番が新しくなっていれば (以前描画したコメントを再度描画しない)
+                if (danmaku['text'] !== '' && (commentnumber < parseInt(data['data'][i][5]))){
+
+                  // コメ番を更新
+                  commentnumber = parseInt(data['data'][i][5]);
 
                   // 表示タイプを解析
                   if (data['data'][i][1] == 0){
@@ -148,8 +158,8 @@
 
               }
 
-            }
-          });
+            });
+          }
         }
       });
       return status;
