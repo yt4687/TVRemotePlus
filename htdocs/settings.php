@@ -524,7 +524,7 @@
                 </p>
               </div>
               <div class="select-wrap">
-                <select name="BonDriver_default_T" required>
+                <select name="BonDriver_default_T">
 <?php		foreach ($BonDriver_dll_T as $i => $value){ //chの数だけ繰り返す ?>
 <?php			if ($value == $BonDriver_default_T){ ?>
                   <option value="<?php echo $value; ?>" selected><?php echo $value; ?></option>
@@ -547,7 +547,7 @@
                 </p>
               </div>
               <div class="select-wrap">
-                <select name="BonDriver_default_S" required>
+                <select name="BonDriver_default_S">
 <?php		foreach ($BonDriver_dll_S as $i => $value){ //chの数だけ繰り返す ?>
 <?php			if ($value == $BonDriver_default_S){ ?>
                   <option value="<?php echo $value; ?>" selected><?php echo $value; ?></option>

@@ -137,18 +137,30 @@
             <div id="tweet-main">
               <input id="tweet-hashtag" name="hashtag" type="text" placeholder="#ハッシュタグ">
               <textarea id="tweet" name="tweet" placeholder="ツイート (Ctrl + Enterで送信)"></textarea>
+              <svg id="tweet-capture-num-img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <g>
+                  <path d="M19.75 2H4.25C3.01 2 2 3.01 2 4.25v15.5C2 20.99 3.01 22 4.25 22h15.5c1.24 0 2.25-1.01 2.25-2.25V4.25C22 3.01 20.99 2 19.75 2zM4.25 3.5h15.5c.413 0 .75.337.75.75v9.676l-3.858-3.858c-.14-.14-.33-.22-.53-.22h-.003c-.2 0-.393.08-.532.224l-4.317 4.384-1.813-1.806c-.14-.14-.33-.22-.53-.22-.193-.03-.395.08-.535.227L3.5 17.642V4.25c0-.413.337-.75.75-.75zm-.744 16.28l5.418-5.534 6.282 6.254H4.25c-.402 0-.727-.322-.744-.72zm16.244.72h-2.42l-5.007-4.987 3.792-3.85 4.385 4.384v3.703c0 .413-.337.75-.75.75z"></path>
+                  <circle cx="8.868" cy="8.309" r="1.542"></circle>
+                </g>
+              </svg>
+              <span id="tweet-capture-num">0/4</span>
+              <span id="tweet-num-img" class="fab fa-twitter"></span>
+              <span id="tweet-num">140</span>
+              <div id="tweet-capture-box"></div>
             </div>
             <div id="tweet-etc">
-              <div id="tweet-picture" data-balloon="キャプチャ (Alt+1)" data-balloon-pos="up">
+              <div id="tweet-picture" class="tweet-etc-item" aria-label="キャプチャ (Alt+1)" data-balloon-pos="up">
                 <img src="/files/picture.svg">
               </div>
-              <div id="tweet-picture-comment" data-balloon="コメント付きでキャプチャ (Alt+2)" data-balloon-pos="up">
+              <div id="tweet-picture-comment" class="tweet-etc-item" aria-label="コメント付きでキャプチャ (Alt+2)" data-balloon-pos="up">
                 <img src="/files/comment.svg">
               </div>
-              <div id="tweet-reset" data-balloon="リセット (Alt+3)" data-balloon-pos="up">
+              <div id="tweet-capture-list" class="tweet-etc-item" aria-label="キャプチャ画像リスト (Alt+Q)" data-balloon-pos="up">
+                <img src="/files/list.svg">
+              </div>
+              <div id="tweet-reset" class="tweet-etc-item" aria-label="リセット (Alt+3)" data-balloon-pos="up">
                 <img src="/files/reset.svg">
               </div>
-              <span id="tweet-num">140</span>
             </div>
             <button id="tweet-submit" class="disabled" disabled>ツイート</button>
           </form>
@@ -282,25 +294,25 @@
       <div id="information">
 <?php	if (empty($BonDriver_dll) and empty($ch)){ // エラーを吐く ?>
         <div class="error">
-          BonDriverとチャンネル設定ファイルが見つからないため、ストリームを開始できません。<br>
-          ファイルがBonDriverフォルダに正しく配置されているか、確認してください。<br>
+          BonDriver とチャンネル設定ファイルが見つからないため、ライブ配信を開始できません。<br>
+          ファイルが BonDriver フォルダに正しく配置されているか、確認してください。<br>
         </div>
 <?php	} else if (empty($BonDriver_dll)){ ?>
         <div class="error">
-          BonDriverが見つからないため、ストリームを開始できません。<br>
-          ファイルがBonDriverフォルダに正しく配置されているか、確認してください。<br>
+          BonDriver が見つからないため、ライブ配信を開始できません。<br>
+          ファイルが BonDriver フォルダに正しく配置されているか、確認してください。<br>
         </div>
 <?php	} else if (empty($ch)){ ?>
         <div class="error">
-          チャンネル設定ファイルが見つからないため、ストリームを開始できません。<br>
-          ファイルがBonDriverフォルダに正しく配置されているか、確認してください。<br>
+          チャンネル設定ファイルが見つからないため、ライブ配信を開始できません。<br>
+          ファイルが BonDriver フォルダに正しく配置されているか、確認してください。<br>
         </div>
 <?php	} //括弧終了
 
 		if (empty($EDCB_http_url) or !@file_get_contents($EDCB_http_url.'api/EnumEventInfo', false, $ssl_context)){ // EMWUI ?>
         <div class="error">
-          EDCB Material WebUI の API がある URL が正しく設定されていないため、番組情報が表示できません。<br>
-          設定ページの「EDCB Material WebUI (EMWUI) の API がある URL」が正しく設定されているかどうか、確認してください。<br>
+          EEDCB Material WebUI のある URL が正しく設定されていないため、番組情報が表示できません。<br>
+          設定ページの「EDCB Material WebUI (EMWUI) のある URL」が正しく設定されているかどうか、確認してください。<br>
         </div>
 <?php	} //括弧終了 ?>
 
@@ -794,6 +806,12 @@
                 <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">D</div>
               </div>
             </div>
+            <div class="hotkey-list">
+              <div class="hotkey-list-name">ストリームを同期する（ライブ配信時のみ）</div>
+              <div class="hotkey-list-key-box">
+                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">L</div>
+              </div>
+            </div>
           </div>
           <div class="hotkey-list-wrap">
             <div class="hotkey-head-box">
@@ -819,12 +837,6 @@
               </div>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">ストリームを同期する（ライブ配信時のみ）</div>
-              <div class="hotkey-list-key-box">
-                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">L</div>
-              </div>
-            </div>
-            <div class="hotkey-list">
               <div class="hotkey-list-name">コメント入力フォームを表示してフォーカスする</div>
               <div class="hotkey-list-key-box">
                 <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">C</div>
@@ -841,9 +853,18 @@
               <span class="hotkey-head">ツイート</span>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">ツイート入力フォームにフォーカスする / フォーカスを外す</div>
+              <div class="hotkey-list-name">
+                ツイート入力フォームにフォーカスする / フォーカスを外す<br>
+                プレイヤーにフォーカスする / フォーカスを外す（キャプチャ画像リスト表示時のみ）
+              </div>
               <div class="hotkey-list-key-box">
                 <div class="hotkey-list-key">Tab</div>
+              </div>
+            </div>
+            <div class="hotkey-list">
+              <div class="hotkey-list-name">キャプチャ画像リストを表示する</div>
+              <div class="hotkey-list-key-box">
+                <div class="hotkey-list-key">Alt (or Option)</div> + <div class="hotkey-list-key">Q</div>
               </div>
             </div>
             <div class="hotkey-list">
