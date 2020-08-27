@@ -322,6 +322,32 @@
 		// 変換コマンド切り替え
 		switch ($encoder) {
 
+			case($onid == 1 or $sid == 531):
+
+				// ラジオ用コマンド。音声だけなのでffmpegだけでもたぶん大丈夫
+				$stream_cmd = '"'.$ffmpeg_path.'"'.
+
+					// 入力
+					' -dual_mono_mode main -i "'.$receive.'"'.
+					// HLS
+					' -f hls'.
+					' -hls_segment_type mpegts'.
+					' -hls_time '.$hlslive_time.' -g '.($hlslive_time * 30).
+					' -hls_list_size '.$hlslive_list.
+					' -hls_allow_cache 0'.
+					' -hls_flags delete_segments'.
+					' -hls_segment_filename stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
+					// 音声
+					' -acodec aac -ab '.$ab.' -ar '.$samplerate.' -ac 2 -af volume='.$volume.
+					// 字幕
+					' '.$subtitle_ffmpeg_cmd.
+					// その他
+					' -flags +loop+global_header -movflags +faststart -threads auto'.
+					// 出力
+					' stream'.$stream.'.m3u8';
+
+				break;
+
 			case 'ffmpeg':
 
 				// ffmpeg用コマンド
