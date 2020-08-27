@@ -339,8 +339,6 @@
 					' -hls_segment_filename stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 音声
 					' -acodec aac -ab '.$ab.' -ar '.$samplerate.' -ac 2 -af volume='.$volume.
-					// 字幕
-					' '.$subtitle_ffmpeg_cmd.
 					// その他
 					' -flags +loop+global_header -movflags +faststart -threads auto'.
 					// 出力
