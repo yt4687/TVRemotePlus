@@ -47,9 +47,9 @@
 			// 一旦現在のストリームを終了する
 			// state に関わらず実行
 			if (isset($_POST['allstop'])) {
-				stream_stop($stream, true, $onid[$ini[$stream]['channel']]);
+				stream_stop($stream, true);
 			} else {
-				stream_stop($stream, false, $onid[$ini[$stream]['channel']]);
+				stream_stop($stream, false);
 			}
 
 			// File

@@ -782,7 +782,7 @@
 
 	// ストリームを終了する関数
 	// flgがtrueの場合は全てのストリームを終了する
-	function stream_stop($stream, $flg=false, $onid){
+	function stream_stop($stream, $flg=false){
 		global $inifile, $udp_port, $process_csv, $ffmpeg_exe, $qsvencc_exe, $nvencc_exe, $vceencc_exe, $tstask_exe, $tstask_SPHD_exe, $tstaskcentreex_path, $segment_folder, $TSTask_shutdown;
 
 		// 全てのストリームを終了する
