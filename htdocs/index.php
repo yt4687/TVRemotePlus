@@ -172,15 +172,17 @@
 
 <?php	if (isSettingsItem('comment_show', true, true)){ ?>
       <div id="sidebar">
-        <div id="comment-box-wrap">
+        <div id="comment-box">
           <div id="comment-box-header">
-          <i class="fas fa-comment-alt"></i><b>　コメント一覧</b>
+            <i class="fas fa-comment-alt"></i><b>　コメントリスト</b>
           </div>
-          <div id="comment-box">
-            <table id="comment-draw-box-header">
-              <tr><th id="comment-time" class="time">時間</th><th id="comment" class="comment">コメント</th></tr>
+          <table id="comment-draw-box-header">
+            <tr><th id="comment-time" class="time">時間</th><th id="comment" class="comment">コメント</th></tr>
+          </table>
+          <div id="comment-draw-wrap">
+            <table id="comment-draw-box">
+              <tbody></tbody>
             </table>
-            <table id="comment-draw-box"></table>
           </div>
           <div id="comment-scroll">
             <i class="fas fa-arrow-down"></i>

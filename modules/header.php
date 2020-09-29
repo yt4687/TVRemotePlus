@@ -28,8 +28,6 @@
   <meta charset="UTF-8">
   <meta name="theme-color" content="#191919">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-  <link rel="manifest" href="<?php echo $site_url.'manifest.json'?>">
-  <link rel="shortcut icon" type="image/x-icon" href="<?php echo $site_url.'favicon.ico'?>">
   <!-- Style -->
   <link rel="manifest" href="/manifest.json">
   <link rel="manifest" href="/manifest.webmanifest">
@@ -64,6 +62,7 @@
   <script type="text/javascript" src="/files/common.js"></script>
 <?php
 	if (strpos($backtrace[0]['file'], 'index.php') !== false){ // index.phpのみ
+		echo '  <script type="text/javascript" src="/files/clusterize.min.js"></script>'."\n";
 		echo '  <script type="text/javascript" src="/files/swiper.min.js"></script>'."\n";
 		echo '  <script type="text/javascript" src="/files/index.js"></script>'."\n";
 		echo '  <script type="text/javascript" src="/files/script.js"></script>'."\n";
@@ -89,6 +88,8 @@
       logo_show: true,
       comment_size: 35,
       comment_delay: 5,
+      comment_file_delay: 0,
+      comment_list_performance: 'normal',
       list_view_number: 30,
       onclick_stream: false
     };
