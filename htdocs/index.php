@@ -717,6 +717,63 @@
       </div>
     </div>
 
+    <div id="ljicrop-box">
+      <div id="ljicrop-wrap">
+        <div class="ljicrop-head-box title">
+          <i class="fas fa-tv"></i>
+          <span class="ljicrop-head">Ｌ字画面のクロップ</span>
+        </div>
+        <div class="ljicrop-head-box">
+          <i class="fas fa-search-plus" style="font-size: 13.5px;"></i>
+          <span class="ljicrop-head">拡大率 : <span id="ljicrop-magnify-percentage">100%<span></span>
+        </div>
+        <div class="ljicrop-range-box">
+          <span class="ljicrop-range-start">100%</span>
+          <input id="ljicrop-magnify" name="ljicrop_magnify" type="range" min="100" max="200" value="100">
+          <span class="ljicrop-range-end">200%</span>
+        </div>
+        <div class="ljicrop-head-box">
+          <i class="fas fa-arrows-alt-h" style="font-size: 13.5px;"></i>
+          <span class="ljicrop-head">X 座標 : <span id="ljicrop-coordinatex-percentage">0%<span></span>
+        </div>
+        <div class="ljicrop-range-box">
+          <span class="ljicrop-range-start" style="padding-left: 18px;">0%</span>
+          <input id="ljicrop-coordinatex" name="ljicrop_coordinateX" type="range" min="0" max="100" value="0">
+          <span class="ljicrop-range-end">100%</span>
+        </div>
+        <div class="ljicrop-head-box">
+          <i class="fas fa-arrows-alt-v" style="font-size: 13.5px;"></i>
+          <span class="ljicrop-head">Y 座標 : <span id="ljicrop-coordinatey-percentage">0%<span></span>
+        </div>
+        <div class="ljicrop-range-box">
+          <span class="ljicrop-range-start" style="padding-left: 18px;">0%</span>
+          <input id="ljicrop-coordinatey" name="ljicrop_coordinateY" type="range" min="0" max="100" value="0">
+          <span class="ljicrop-range-end">100%</span>
+        </div>
+        <div class="ljicrop-head-box">
+          <i class="fas fa-crosshairs" style="font-size: 13.5px;"></i>
+          <span class="ljicrop-head">拡大起点</span>
+        </div>
+        <div id="ljicrop-point-box">
+          <label class="ljicrop-point">
+            <input type="radio" name="ljicrop_type" value="upperright" checked> 右上
+          </label>
+          <label class="ljicrop-point">
+            <input type="radio" name="ljicrop_type" value="lowerright"> 右下
+          </label>
+          <label class="ljicrop-point">
+            <input type="radio" name="ljicrop_type" value="upperleft"> 左上
+          </label>
+          <label class="ljicrop-point">
+            <input type="radio" name="ljicrop_type" value="lowerleft"> 左下
+          </label>
+        </div>
+        <div id="button-box" class="broadcast-button-box">
+          <button class="redbutton" type="button"><i class="fas fa-times"></i>閉じる</button>
+        </div>
+      </div>
+    </div>
+
     <div id="hotkey-box">
       <div id="hotkey-wrap">
         <div class="hotkey-head-box title">

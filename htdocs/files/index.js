@@ -173,6 +173,136 @@
       }, 300);
     });
 
+    // ***** L字画面クロップ設定 *****
+
+    $('#ljicrop').click(function(){
+      $('#nav-close').toggleClass('open');
+      $('#ljicrop-box').toggleClass('open');
+    });
+
+    $('#ljicrop-box').click(function(event){
+      $('#nav-close').removeClass('open');
+      $('#ljicrop-box').removeClass('open');
+    });
+
+    $('#ljicrop-wrap').click(function(event){
+      event.stopPropagation();
+    });
+
+    // 設定読み込み
+    if (typeof settings['ljicrop_magnify'] !== 'undefined') {
+      $('input[name="ljicrop_magnify"]').val(settings['ljicrop_magnify']);
+      $('input[name="ljicrop_coordinateX"]').val(settings['ljicrop_coordinateX']);
+      $('input[name="ljicrop_coordinateY"]').val(settings['ljicrop_coordinateY']);
+      $('input[name="ljicrop_type"]').val([settings['ljicrop_type']]);
+      ljicrop();
+    }
+
+    // イベントハンドラーを設定
+    $('input[name="ljicrop_magnify"]').on('input', ljicrop);
+    $('input[name="ljicrop_coordinateX"]').on('input', ljicrop);
+    $('input[name="ljicrop_coordinateY"]').on('input', ljicrop);
+    $('input[name="ljicrop_type"]').on('input', ljicrop);
+
+    function ljicrop() {
+
+      // 拡大率
+      const ljicrop_magnify = parseInt($('input[name=ljicrop_magnify]').val());
+      // X座標
+      const ljicrop_coordinateX = parseInt($('input[name=ljicrop_coordinateX]').val());
+      // Y座標
+      const ljicrop_coordinateY = parseInt($('input[name=ljicrop_coordinateY]').val());
+      // 拡大起点
+      const ljicrop_type = $('input[name=ljicrop_type]:checked').val();
+
+      // 設定を保存
+      settings['ljicrop_magnify'] = ljicrop_magnify;
+      settings['ljicrop_coordinateX'] = ljicrop_coordinateX;
+      settings['ljicrop_coordinateY'] = ljicrop_coordinateY;
+      settings['ljicrop_type'] = ljicrop_type;
+      Cookies.set('settings', JSON.stringify(settings), { expires: 365 });
+
+      // 表示
+      $('#ljicrop-magnify-percentage').text(ljicrop_magnify + '%');
+      $('#ljicrop-coordinatex-percentage').text(ljicrop_coordinateX + '%');
+      $('#ljicrop-coordinatey-percentage').text(ljicrop_coordinateY + '%');
+
+      // video 要素を拡大
+      dp.video.style.position = 'relative';
+      dp.video.style.width = ljicrop_magnify + '%';
+      dp.video.style.height = ljicrop_magnify + '%';
+
+      // 拡大起点別
+      switch (ljicrop_type) {
+
+        // 右上
+        case 'upperright':
+
+            if ((ljicrop_magnify - 100) > ljicrop_coordinateX) {
+              dp.video.style.left = -(ljicrop_magnify - ljicrop_coordinateX - 100) + '%';
+            } else {
+              dp.video.style.left = -(ljicrop_magnify - (ljicrop_magnify - 100) - 100) + '%';
+            }
+            if ((ljicrop_magnify - 100) > ljicrop_coordinateY) {
+              dp.video.style.bottom = ljicrop_coordinateY + '%';
+            } else {
+              dp.video.style.bottom = (ljicrop_magnify - 100) + '%';
+            }
+
+          break;
+
+        // 右下
+        case 'lowerright':
+
+            if ((ljicrop_magnify - 100) > ljicrop_coordinateX) {
+              dp.video.style.left = -(ljicrop_magnify - ljicrop_coordinateX - 100) + '%';
+            } else {
+              dp.video.style.left = -(ljicrop_magnify - (ljicrop_magnify - 100) - 100) + '%';
+            }
+            if ((ljicrop_magnify - 100) > ljicrop_coordinateY) {
+              dp.video.style.bottom = (ljicrop_magnify - ljicrop_coordinateY - 100) + '%';
+            } else {
+              dp.video.style.bottom = (ljicrop_magnify - (ljicrop_magnify - 100) - 100) + '%';
+            }
+
+          break;
+
+        // 左上
+        case 'upperleft':
+
+            if ((ljicrop_magnify - 100) > ljicrop_coordinateX) {
+              dp.video.style.left = -ljicrop_coordinateX + '%';
+            } else {
+              dp.video.style.left = -(ljicrop_magnify - 100) + '%';
+            }
+            if ((ljicrop_magnify - 100) > ljicrop_coordinateY) {
+              dp.video.style.bottom = ljicrop_coordinateY + '%';
+            } else {
+              dp.video.style.bottom = (ljicrop_magnify - 100) + '%';
+            }
+
+          break;
+
+        // 左下
+        case 'lowerleft':
+
+            if ((ljicrop_magnify - 100) > ljicrop_coordinateX) {
+              dp.video.style.left = -ljicrop_coordinateX + '%';
+            } else {
+              dp.video.style.left = -(ljicrop_magnify - 100) + '%';
+            }
+            if ((ljicrop_magnify - 100) > ljicrop_coordinateY) {
+              dp.video.style.bottom = (ljicrop_magnify - ljicrop_coordinateY - 100) + '%';
+            } else {
+              dp.video.style.bottom = (ljicrop_magnify - (ljicrop_magnify - 100) - 100) + '%';
+            }
+
+          break;
+
+      }
+    }
+
+
     // ***** キーボードショートカット一覧 *****
 
     $('#hotkey').click(function(){
@@ -605,6 +735,7 @@
     $('#nav-close').removeClass('open');
     $('#chromecast-box').removeClass('open');
     $('#hotkey-box').removeClass('open');
+    $('#ljicrop-box').removeClass('open');
     $('html').removeClass('open');
 
     // Chromecast を起動
