@@ -16,6 +16,10 @@
 
         for (danmaku of dp.danmaku.dan) {
 
+          if (danmaku['text'] === '') {  // コメントが空
+            continue;
+          }
+
           // 分と秒を計算
           let videotime = (danmaku['time']).toString();
           let ss = Math.floor(videotime % 60);
@@ -191,6 +195,9 @@
       while ($comment.length === 0) {
         currentTime_count += 1; // カウントを足す
         $comment = $('.comment-file[data-time=' + Math.floor(dp.video.currentTime + currentTime_count) + ']').eq(count); // 再取得
+        if (currentTime_count > $comment.length) {
+          break;
+        }
       }
 
       // スクロール

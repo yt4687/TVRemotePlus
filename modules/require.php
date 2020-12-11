@@ -93,6 +93,9 @@ $cookiefile = $base_dir.'data/niconico.cookie';
 // ch_sid.tsv のパス
 $ch_sidfile = $base_dir.'data/ch_sid.tsv';
 
+// channel_table.json のパス
+$channel_table_file = $base_dir.'data/channel_table.json';
+
 // オフライン時の m3u8 のパス
 $offline_m3u8 = $base_dir.'data/offline.m3u8';
 $offline_silent_m3u8 = $base_dir.'data/offline_silent.m3u8';
@@ -150,7 +153,7 @@ $vceencc_path =  $base_dir.'bin/VCEEncC/'.$vceencc_exe;
 // ***** 設定読み込み *****
 
 // config.php を読み込む
-require_once ($base_dir.'/config.php');
+require ($base_dir.'/config.php');
 
 // EDCB_http_url の書き換え (互換用)
 $EDCB_http_url = str_replace('api/', '', rtrim($EDCB_http_url, '/').'/'); // 常に末尾にスラッシュをつける
