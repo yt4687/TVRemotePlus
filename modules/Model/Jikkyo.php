@@ -254,8 +254,14 @@ class Jikkyo {
 		// タイトル
 		$title = $nicolive_json['program']['title'];
 
+		// 開始時間
+		$begintime = $nicolive_json['program']['beginTime'];
+
+		// 終了時間
+		$endtime = $nicolive_json['program']['endTime'];
+
 		// ユーザー ID
-		$user_id = (isset($nicolive_json['user']['id']) ? $nicolive_json['user']['id'] : '');
+		$user_id = (isset($nicolive_json['user']['id']) ? $nicolive_json['user']['id'] : null);
 
 		// ユーザータイプ（ non・standard・premium のいずれか）
 		$user_type = $nicolive_json['user']['accountType'];
@@ -264,17 +270,19 @@ class Jikkyo {
 		$is_login = $nicolive_json['user']['isLoggedIn'];
 
 		// 視聴セッション構築用の WebSocket の URL
-		$websocket_url = $nicolive_json['site']['relive']['webSocketUrl'];
+		$watchsession_url = $nicolive_json['site']['relive']['webSocketUrl'];
 
 
 		// 連想配列を返す
 		return [
 			'title' => $title,
+			'begintime' => $begintime,
+			'endtime' => $endtime,
 			'live_id' => 'lv'.$nicolive_id,
 			'user_id' => $user_id,
 			'user_type' => $user_type,
 			'is_login' => $is_login,
-			'websocket_url' => $websocket_url,
+			'watchsession_url' => $watchsession_url,
 		];
 	}
 }

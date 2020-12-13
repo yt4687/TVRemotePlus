@@ -64,18 +64,22 @@ class JikkyoController {
     
                             // ニコ生のセッション情報を取得
                             $nicolive_session = $instance->getNicoliveSession($nicolive_id);
-    
+
+                            // WebSocket の URL が空
+                            if (empty($nicolive_session['watchsession_url'])) {
+                                $message = '視聴セッションを取得できませんでした。';
+                            }
                         } else {
-                            $message = '現在放送中の番組がありません。';
+                            $message = '現在放送中のニコニコ実況がありません。';
                         }
                     } else {
-                        $message = 'このチャンネルの実況チャンネルは廃止されました。';
+                        $message = 'このチャンネルのニコニコ実況は廃止されました。';
                     }
                 } else {
-                    $message = '実況チャンネルが存在しません。';
+                    $message = 'このチャンネルのニコニコ実況はありません。';
                 }
             } else {
-                $message = "Stream {$stream} は ON Air ではありません。";
+                $message = "Stream {$stream} は ON Air 以外です。";
             }
         } else {
             $message = "Stream {$stream} は存在しません。";
@@ -83,7 +87,7 @@ class JikkyoController {
 
 
         // ニコ生のセッション情報を取得できているか
-        if (isset($nicolive_session)) {
+        if (isset($nicolive_session) && !empty($nicolive_session['watchsession_url'])) {
 
             // 出力
             $output = [
