@@ -8,6 +8,7 @@
 ・改善の方法など知恵を貸してください。  
 ・本家同様動かなくても保証はできません。
 ・改善も中の人の余裕を見ながらになります。
+・スカパープレミアム用BonDriverは、SPHDであることを想定しています。
 
 動作環境  
   - サーバー：Windows Server 2016 Standard + BOnDriverProxyEx +　PLEX PX-W3PE4
