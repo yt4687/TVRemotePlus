@@ -58,7 +58,7 @@ function newNicoJKAPIBackendONAir() {
         
         try {
             watchsession_info = await $.ajax({
-                url: '/api/jikkyov2/' + stream,
+                url: '/api/jikkyo/' + stream,
                 dataType: 'json',
                 cache: false,
             });
@@ -123,9 +123,13 @@ function newNicoJKAPIBackendONAir() {
 
                         // keepIntervalSec の秒数ごとに keepSeat を送信して座席を維持する
                         setInterval(() => {
-                            watchsession.send(JSON.stringify({
-                                'type': 'keepSeat',
-                            }));
+                            // セッションがまだ開いていれば
+                            if (watchsession.readyState === 1) {
+                                // 座席を維持
+                                watchsession.send(JSON.stringify({
+                                    'type': 'keepSeat',
+                                }));
+                            }
                         }, message.data.keepIntervalSec * 1000);
 
                     break;
@@ -150,6 +154,26 @@ function newNicoJKAPIBackendONAir() {
                             'postkey': (message.data.yourPostKey ? message.data.yourPostKey : null),
                             'commentsession_url': message.data.messageServer.uri,
                         });
+
+                    break;
+
+                    // 視聴セッションが閉じられた（4時のリセットなど）
+                    case 'disconnect':
+
+                        console.log(`disconnected. reason: ${message.data.reason}`);
+            
+                        // コメントセッションがまだ開かれていれば閉じる
+                        if (commentsession) commentsession.close();
+
+                        // 5 秒ほどまってから再接続
+                        setTimeout(() => {
+            
+                            // プレイヤー側のコメント機能をリロード
+                            dp.danmaku.dan = [];
+                            dp.danmaku.clear();
+                            dp.danmaku.load();
+
+                        }, 5000);
 
                     break;
                 }
@@ -202,13 +226,13 @@ function newNicoJKAPIBackendONAir() {
                     is_autoscroll_now = true;
 
                     // スクロール
-                    comment_draw_box.scroll({
+                    comment_draw_box.scrollTo({
                         top: comment_draw_box.scrollHeight,
                         left: 0,
                         behavior: 'smooth',
                     });
 
-                    // スクロールを停止して 150ms 後に終了とする
+                    // スクロールを停止して 200ms 後に終了とする
                     comment_draw_box.onscroll = (event) => {
                         clearTimeout(is_autoscroll_now_timer);
                         is_autoscroll_now_timer = setTimeout(() => {
@@ -216,7 +240,7 @@ function newNicoJKAPIBackendONAir() {
                             is_autoscroll_now = false;
                             // イベントを削除
                             comment_draw_box.onscroll = null;
-                        }, 150);
+                        }, 200);
                     };
                 }
             }
@@ -329,7 +353,6 @@ function newNicoJKAPIBackendONAir() {
                     );
 
                     // スクロールする（自動スクロールが有効な場合のみ）
-                    // ゆくゆく全部 behavior: 'smooth' に書き換えたい（ JS 使うと重いので）
                     if (is_autoscroll_mode) {
                         scroll();
                     }
@@ -429,6 +452,24 @@ function newNicoJKAPIBackendONAir() {
             console.error('Error: ' + commentsession_info);
             options.error(commentsession_info);  // エラーメッセージを送信
         }
+
+        // ストリームの更新イベントを受け取ったとき
+        function restart() {
+
+            // WebSocket が開かれていれば閉じる
+            if (watchsession) watchsession.close();
+            if (commentsession) commentsession.close();
+
+            // プレイヤー側のコメント機能をリロード
+            dp.danmaku.dan = [];
+            dp.danmaku.clear();
+            dp.danmaku.load();
+            
+            // イベント自身を削除
+            document.getElementById('status').removeEventListener('update', restart);
+        }
+        // イベント追加
+        document.getElementById('status').addEventListener('update', restart);
     }
 
     /**
@@ -584,9 +625,9 @@ function newNicoJKAPIBackendONAir() {
 
     // ページを閉じる/移動する前に WebSocket を閉じる
     // しなくても勝手に閉じられる気はするけど一応
-    window.addEventListener('beforeunload', function () {
-        watchsession.close();
-        commentsession.close();
+    window.addEventListener('beforeunload', () => {
+        if (watchsession) watchsession.close();
+        if (commentsession) commentsession.close();
     });
 
     return {
@@ -610,8 +651,18 @@ function newNicoJKAPIBackendONAir() {
         // コメント送信時
         send: (options) => {
 
-            // コメントを送信する
-            sendComment(options);
+            // 視聴セッションを取得できていれば
+            if (commentsession_connectable) {
+
+                // コメントを送信する
+                sendComment(options);
+
+            // 視聴セッションを取得できなかった
+            } else {
+
+                // コメント失敗のコールバックを DPlayer に通知
+                options.error(commentsession_info);
+            }
         }
     }
 }
@@ -631,7 +682,7 @@ function newNicoJKAPIBackendFile() {
             let comment;
             try {
                 comment = await $.ajax({
-                    url: '/api/jikkyov2/' + stream,
+                    url: '/api/jikkyo/' + stream,
                     dataType: 'json',
                     cache: false,
                 });
