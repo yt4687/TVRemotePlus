@@ -87,13 +87,12 @@ class Jikkyo {
 
     /**
      * チャンネル名から実況 ID を取得する
-     * そのチャンネルにニコニコ実況のチャンネルが存在しない場合は -1 、
-     * どのチャンネルにも一致しなかった場合は -2 を返す
+     * そのチャンネルにニコニコ実況のチャンネルが存在しない場合は null を返す
      *
      * @param string $channel_name チャンネル名（放送局名）
-     * @return integer そのチャンネルの実況 ID
+     * @return ?string そのチャンネルの実況 ID
      */
-    public function getNicoJikkyoID(string $channel_name): int {
+    public function getNicoJikkyoID(string $channel_name): ?string {
 
         // channel_table.json を読み込み
         $channel_table = json_decode(file_get_contents($this->channel_table_file), true);
@@ -113,40 +112,53 @@ class Jikkyo {
             if ($channel_name === $channel_field or preg_match($match, $channel_name)) {
 
                 // 実況 ID を返す
-                return intval($channel_record['JikkyoID']);
+                if (intval($channel_record['JikkyoID']) > 0) {
+                    return 'jk'.$channel_record['JikkyoID'];
+                } else {
+                    return null;
+                }
             }
         }
 
         // チャンネル名が一致しなかった
-        return -2;
+        return null;
     }
 
 
     /**
-     * 実況ID（例: (jk)1）から、ニコニコチャンネルID（例: (ch)2646436）を取得する
-     * API は jk1 のようなチャンネルのスクリーンネームだと取得できないらしい
+     * 実況ID（例: jk1）から、ニコニコチャンネルID（例: ch2646436）を取得する
+     * API に渡す ID は jk1 のようなチャンネルのスクリーンネームだと取得できないらしい
      * 存在しない実況 ID の場合は null を返す
      *
-     * @param integer $nicojikkyo_id 実況ID
-     * @return mixed ニコニコチャンネルID or null
+     * @param string $nicojikkyo_id 実況ID
+     * @return ?string ニコニコチャンネルID or null
      */
-    public function getNicoChannelID(int $nicojikkyo_id) {
+    public function getNicoChannelID(string $nicojikkyo_id): ?string {
 
         // 変換テーブル
+        // ch は公式チャンネル・co はコミュニティ
         $table = [
-            'jk1' => 2646436,
-            'jk2' => 2646437,
-            'jk4' => 2646438,
-            'jk5' => 2646439,
-            'jk6' => 2646440,
-            'jk7' => 2646441,
-            'jk8' => 2646442,
-            'jk9' => 2646485,
-            'jk211' => 2646846,
+            'jk1' => 'ch2646436',
+            'jk2' => 'ch2646437',
+            'jk4' => 'ch2646438',
+            'jk5' => 'ch2646439',
+            'jk6' => 'ch2646440',
+            'jk7' => 'ch2646441',
+            'jk8' => 'ch2646442',
+            'jk9' => 'ch2646485',
+            'jk101' => 'co5214081',
+            'jk103' => 'co5175227',
+            'jk141' => 'co5175341',
+            'jk151' => 'co5175345',
+            'jk161' => 'co5176119',
+            'jk171' => 'co5176122',
+            'jk181' => 'co5176125',
+            'jk211' => 'ch2646846',
+            'jk222' => 'co5193029',
         ];
 
-        if (isset($table['jk'.$nicojikkyo_id])) {
-            return $table['jk'.$nicojikkyo_id];
+        if (isset($table[$nicojikkyo_id])) {
+            return $table[$nicojikkyo_id];
         } else {
             return null;
         }
@@ -156,18 +168,19 @@ class Jikkyo {
     /**
      * ニコニコチャンネルの ID から、現在放送中のニコ生の放送 ID を取得する
      * 現在放送中の番組が存在しない場合は null を返す
+     * 実装方法の変更により現在未使用
      *
-     * @param integer $nicochannel_id ニコニコチャンネルID
-     * @return mixed ニコ生の放送ID or null
+     * @param string $nicochannel_id ニコニコチャンネルID
+     * @return ?string ニコ生の放送ID or null
      */
-    public function getNicoLiveID(int $nicochannel_id) {
+    public function getNicoLiveID(string $nicochannel_id): ?string {
 
         // ベース URL
         $api_baseurl = 'https://public.api.nicovideo.jp/v1/channel/channelapp/content/lives.json?sort=startedAt&page=1&channelId=';
 
         // API レスポンスを取得
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $api_baseurl.$nicochannel_id);
+        curl_setopt($curl, CURLOPT_URL, $api_baseurl.str_replace('ch', '', $nicochannel_id));
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); // これがないと HTTPS で接続できない
@@ -185,7 +198,7 @@ class Jikkyo {
             if ($item['category'] === 'current') {
 
                 // ニコ生の放送 ID を返す
-                return $item['id'];
+                return 'lv'.$item['id'];
             }
         }
 
@@ -197,26 +210,26 @@ class Jikkyo {
     /**
      * ニコ生の視聴セッション情報を取得する
      *
-     * @param integer $nicolive_id ニコ生の放送ID (ex: (lv)329283198)
-     * @return array 視聴セッション情報が含まれる連想配列
+     * @param string $nicolive_id ニコ生の放送ID (ex: lv329283198・ch2646436)
+     * @return ?array 視聴セッション情報が含まれる連想配列 or null
      */
-    public function getNicoliveSession(int $nicolive_id): array {
+    public function getNicoliveSession(string $nicolive_id): ?array {
 
         /**
          * 二回使うので関数内関数にした
          *
-         * @param integer $nicolive_id ニコ生の放送 ID (ex: (lv)329283198)
+         * @param string $nicolive_id ニコ生の放送 ID (ex: lv329283198・ch2646436)
          * @param string $cookie_file Cookie のあるファイル
          * @return array 処理結果
          */
-        function getSession(int $nicolive_id, string $cookie_file): array {
+        function getSession(string $nicolive_id, string $cookie_file): array {
 
             // ベース URL
             $nicolive_baseurl = 'https://live2.nicovideo.jp/watch/';
 
             // HTML を取得
             $curl = curl_init();
-            curl_setopt($curl, CURLOPT_URL, $nicolive_baseurl.'lv'.$nicolive_id);
+            curl_setopt($curl, CURLOPT_URL, $nicolive_baseurl.$nicolive_id);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); // これがないと HTTPS で接続できない
@@ -234,6 +247,11 @@ class Jikkyo {
         // 情報を取得
         $nicolive_json = getSession($nicolive_id, $this->cookie_file);
 
+
+        // 現在放送中 (ON_AIR) でないなら null を返す
+        if ($nicolive_json['program']['status'] !== 'ON_AIR') {
+            return null;
+        }
 
         // ログイン利用で実際にログインされている、またはゲスト利用
         if ($nicolive_json['user']['isLoggedIn'] === true or $this->is_guest) {
@@ -259,6 +277,9 @@ class Jikkyo {
         // 終了時間
         $endtime = $nicolive_json['program']['endTime'];
 
+        // 放送 ID を上書き
+        $nicolive_id = $nicolive_json['program']['nicoliveProgramId'];
+
         // ユーザー ID
         $user_id = (isset($nicolive_json['user']['id']) ? $nicolive_json['user']['id'] : null);
 
@@ -277,7 +298,7 @@ class Jikkyo {
             'title' => $title,
             'begintime' => $begintime,
             'endtime' => $endtime,
-            'live_id' => 'lv'.$nicolive_id,
+            'live_id' => $nicolive_id,
             'user_id' => $user_id,
             'user_type' => $user_type,
             'is_login' => $is_login,
@@ -290,12 +311,12 @@ class Jikkyo {
      * ニコニコ実況の過去ログを取得する
      * 過去ログが取得できたら DPlayer 互換フォーマットの過去ログを、取得できなければエラーメッセージを返す
      *
-     * @param integer $nicojikkyo_id ニコニコ実況の ID
+     * @param string $nicojikkyo_id ニコニコ実況の ID
      * @param integer $start_timestamp 取得を開始する時刻のタイムスタンプ
      * @param integer $end_timestamp 取得を終了する時刻のタイムスタンプ
      * @return array|string 過去ログ（DPlayer 互換）or エラーメッセージ
      */
-    public function getNicoJikkyoKakolog(int $nicojikkyo_id, int $start_timestamp, int $end_timestamp) {
+    public function getNicoJikkyoKakolog(string $nicojikkyo_id, int $start_timestamp, int $end_timestamp) {
 
         /**
          * ニコニコの色指定を 16 進数カラーコードに置換する
@@ -359,7 +380,7 @@ class Jikkyo {
 
 
         // 過去ログ API の URL
-        $kakologapi_sprintf= 'https://jikkyo.tsukumijima.net/api/kakolog/jk%d?starttime=%d&endtime=%d&format=json';
+        $kakologapi_sprintf= 'https://jikkyo.tsukumijima.net/api/kakolog/%s?starttime=%d&endtime=%d&format=json';
         $kakologapi_url = sprintf($kakologapi_sprintf, $nicojikkyo_id, $start_timestamp, $end_timestamp);
 
         // API から過去ログを取得
