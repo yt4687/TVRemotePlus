@@ -8,8 +8,11 @@ class Jikkyo {
     // ログイン情報を保存する Cookie ファイル
     private $cookie_file;
 
-    // channel_table.json ファイル
-    private $channel_table_file;
+    // jikkyo_channels.json ファイル
+    private $jikkyo_channels_file;
+
+    // jikkyo_ikioi.json ファイル
+    private $jikkyo_ikioi_file;
 
     // ゲストかどうか
     private bool $is_guest;
@@ -18,7 +21,29 @@ class Jikkyo {
     private string $nicologin_mail;
     
     // ニコニコのパスワード
-    private string $nicologin_password;
+    private string $nicologin_password;    
+
+    // 変換テーブル
+    // ch は公式チャンネル・co はコミュニティ
+    private array $table = [
+        'jk1' => 'ch2646436',
+        'jk2' => 'ch2646437',
+        'jk4' => 'ch2646438',
+        'jk5' => 'ch2646439',
+        'jk6' => 'ch2646440',
+        'jk7' => 'ch2646441',
+        'jk8' => 'ch2646442',
+        'jk9' => 'ch2646485',
+        'jk101' => 'co5214081',
+        'jk103' => 'co5175227',
+        'jk141' => 'co5175341',
+        'jk151' => 'co5175345',
+        'jk161' => 'co5176119',
+        'jk171' => 'co5176122',
+        'jk181' => 'co5176125',
+        'jk211' => 'ch2646846',
+        'jk222' => 'co5193029',
+    ];
 
 
     /**
@@ -34,7 +59,8 @@ class Jikkyo {
         require ('require.php');
 
         $this->cookie_file = $cookiefile;
-        $this->channel_table_file = $channel_table_file;
+        $this->jikkyo_channels_file = $jikkyo_channels_file;
+        $this->jikkyo_ikioi_file = $jikkyo_ikioi_file;
         
         // メールアドレス・パスワードが空ならゲスト利用と判定
         $this->is_guest = (empty($nicologin_mail) or empty($nicologin_password));
@@ -76,6 +102,7 @@ class Jikkyo {
         curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); // これがないと HTTPS で接続できない
+        curl_setopt($curl, CURLOPT_USERAGENT, Utils::getUserAgent()); // ユーザーエージェントを送信
         curl_setopt($curl, CURLOPT_COOKIEJAR, $this->cookie_file); // Cookie をファイルに保存する（重要）
 
         // 空実行する
@@ -94,19 +121,21 @@ class Jikkyo {
      */
     public function getNicoJikkyoID(string $channel_name): ?string {
 
-        // channel_table.json を読み込み
-        $channel_table = json_decode(file_get_contents($this->channel_table_file), true);
+        // jikkyo_channels.json を読み込み
+        $channel_table = json_decode(file_get_contents($this->jikkyo_channels_file), true);
 
         // 配列を回す
         foreach ($channel_table as $channel_record) {
 
             // 抽出したチャンネル名
             $channel_field = $channel_record['Channel'];
+            
+            // 正規表現用の文字をエスケープ
+            $channel_field_escape = str_replace('/', '\/', preg_quote($channel_field));
 
             // 正規表現パターン
-            // preg_quote() は正規表現用の文字をエスケープする用
             mb_regex_encoding('UTF-8');
-            $match = '/^'.str_replace('NHK総合', 'NHK総合[0-9]?', str_replace('NHKEテレ', 'NHKEテレ[0-9]?', $channel_field)).'[0-9]?/u';
+            $match = '/^'.str_replace('NHK総合', 'NHK総合[0-9]?', str_replace('NHKEテレ', 'NHKEテレ[0-9]?', $channel_field_escape)).'[0-9]?/u';
 
             // チャンネル名がいずれかのパターンに一致したら
             if ($channel_name === $channel_field or preg_match($match, $channel_name)) {
@@ -135,30 +164,8 @@ class Jikkyo {
      */
     public function getNicoChannelID(string $nicojikkyo_id): ?string {
 
-        // 変換テーブル
-        // ch は公式チャンネル・co はコミュニティ
-        $table = [
-            'jk1' => 'ch2646436',
-            'jk2' => 'ch2646437',
-            'jk4' => 'ch2646438',
-            'jk5' => 'ch2646439',
-            'jk6' => 'ch2646440',
-            'jk7' => 'ch2646441',
-            'jk8' => 'ch2646442',
-            'jk9' => 'ch2646485',
-            'jk101' => 'co5214081',
-            'jk103' => 'co5175227',
-            'jk141' => 'co5175341',
-            'jk151' => 'co5175345',
-            'jk161' => 'co5176119',
-            'jk171' => 'co5176122',
-            'jk181' => 'co5176125',
-            'jk211' => 'ch2646846',
-            'jk222' => 'co5193029',
-        ];
-
-        if (isset($table[$nicojikkyo_id])) {
-            return $table[$nicojikkyo_id];
+        if (isset($this->table[$nicojikkyo_id])) {
+            return $this->table[$nicojikkyo_id];
         } else {
             return null;
         }
@@ -173,6 +180,7 @@ class Jikkyo {
      * @param string $nicochannel_id ニコニコチャンネルID
      * @return ?string ニコ生の放送ID or null
      */
+    /*
     public function getNicoLiveID(string $nicochannel_id): ?string {
 
         // ベース URL
@@ -184,6 +192,7 @@ class Jikkyo {
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); // これがないと HTTPS で接続できない
+        curl_setopt($curl, CURLOPT_USERAGENT, Utils::getUserAgent()); // ユーザーエージェントを送信
         $response = json_decode(curl_exec($curl), true);  // リクエストを実行
         curl_close($curl);
 
@@ -205,6 +214,7 @@ class Jikkyo {
         // アイテムごとに回したけど現在放送中の番組がなかった
         return null;
     }
+    */
 
 
     /**
@@ -216,13 +226,13 @@ class Jikkyo {
     public function getNicoliveSession(string $nicolive_id): ?array {
 
         /**
-         * 二回使うので関数内関数にした
+         * 二回使うのでクロージャにした
          *
          * @param string $nicolive_id ニコ生の放送 ID (ex: lv329283198・ch2646436)
          * @param string $cookie_file Cookie のあるファイル
          * @return array 処理結果
          */
-        function getSession(string $nicolive_id, string $cookie_file): array {
+        $getSession = function(string $nicolive_id, string $cookie_file): array {
 
             // ベース URL
             $nicolive_baseurl = 'https://live2.nicovideo.jp/watch/';
@@ -233,20 +243,37 @@ class Jikkyo {
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); // これがないと HTTPS で接続できない
+            curl_setopt($curl, CURLOPT_USERAGENT, Utils::getUserAgent()); // ユーザーエージェントを送信
             if (file_exists($cookie_file)) curl_setopt($curl, CURLOPT_COOKIEFILE, $cookie_file); // Cookie を送信する（ファイルがあれば）
             $nicolive_html = curl_exec($curl);  // リクエストを実行
+            $status_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);  // ステータスコードを取得
             curl_close($curl);
+    
+            // ステータスコードを判定
+            switch ($status_code) {
+                // 500：Internal Server Error
+                case 500:
+                    return ['error' => '現在、ニコニコ実況で障害が発生しています。(HTTP Error 500)'];
+                // 503：Service Unavailable
+                case 503:
+                    return ['error' => '現在、ニコニコ実況はメンテナンス中です。(HTTP Error 503)'];
+            }
             
             // json をスクレイピング
             preg_match('/<script id="embedded-data" data-props="(.*?)"><\/script>/s', $nicolive_html, $result);
             $nicolive_json = json_decode(htmlspecialchars_decode($result[1]), true);
 
             return $nicolive_json;
-        }
+        };
 
         // 情報を取得
-        $nicolive_json = getSession($nicolive_id, $this->cookie_file);
+        $nicolive_json = $getSession($nicolive_id, $this->cookie_file);
 
+
+        // HTTP エラー
+        if (isset($nicolive_json['error'])) {
+            return $nicolive_json;
+        }
 
         // 現在放送中 (ON_AIR) でないなら null を返す
         if ($nicolive_json['program']['status'] !== 'ON_AIR') {
@@ -265,7 +292,7 @@ class Jikkyo {
             $this->login();
 
             // 再度情報を取得
-            $nicolive_json = getSession($nicolive_id, $this->cookie_file);
+            $nicolive_json = $getSession($nicolive_id, $this->cookie_file);
         }
 
         // タイトル
@@ -314,16 +341,16 @@ class Jikkyo {
      * @param string $nicojikkyo_id ニコニコ実況の ID
      * @param integer $start_timestamp 取得を開始する時刻のタイムスタンプ
      * @param integer $end_timestamp 取得を終了する時刻のタイムスタンプ
-     * @return array|string 過去ログ（DPlayer 互換）or エラーメッセージ
+     * @return array [過去ログ（DPlayer 互換）or エラーメッセージ, 過去ログ API の URL]
      */
-    public function getNicoJikkyoKakolog(string $nicojikkyo_id, int $start_timestamp, int $end_timestamp) {
+    public function getNicoJikkyoKakolog(string $nicojikkyo_id, int $start_timestamp, int $end_timestamp) :array {
 
         /**
          * ニコニコの色指定を 16 進数カラーコードに置換する
          * @param string $color ニコニコの色指定
-         * @return string 16 進数カラーコード
+         * @return ?string 16 進数カラーコード
          */
-        function getCommentColor($color) {
+        $getCommentColor = function($color): ?string {
             $color_table = [
                 'red' => '#E54256',
                 'pink' => '#FF8080',
@@ -358,14 +385,14 @@ class Jikkyo {
             } else {
                 return null;
             }
-        }
+        };
     
         /**
          * ニコニコの位置指定を DPlayer の位置指定に置換する
          * @param string $position ニコニコの位置指定
-         * @return string DPlayer の位置指定
+         * @return ?string DPlayer の位置指定
          */
-        function getCommentPosition($position) {
+        $getCommentPosition = function($position): ?string {
             switch ($position) {
                 case 'ue':
                     return 'top';
@@ -376,7 +403,7 @@ class Jikkyo {
                 default:
                     return null;
             }
-        }
+        };
 
 
         // 過去ログ API の URL
@@ -389,8 +416,20 @@ class Jikkyo {
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); // これがないと HTTPS で接続できない
+        curl_setopt($curl, CURLOPT_USERAGENT, Utils::getUserAgent()); // ユーザーエージェントを送信
         $kakolog_json = curl_exec($curl);  // リクエストを実行
+        $status_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);  // ステータスコードを取得
         curl_close($curl);
+
+        // ステータスコードを判定
+        switch ($status_code) {
+            // 500：Internal Server Error
+            case 500:
+                return ['過去ログ API でサーバーエラーが発生しました。過去ログ API に不具合がある可能性があります。(HTTP Error 500)', $kakologapi_url];
+            // 503：Service Unavailable
+            case 503:
+                return ['現在、過去ログ API は一時的に利用できなくなっています。(HTTP Error 503)', $kakologapi_url];
+        }
 
         // json をデコード
         $kakologs = json_decode($kakolog_json, true);
@@ -415,11 +454,11 @@ class Jikkyo {
                 // コマンドをスペースで区切って配列にしたもの
                 $command = explode(' ', str_replace('184', '', $kakolog['mail']));
                 foreach ($command as $item) {  // コマンドごとに
-                    if (getCommentColor($item) !== null) {
-                        $color = getCommentColor($item);
+                    if ($getCommentColor($item) !== null) {
+                        $color = $getCommentColor($item);
                     }
-                    if (getCommentPosition($item) !== null) {
-                        $position = getCommentPosition($item);
+                    if ($getCommentPosition($item) !== null) {
+                        $position = $getCommentPosition($item);
                     }
                 }
             }
@@ -430,13 +469,15 @@ class Jikkyo {
             } else {
                 $user_id = '';
             }
-
-            // vpos を小数として取得
-            $vpos = floatval('0.'.$kakolog['vpos']);
             
             // コメント時間（秒単位）を算出
-            $time = ($kakolog['date'] - $start_timestamp) + $vpos + intval(isSettingsItem('comment_file_delay')); // 遅延分を足す
-            if ($time < 0) $time = 0;  // 万が一時間がマイナスになった場合は 0 に設定
+            $time = floatval(($kakolog['date'] - $start_timestamp).'.'.$kakolog['date_usec']);
+
+            // コメント時間を遅延
+            $time += intval(isSettingsItem('comment_file_delay'));
+
+            // 万が一コメント時間がマイナスになった場合は 0 に設定
+            if ($time < 0) $time = 0;
 
             // 配列の末尾に追加
             $danmaku[] = [
@@ -450,5 +491,76 @@ class Jikkyo {
 
         // 変換した過去ログと過去ログ API の URL を返す
         return [$danmaku, $kakologapi_url];
+    }
+
+
+    /**
+     * 実況勢いをちくわちゃんランキング（ちくラン）から取得
+     * サーバーに負荷をかけないように、実行結果はファイルにキャッシュし 1 分以上経ったら更新する
+     *
+     * @param string $nicojikkyo_id 実況ID
+     * @return string 実況勢い
+     */
+    public function getNicoJikkyoIkioi(string $nicojikkyo_id): string {
+
+        // jikkyo_ikioi.json を更新
+        $update = function($table, $jikkyo_ikioi_file): void {
+
+            $chikuran_url = 'http://www.chikuwachan.com/live/index.cgi?search=%E3%83%8B%E3%82%B3%E3%83%8B%E3%82%B3%E5%AE%9F%E6%B3%81';
+
+            // ちくランの検索結果から実況勢いを取得
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_URL, $chikuran_url);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); // これがないと HTTPS で接続できない
+            curl_setopt($curl, CURLOPT_USERAGENT, Utils::getUserAgent()); // ユーザーエージェントを送信
+            $response = curl_exec($curl);  // リクエストを実行
+            curl_close($curl);
+
+            // HTML を解析
+            $document = new Document($response);
+
+            // 配列を用意
+            $jikkyo_ikioi = [];
+
+            // 実況チャンネルごとに勢いを取得
+            foreach ($table as $nicojikkyo_id => $nicochannel_id) {
+
+                // 実況勢いを取得
+                $jikkyo_ikioi_elem = $document->querySelector("div#comm_{$nicochannel_id} div.counts div.active");
+
+                // 実況勢いを配列に追加
+                if ($jikkyo_ikioi_elem !== null) {
+                    $jikkyo_ikioi[$nicojikkyo_id] = strval($jikkyo_ikioi_elem->textContent);
+                } else {
+                    $jikkyo_ikioi[$nicojikkyo_id] = '-';  // その実況チャンネルの勢いが取得できなかった
+                }
+            }
+            
+            // jikkyo_ikioi.json に保存
+            file_put_contents($jikkyo_ikioi_file, json_encode($jikkyo_ikioi, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT));
+        };
+
+        // jikkyo_ikioi.json が存在しない or 更新されてから 1 分以上経っている
+        clearstatcache();  // キャッシュを削除（重要）
+        if ((file_exists($this->jikkyo_ikioi_file) === false) or
+            (time() - filemtime($this->jikkyo_ikioi_file) >= 60)) {
+
+            // jikkyo_ikioi.json を更新
+            $update($this->table, $this->jikkyo_ikioi_file);
+        }
+
+        // jikkyo_ikioi.json から実況勢いを取得
+        $jikkyo_ikioi = json_decode(file_get_contents($this->jikkyo_ikioi_file), true);
+
+        // 指定された実況チャンネルのものを返す
+        if (isset($jikkyo_ikioi[$nicojikkyo_id])) {
+            $jikkyo_ikioi_number = $jikkyo_ikioi[$nicojikkyo_id];
+        } else {
+            $jikkyo_ikioi_number = '-';
+        }
+
+        return $jikkyo_ikioi_number;
     }
 }

@@ -234,7 +234,7 @@
 				$width = 1920; // 動画の横幅
 				$height = 1080; // 動画の高さ
 
-				$vb = '6800k'; // 動画のビットレート
+				$vb = '6500k'; // 動画のビットレート
 				$ab = '192k'; // 音声のビットレート
 				$sar = '1:1'; // アスペクト比(SAR)
 				$samplerate = 48000; // 音声のサンプルレート
@@ -245,7 +245,7 @@
 				$width = 1440; // 動画の横幅
 				$height = 1080; // 動画の高さ
 
-				$vb = '6800k'; // 動画のビットレート
+				$vb = '6500k'; // 動画のビットレート
 				$ab = '192k'; // 音声のビットレート
 				$sar = '4:3'; // アスペクト比(SAR)
 				$samplerate = 48000; // 音声のサンプルレート
@@ -256,7 +256,7 @@
 				$width = 1440; // 動画の横幅
 				$height = 810; // 動画の高さ
 
-				$vb = '5800k'; // 動画のビットレート
+				$vb = '5500k'; // 動画のビットレート
 				$ab = '192k'; // 音声のビットレート
 				$sar = '1:1'; // アスペクト比(SAR)
 				$samplerate = 48000; // 音声のサンプルレート
@@ -267,7 +267,7 @@
 				$width = 1280; // 動画の横幅
 				$height = 720; // 動画の高さ
 
-				$vb = '4800k'; // 動画のビットレート
+				$vb = '4500k'; // 動画のビットレート
 				$ab = '192k'; // 音声のビットレート
 				$sar = '1:1'; // アスペクト比(SAR)
 				$samplerate = 48000; // 音声のサンプルレート
@@ -392,7 +392,7 @@
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
 					' --vbr '.$vb.' --qp-max 24:26:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
-					' --quality balanced --profile Main --vpp-deinterlace normal --tff'.
+					' --quality fastest --profile main --vpp-deinterlace normal --tff'.
 					// 音声
 					' --audio-codec aac#dual_mono_mode=main --audio-stream :stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
 					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30 --audio-ignore-notrack-error'.
@@ -422,7 +422,7 @@
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
 					' --vbr '.$vb.' --qp-max 24:26:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
-					' --preset default --profile Main --cabac --vpp-deinterlace normal --tff'.
+					' --preset performance --profile main --cabac --vpp-deinterlace normal --tff'.
 					// 音声
 					' --audio-codec aac#dual_mono_mode=main --audio-stream :stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
 					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30 --audio-ignore-notrack-error'.
@@ -452,7 +452,7 @@
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
 					' --vbr '.$vb.' --qp-max 24:26:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
-					' --interlace tff --vpp-afs preset=default --profile Main'.
+					' --quality fast --profile main --interlace tff --vpp-afs preset=default'.
 					// 音声
 					' --audio-codec aac#dual_mono_mode=main --audio-stream :stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
 					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30'.

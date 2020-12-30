@@ -412,23 +412,23 @@
             <div class="setting-form setting-select">
               <span>コメントの遅延時間（ライブ配信・秒）</span>
 <?php	if (isSettingsItem('comment_delay') !== false){ ?>
-              <input class="text-box" id="comment_delay" type="number" min="0" max="60" placeholder="5" value="<?php echo isSettingsItem('comment_delay'); ?>" required />
+              <input class="text-box" id="comment_delay" type="number" min="0" max="120" placeholder="5" value="<?php echo isSettingsItem('comment_delay'); ?>" required />
 <?php	} else { ?>
-              <input class="text-box" id="comment_delay" type="number" min="0" max="60" placeholder="5" value="5" required />
+              <input class="text-box" id="comment_delay" type="number" min="0" max="120" placeholder="5" value="5" required />
 <?php	} // 括弧終了 ?>
             </div>
 
             <div class="setting-form setting-select">
               <span>コメントの遅延時間（ファイル再生・秒）</span>
 <?php	if (isSettingsItem('comment_file_delay') !== false){ ?>
-              <input class="text-box" id="comment_file_delay" type="number" min="0" max="60" placeholder="0" value="<?php echo isSettingsItem('comment_file_delay'); ?>" required />
+              <input class="text-box" id="comment_file_delay" type="number" min="0" max="120" placeholder="0" value="<?php echo isSettingsItem('comment_file_delay'); ?>" required />
 <?php	} else { ?>
-              <input class="text-box" id="comment_file_delay" type="number" min="0" max="60" placeholder="0" value="0" required />
+              <input class="text-box" id="comment_file_delay" type="number" min="0" max="120" placeholder="0" value="0" required />
 <?php	} // 括弧終了 ?>
             </div>
 
             <div class="setting-form setting-select">
-              <span>コメントリストのパフォーマンス</span>
+              <span>コメントリストのパフォーマンス（ファイル再生のみ）</span>
               <div class="select-wrap">
                 <select id="comment_list_performance" required>
 <?php	if (isSettingsItem('comment_list_performance', 'normal') !== false){ ?>
@@ -448,7 +448,7 @@
             <h4><i class="fas fa-sliders-h"></i>機能</h4>
 
             <div class="setting-form setting-select">
-              <span>一度に表示する録画番組リストの番組数</span>
+              <span>一度に表示する録画番組リストの番組数（件）</span>
 <?php	if (isSettingsItem('list_view_number') !== false){ ?>
               <input class="text-box" id="list_view_number" type="number" min="10" max="100" placeholder="30" value="<?php echo isSettingsItem('list_view_number'); ?>" required />
 <?php	} else { ?>
@@ -1075,7 +1075,7 @@
                   新規インストール時のデフォルトは 1 (秒) です<br>
                 </p>
               </div>
-              <input class="text-box" name="hlslive_time" type="number" min="1" max="60" placeholder="1" value="<?php echo $hlslive_time; ?>" required />
+              <input class="text-box" name="hlslive_time" type="number" step="0.1" min="0.5" max="60" placeholder="1" value="<?php echo $hlslive_time; ?>" required />
             </div>
 
             <div class="setting-form setting-input">
@@ -1087,7 +1087,7 @@
                   新規インストール時のデフォルトは 5 (秒) です<br>
                 </p>
               </div>
-              <input class="text-box" name="hlsfile_time" type="number" min="1" max="60" placeholder="5" value="<?php echo $hlsfile_time; ?>" required />
+              <input class="text-box" name="hlsfile_time" type="number" step="0.1" min="0.5" max="60" placeholder="5" value="<?php echo $hlsfile_time; ?>" required />
             </div>
 
             <div class="setting-form setting-input">

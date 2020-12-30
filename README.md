@@ -614,14 +614,15 @@ TS 抜きチューナーで録画した番組を普通のテレビで気軽に�
 
 - **CSS ライブラリ**
   - Font Awesome (アイコンフォント)
-  - Material Icons（アイコンフォント）
-  - Google Fonts（Web フォント）
+  - Material Icons (アイコンフォント)
+  - Google Fonts (Web フォント)
 - **JavaScript ライブラリ**
   - jQuery (フレームワーク)
   - DPlayer (フォーク・JavaScript 製の動画プレイヤー)
   - hls.js (b24.js対応フォーク・HLS 形式の動画再生に利用)
   - CSS Browser Selector (ブラウザや OS ごとにクラスを付与してくれるライブラリ)
   - js-cookie (Cookie の読み取り・書き込みに利用)
+  - moment.js (日付操作ライブラリ)
   - PWACompat (PWA 対応を楽にしてくれるライブラリ)
   - Swiper (スライダーライブラリ)
   - Toastr (トースト通知ライブラリ)
@@ -638,13 +639,13 @@ TS 抜きチューナーで録画した番組を普通のテレビで気軽に�
   - クライアント：**最新の Chrome・Firefox・Safari など**
     - **Chrome を強く推奨します**
       - Firefox でもいいですがあまり確認が取れていません（ macOS 版 Safari はほぼ未検証です）
-    - Chromium Edge・Opera・Vivaldi などはブラウザエンジンが Chrome (Blink) なので Chrome とみなします
+    - Chromium Edge・Opera・Vivaldi など Chromium 系ブラウザはブラウザエンジンが Chrome (Blink) なので Chrome とみなします
     - （言うまでもありませんが）**IE と 旧 Edge はサポートしていません**
     - iOS 端末ではブラウザエンジンが Safari に使われている Webkit 以外利用できないため、一部正常に動作しない機能があります
       - iOS 版 Chrome・Firefox の内部ブラウザエンジンは Webkit です
       - macOS は Chrome が使えるのでそっちを使ってください（そこまで手が回らない…）
     - キャプチャ付きツイートの投稿機能は、**Android 版 Firefox・macOS 版 Safari では対応していません**（ブラウザのバグによるエラーでキャプチャに失敗します）
-      - 動画のキャプチャはブラウザの仕様に依存するうえブラウザ側のバグが多いため、基本的に最新の Chrome を利用してください
+      - 動画のキャプチャはブラウザの仕様に依存する上ブラウザ側のバグが多いため、基本的に最新の Chrome を利用してください
 
 ## 動作確認
   - サーバー：Windows7 Professional 64bit (Desktop) + PLEX PX-Q3PE4
@@ -653,7 +654,7 @@ TS 抜きチューナーで録画した番組を普通のテレビで気軽に�
       - GPU：Intel Graphics 3000・NVIDIA Geforce GTX 1660Ti
       - RAM：8GB
     - PX-Q3PE4 の兄弟機種である PX-W3PE4・PX-W3U4・PX-Q3U4 でも同様に使えると思います
-    - PT 系はこちらに環境がないので微妙です…
+    - PT 系はこちらに環境がありませんが、動作報告は頂いています
     - 首都圏での利用を前提で開発しています
       - （確かめようがないのですが）地方では一部動作しない箇所があるかもしれません
     - スカパープレミアム (SPHD) には今のところ対応していません
@@ -669,11 +670,11 @@ TS 抜きチューナーで録画した番組を普通のテレビで気軽に�
       - Safari
 
 ## 寄付について
-こんなソフトに寄付したいという方が何人かいらっしゃったので、アマギフだけ受けつけておきます…  
-（出来の悪いソフトなので寄付して頂かなくても大丈夫です（特典もなにもないです）が、もし寄付して頂けるのであれば tvremoteplusあっとgmail.com か Twitter の DM で送ってください）
+寄付したいという方が何人かいらっしゃったので、アマギフだけ受けつけています。  
+出来の悪いソフトなので寄付して頂かなくても大丈夫です（特典もなにもないです）が、もし寄付して頂けるのであれば [Twitter の DM（クリックすると DM が開きます）](https://twitter.com/messages/compose?recipient_id=1194724304585248769) か tvremoteplusあっとgmail.com まで送っていただけるととても助かります。
 
 ## 不具合報告・フィードバック
-不具合報告やフィードバックは [Twitter](https://twitter.com/TVRemotePlus) か [5ch のロケフリスレ](http://mevius.5ch.net/test/read.cgi/avi/1569733081) にて受け付けています。  
+不具合報告やフィードバックは [Twitter](https://twitter.com/TVRemotePlus) か [5ch のロケフリスレ](https://mevius.5ch.net/test/read.cgi/avi/1592685644/) にて受け付けています。  
 また、使い方がよくわからない場合なども質問いただいて構いません。
 
 5ch の方でも構いませんが、どうしても埋もれてしまったりすることがあるほか、個別の事柄に対応しきれないこともあります。  
@@ -686,9 +687,9 @@ TS 抜きチューナーで録画した番組を普通のテレビで気軽に�
 また、このソフトを利用して起こったいかなる不利益も、私（開発者）は一切の責任を負いかねます。あくまで自己責任にて利用してください。  
 改変・再配布等はお好きにどうぞ（フォークの内容を取り込む事があるかもしれません）。  
 
-TVTest（NicoJK）・TVRemoteViewer_VB・EDCB Material WebUI・EPGStation など、数多くの先駆者様・ソフトウェア・サイト、  
+TVTest (NicoJK)・TVRemoteViewer_VB・EDCB Material WebUI・EPGStation など、数多くの先駆者様・ソフトウェア・サイト、  
 また様々なネット上の文献を参考にし、ここまで作り上げる事ができました。  
-ch_sid.txt は NicoJK にて使われていたものをチャンネル名を現在の情報に修正した上で使わせて頂いています。  
+jikkyo_channels.json は TVRemoteViewer_VB にて使われていた ch_sid.txt をチャンネル名を現在の情報に修正し JSON 形式に変換した上で使わせて頂いています。  
 TVRemotePlus の字幕表示機能は EPGStation に使われていた b24.js を DPlayer に組み込んで使わせて頂いています。  
 また、QSVEncC・NVEncC・VCEEncC の作者の rigaya 様にはエンコード時の字幕対応等で多大な協力を頂きました。  
 この場で厚く御礼申し上げます。本当にありがとうございました！

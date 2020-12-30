@@ -1078,9 +1078,18 @@ td {
     height: 28px;
 }
 
-.comment-lightmode .comment-file:first-of-type,
-.comment-lightmode .comment-file:last-of-type {
-    height: 34.5px;
+.comment-lightmode #comment-draw-box .comment-file:first-of-type .time,
+.comment-lightmode #comment-draw-box .comment-file:last-of-type .time {
+    padding: 3px 0px;
+}
+.comment-lightmode #comment-draw-box .comment-file:first-of-type .comment,
+.comment-lightmode #comment-draw-box .comment-file:last-of-type .comment {
+    padding: 3px 12px;
+}
+
+.comment-lightmode #comment-draw-box tbody {
+    padding-top: 6.5px;
+    padding-bottom: 6.5px;
 }
 
 .comment-lightmode .comment-file .comment {
@@ -1124,17 +1133,23 @@ td {
     bottom: 25px;
     width: 46px;
     height: 46px;
-    opacity: 0;
-    visibility: hidden;
+    padding: 9px;
+    border-radius: 50%;
     font-size: 25px;
     color: #FFFFFF;
     background-color: var(--color-green);
+    visibility: hidden;
+    opacity: 0;
     transition: 0.2s ease-in-out;
     box-shadow: 0 1px 6px 0 rgba(32, 33, 36, .28);
     -webkit-tap-highlight-color: transparent;
-    border-radius: 50%;
+    box-sizing: border-box;
     cursor: pointer;
     z-index: 90;
+}
+#comment-scroll.show {
+    visibility: visible;
+    opacity: 1;
 }
 
 @media screen and (min-width: 1025px){

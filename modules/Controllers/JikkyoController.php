@@ -43,7 +43,7 @@ class JikkyoController {
                 } else if ($ch[intval($settings[$stream]['channel']).'_1']){
                     $nicojikkyo_id = $instance->getNicoJikkyoID($ch[intval($settings[$stream]['channel']).'_1']);
                 } else {
-                    $nicojikkyo_id = -2;
+                    $nicojikkyo_id = null;
                 }
     
                 // 実況 ID が存在する
@@ -60,9 +60,17 @@ class JikkyoController {
     
                         // 現在放送中でない（タイムシフト or 予約中）
                         if ($nicolive_session === null) {
+                            
                             $message = '現在放送中のニコニコ実況がありません。';
+
+                        // HTTP エラー
+                        } else if (isset($nicolive_session['error'])) {
+                            
+                            $message = $nicolive_session['error'];
+
                         // WebSocket の URL が空
                         } else if (empty($nicolive_session['watchsession_url'])) {
+
                             $message = '視聴セッションを取得できませんでした。';
                         }
                         
@@ -90,7 +98,7 @@ class JikkyoController {
                 // 実況 ID が存在する
                 if ($nicojikkyo_id !== null) {
 
-                    // 過去ログを（ DPlayer 互換フォーマットで）取得
+                    // 過去ログと過去ログの URL を（ DPlayer 互換フォーマットで）取得
                     // JavaScript 側で変換することもできるけどコメントが大量だと重くなりそうで
                     list($kakolog, $kakolog_url) = $instance->getNicoJikkyoKakolog($nicojikkyo_id, $start_timestamp, $end_timestamp);
 
@@ -119,6 +127,7 @@ class JikkyoController {
             // 出力
             $output = [
                 'api' => 'jikkyo',
+                'type' => 'onair',
                 'result' => 'success',
                 'session' => $nicolive_session,
             ];
@@ -130,6 +139,7 @@ class JikkyoController {
             // 出力
             $output = [
                 'api' => 'jikkyo',
+                'type' => 'file',
                 'result' => 'success',
                 'kakolog_url' => $kakolog_url,
                 'kakolog' => $kakolog,
@@ -142,6 +152,7 @@ class JikkyoController {
             // 出力
             $output = [
                 'api' => 'jikkyo',
+                'type' => 'error',
                 'result' => 'error',
                 'message' => (isset($message) ? $message : '不明なエラーが発生しました。'),
             ];
