@@ -68,47 +68,47 @@
           <div id="dplayer"></div>
           <script id="dplayer-script">
 
-  const dp = new DPlayer({
-    container: document.getElementById('dplayer'),
-    volume: 1.0,
-    autoplay: true,
-    screenshot: true,
-    apiBackend: newNicoJKAPIBackend('<?php echo $ini[$stream]['state']; ?>'),
-    live: <?php echo ($ini[$stream]['state'] !== 'File' ? 'true' : 'false'); ?>,
-    loop: true,
-    lang: 'ja-jp',
-    theme: '#007cff',
-    // 読み込む m3u8 を指定する
-    video: {
+    const dp = new DPlayer({
+        container: document.getElementById('dplayer'),
+        volume: 1.0,
+        autoplay: true,
+        screenshot: true,
+        apiBackend: newNicoJKAPIBackend('<?php echo $ini[$stream]['state']; ?>'),
+        live: <?php echo ($ini[$stream]['state'] !== 'File' ? 'true' : 'false'); ?>,
+        loop: true,
+        lang: 'ja-jp',
+        theme: '#007cff',
+        // 読み込む m3u8 を指定する
+        video: {
 <?php	if ($ini[$stream]['state'] == 'File' and $ini[$stream]['fileext'] != 'ts' and $ini[$stream]['encoder'] == 'Progressive'): ?>
-      url: '/api/stream/<?php echo $stream; ?>?_=<?php echo time(); ?>',
-      type: 'normal'
+            url: '/api/stream/<?php echo $stream; ?>?_=<?php echo time(); ?>',
+            type: 'normal'
 <?php	else: ?>
-      url: '/stream/stream<?php echo $stream; ?>.m3u8',
-      type: 'hls'
+            url: '/stream/stream<?php echo $stream; ?>.m3u8',
+            type: 'hls'
 <?php	endif; ?>
-    },
-    // コメント設定
-    danmaku: {
-      id: 'TVRemotePlus',
-      user: 'TVRemotePlus',
-      api: '',
-      bottom: '10%',
-      height: settings['comment_size'],
-      unlimited: false
-    },
-    subtitle: {
-      type: 'webvtt',
-    },
-  });
+        },
+        // コメント設定
+        danmaku: {
+            id: 'TVRemotePlus',
+            user: 'TVRemotePlus',
+            api: '',
+            bottom: '10%',
+            height: settings['comment_size'],
+            unlimited: false
+        },
+        subtitle: {
+            type: 'webvtt',
+        },
+    });
 
-  document.getElementsByClassName('dplayer-video-current')[0].addEventListener('loadeddata', function(){
-    dp.subtitle.toggle();
-    dp.subtitle.toggle();
-  }, false);
+    document.getElementsByClassName('dplayer-video-current')[0].addEventListener('loadeddata', function(){
+        dp.subtitle.toggle();
+        dp.subtitle.toggle();
+    }, false);
 
 <?php	if ($ini[$stream]['state'] == 'File'): ?>
-  dp.seek(1);
+    dp.seek(1);
 <?php	endif; ?>
 
           </script>
@@ -256,6 +256,9 @@
             <span id="watching">1人が視聴中</span>
 <?php	if ($ini[$stream]['state'] == 'ONAir'): ?>
             <span id="ikioi">実況勢い: -</span>
+<?php	endif; ?>
+<?php	if ($ini[$stream]['state'] == 'ONAir' or $ini[$stream]['state'] == 'File'): ?>
+            <span id="comment-counter">コメント数: -</span>
 <?php	endif; ?>
           </div>
         </div>
@@ -713,7 +716,12 @@
         <div id="chromecast-device-box">
         </div>
         <div id="button-box" class="broadcast-button-box">
-          <button class="redbutton" type="button"><i class="fas fa-times"></i>キャンセル</button>
+          <button id="cast-scan" class="bluebutton" type="button" aria-label="キャストするデバイスをスキャンします" data-balloon-pos="up">
+            <i class="fas fa-sync-alt"></i><span class="menu-link-href">デバイスをスキャン</span>
+          </button>
+          <button class="redbutton" type="button">
+            <i class="fas fa-times"></i>キャンセル
+          </button>
         </div>
       </div>
     </div>

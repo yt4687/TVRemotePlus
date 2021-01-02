@@ -208,6 +208,7 @@ pre:empty {
     white-space: nowrap;
     word-wrap: normal;
     direction: ltr;
+    font-feature-settings: 'liga';
     -webkit-font-feature-settings: 'liga';
     -webkit-font-smoothing: antialiased;
 }
@@ -721,7 +722,7 @@ section {
 
 google-cast-launcher {
     position: absolute !important;
-    bottom: 56px;
+    bottom: 8px;
     width: 100%;
     height: 48px;
     opacity: 0;
@@ -1722,7 +1723,7 @@ td {
 }
 
 #reload-box {
-    display: inline-block;
+    display: block;
     float: right;
     clear: both;
     margin-top: 9px;
@@ -1833,12 +1834,22 @@ td {
 #watch {
     display: block;
     color: var(--color-gray);
+    margin-top: 4px;
     margin-left: 3px;
     margin-right: 3px;
 }
 
+#watching {
+    margin-right: 6px;
+}
+
 #ikioi {
-    margin-left: 4px;
+    margin-right: 6px;
+}
+
+#comment-counter {
+    margin-right: 6px;
+    white-space: nowrap;
 }
 
 @media screen and (max-width: 500px){

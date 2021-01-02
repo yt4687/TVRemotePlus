@@ -233,12 +233,16 @@ function newNicoJKAPIBackendONAir() {
     // コメント（ライブ配信）
     let comment_live = null;
 
+    // コメント数
+    let comment_counter = null;
+
     // DOM 構築を待ってから要素を取得
     window.addEventListener('DOMContentLoaded', (event) => {
         if (settings['comment_show']) {  // コメントリストが表示されている場合のみ
             comment_draw_box = document.getElementById('comment-draw-box');
             comment_draw_box_real = comment_draw_box.getElementsByTagName('tbody')[0];
             comment_scroll = document.getElementById('comment-scroll');
+            comment_counter = document.getElementById('comment-counter');
         }
     });
 
@@ -335,6 +339,18 @@ function newNicoJKAPIBackendONAir() {
 
                     break;
 
+                    // 統計情報
+                    case 'statistics':
+
+                        // 総コメント数を取得
+                        // スレッド開始からの合計なので、毎分・毎時間のコメント数ではない
+                        let comment_count = message.data.comments;
+
+                        // コメント数を表示
+                        comment_counter.textContent = `コメント数: ${comment_count}`;
+
+                    break;
+
                     // 部屋情報（実際には統合されていて、全てアリーナ扱いになっている）
                     case 'room':
 
@@ -408,6 +424,9 @@ function newNicoJKAPIBackendONAir() {
 
                         let disconnect;
 
+                        // イベントを削除
+                        if (watchsession) watchsession.onclose = null;
+
                         // 接続切断の理由
                         switch (message.data.reason) {
 
@@ -448,9 +467,6 @@ function newNicoJKAPIBackendONAir() {
                         if (dp.danmaku.showing) {
                             dp.notice(disconnect);
                         }
-            
-                        // コメントセッションがまだ開かれていれば閉じる
-                        if (commentsession) commentsession.close();
 
                         // 5 秒ほど待ってから再接続
                         setTimeout(() => {
@@ -461,15 +477,39 @@ function newNicoJKAPIBackendONAir() {
                             }
             
                             // プレイヤー側のコメント機能をリロード
-                            dp.danmaku.dan = [];
-                            dp.danmaku.clear();
-                            dp.danmaku.load();
+                            restart();
 
                         }, 5000);
 
                     break;
                 }
             });
+
+            // 視聴セッションの接続が閉じられたとき（ネットワークが切断された場合など）
+            // イベントを無効化できるように敢えて onclose で実装する
+            watchsession.onclose = (event) => {
+
+                // 接続切断の理由を表示
+                console.log(`disconnected. code: ${event.code}`);
+                if (dp.danmaku.showing) {
+                    dp.notice(`ニコニコ実況との接続が切断されました。(code: ${event.code})`);
+                }
+
+                // 10 秒ほど待ってから再接続
+                // ニコ生側から切断された場合と異なりネットワークが切断された可能性が高いので、間を多めに取る
+                setTimeout(() => {
+
+                    //　再接続表示
+                    if (dp.danmaku.showing) {
+                        dp.notice('ニコニコ実況に再接続しています…');
+                    }
+    
+                    // プレイヤー側のコメント機能をリロード
+                    restart()
+
+                }, 10000);
+            };
+
         });
 
         return [true, commentsession_info];
@@ -731,6 +771,7 @@ function newNicoJKAPIBackendONAir() {
     function restart() {
 
         // WebSocket が開かれていれば閉じる
+        if (watchsession) watchsession.onclose = null;
         if (watchsession) watchsession.close();
         if (commentsession) commentsession.close();
 
@@ -806,6 +847,7 @@ function newNicoJKAPIBackendONAir() {
     // ページを閉じる/移動する前に WebSocket を閉じる
     // しなくても勝手に閉じられる気はするけど一応
     window.addEventListener('beforeunload', () => {
+        if (watchsession) watchsession.onclose = null;
         if (watchsession) watchsession.close();
         if (commentsession) commentsession.close();
     });
@@ -884,6 +926,9 @@ function newNicoJKAPIBackendFile() {
     // コメント（ファイル再生）
     let comment_file = null;
 
+    // コメント数
+    let comment_counter = null;
+
     // 進捗バー
     let progressbar = null;
 
@@ -915,6 +960,7 @@ function newNicoJKAPIBackendFile() {
             comment_draw_box = document.getElementById('comment-draw-box');
             comment_draw_box_real = comment_draw_box.getElementsByTagName('tbody')[0];
             comment_scroll = document.getElementById('comment-scroll');
+            comment_counter = document.getElementById('comment-counter');
             progressbar = document.getElementById('progress');
 
             // コメントリストヘッダーの時間の幅を調整
@@ -928,6 +974,9 @@ function newNicoJKAPIBackendFile() {
             dp.on('danmaku_load_end', (event) => {
             
                 let html = [];
+
+                // コメント数を表示
+                comment_counter.textContent = `コメント数: ${dp.danmaku.dan.length}`;
 
                 // コメントごとに実行
                 for (danmaku of dp.danmaku.dan) {

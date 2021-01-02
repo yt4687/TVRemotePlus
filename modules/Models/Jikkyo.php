@@ -26,23 +26,24 @@ class Jikkyo {
     // 変換テーブル
     // ch は公式チャンネル・co はコミュニティ
     private array $table = [
-        'jk1' => 'ch2646436',
-        'jk2' => 'ch2646437',
-        'jk4' => 'ch2646438',
-        'jk5' => 'ch2646439',
-        'jk6' => 'ch2646440',
-        'jk7' => 'ch2646441',
-        'jk8' => 'ch2646442',
-        'jk9' => 'ch2646485',
-        'jk101' => 'co5214081',
-        'jk103' => 'co5175227',
-        'jk141' => 'co5175341',
-        'jk151' => 'co5175345',
-        'jk161' => 'co5176119',
-        'jk171' => 'co5176122',
-        'jk181' => 'co5176125',
-        'jk211' => 'ch2646846',
-        'jk222' => 'co5193029',
+        'jk1' => 'ch2646436', // NHK総合
+        'jk2' => 'ch2646437', // NHK Eテレ
+        'jk4' => 'ch2646438', // 日本テレビ
+        'jk5' => 'ch2646439', // テレビ朝日
+        'jk6' => 'ch2646440', // TBSテレビ
+        'jk7' => 'ch2646441', // テレビ東京
+        'jk8' => 'ch2646442', // フジテレビ
+        'jk9' => 'ch2646485', // TOKYO MX
+        'jk101' => 'co5214081', // NHK BS1 
+        'jk103' => 'co5175227', // NHK BSプレミアム
+        'jk141' => 'co5175341', // BS日テレ
+        'jk151' => 'co5175345', // BS朝日
+        'jk161' => 'co5176119', // BS-TBS
+        'jk171' => 'co5176122', // BSテレ東
+        'jk181' => 'co5176125', // BSフジ
+        'jk211' => 'ch2646846', // BS11
+        'jk222' => 'co5193029', // BS12
+        'jk333' => 'co5245469', // AT-x
     ];
 
 
@@ -220,7 +221,7 @@ class Jikkyo {
     /**
      * ニコ生の視聴セッション情報を取得する
      *
-     * @param string $nicolive_id ニコ生の放送ID (ex: lv329283198・ch2646436)
+     * @param string $nicolive_id ニコ生の放送 ID として利用できる文字列 (ex: lv329283198・ch2646436)
      * @return ?array 視聴セッション情報が含まれる連想配列 or null
      */
     public function getNicoliveSession(string $nicolive_id): ?array {
@@ -251,16 +252,32 @@ class Jikkyo {
     
             // ステータスコードを判定
             switch ($status_code) {
+                // 200：OK
+                case 200:
+                    break;
+                // 404：Not found
+                case 404:
+                    return ['error' => '指定された放送 ID は存在しません。(HTTP Error 404)'];
                 // 500：Internal Server Error
                 case 500:
                     return ['error' => '現在、ニコニコ実況で障害が発生しています。(HTTP Error 500)'];
                 // 503：Service Unavailable
                 case 503:
                     return ['error' => '現在、ニコニコ実況はメンテナンス中です。(HTTP Error 503)'];
+                // それ以外のステータスコード
+                default:
+                    return ['error' => "現在、ニコニコ実況でエラーが発生しています。(HTTP Error {$status_code})"];
             }
             
             // json をスクレイピング
             preg_match('/<script id="embedded-data" data-props="(.*?)"><\/script>/s', $nicolive_html, $result);
+
+            // $result が存在しない
+            if (!isset($result[1])) {
+                return ['error' => 'ニコニコ実況の番組情報の取得に失敗しました。'];
+            }
+
+            // ニコ生の番組情報諸々が入った連想配列
             $nicolive_json = json_decode(htmlspecialchars_decode($result[1]), true);
 
             return $nicolive_json;
