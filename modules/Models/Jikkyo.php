@@ -136,7 +136,7 @@ class Jikkyo {
 
             // 正規表現パターン
             mb_regex_encoding('UTF-8');
-            $match = '/^'.str_replace('NHK総合', 'NHK総合[0-9]?', str_replace('NHKEテレ', 'NHKEテレ[0-9]?', $channel_field_escape)).'[0-9]?/u';
+            $match = '/^'.str_replace('NHK総合', 'NHK総合[0-9]?', str_replace('NHKEテレ', 'NHKEテレ[0-9]?', $channel_field_escape)).'[0-9]?$/u';
 
             // チャンネル名がいずれかのパターンに一致したら
             if ($channel_name === $channel_field or preg_match($match, $channel_name)) {
@@ -464,6 +464,16 @@ class Jikkyo {
 
             $kakolog = $kakolog_['chat'];
 
+            // content が存在しないコメントを除外
+            if (!isset($kakolog['content'])) {
+                continue;
+            }
+
+            // 削除されているコメントを除外
+            if (isset($kakolog['deleted'])) {
+                continue;
+            }
+
             // 運営コメントは今のところ全て弾く（今後変えるかも）
             if (preg_match('/\/[a-z]+ /', $kakolog['content'])) {
                 continue;
@@ -556,7 +566,12 @@ class Jikkyo {
                 if ($jikkyo_ikioi_elem !== null) {
                     $jikkyo_ikioi[$nicojikkyo_id] = strval($jikkyo_ikioi_elem->textContent);
                 } else {
-                    $jikkyo_ikioi[$nicojikkyo_id] = '-';  // その実況チャンネルの勢いが取得できなかった
+                    // 実況勢いはないけど、.box_active は存在する
+                    if ($document->querySelector("div#comm_{$nicochannel_id} div.counts div.box_active") !== null) {
+                        $jikkyo_ikioi[$nicojikkyo_id] = '0';  // 常に 0 に設定
+                    } else {
+                        $jikkyo_ikioi[$nicojikkyo_id] = '-';  // その実況チャンネルの勢いが取得できなかった
+                    }
                 }
             }
             
