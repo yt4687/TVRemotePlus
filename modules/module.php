@@ -486,7 +486,15 @@
 					if (intval($line[6]) == 65534){
 						$ch2[$key] = $line;
 					}
-				}
+				} else if ($flg == 'SPHD'){
+					if (intval($line[6]) == 10){
+						$ch2[$key] = $line;
+					}
+				} else if ($flg == 'SPSD'){
+					if (intval($line[6]) == 1){
+						$ch2[$key] = $line;
+					}
+                                }
 			}
 
 		// 通常
@@ -512,10 +520,19 @@
 					$ch2_data = '';
 				}
 			} else if ($flg == 'SPHD') {
-				if (preg_match("/;#SPACE\(.\,スカパー\)/", $ch2_data)){
+				if (preg_match("/;#SPACE\(.\,(スカパー！|スカパー|SPHD|スカパーHD)\)/", $ch2_data)){
+					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\).*;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // 地上波・BSを削除（混合チューナー用）
+					$ch2_data = preg_replace("/;#SPACE\(.\,BS\).*;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // BSを削除
+					$ch2_data = preg_replace("/;#SPACE\(.\,(スターデジオ|StarDigio)\).*$/s", "", $ch2_data); // CSを削除
+				} else {
+					$ch2_data = '';
+				}
+                        } else if ($flg == 'SPSD') {
+				if (preg_match("/;#SPACE\(.\,(スターデジオ|StarDigio)\)/", $ch2_data)){
 					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\).*;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // 地上波・BSを削除（混合チューナー用）
 					$ch2_data = preg_replace("/;#SPACE\(.\,BS\).*;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // BSを削除
 					$ch2_data = preg_replace("/;#SPACE\(.\,(CS|CS110)\).*$/s", "", $ch2_data); // CSを削除
+					$ch2_data = preg_replace("/;#SPACE\(.\,(スカパー！|スカパー|SPHD|スカパーHD)\).*$/s", "", $ch2_data); // スカパー！を削除
 				} else {
 					$ch2_data = '';
 				}
@@ -609,6 +626,8 @@
 		// 無印BonDriverを配列の末尾に足す
 		$BonDriver_dll_T = array_merge($BonDriver_dll_T, $BonDriver_dll_raw);
 		$BonDriver_dll_S = array_merge($BonDriver_dll_S, $BonDriver_dll_raw);
+		$BonDriver_dll_SPHD = array_merge($BonDriver_dll_S, $BonDriver_dll_raw);
+
 
 		// ch2を検索する
 		// 地デジ用
