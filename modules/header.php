@@ -82,23 +82,24 @@
 
   <script>
     settings = {
-      twitter_show: true,
-      comment_show: true,
-      dark_theme: false,
-      subchannel_show: false,
-      list_view: false,
-      logo_show: true,
-      comment_size: 35,
-      comment_delay: 5,
-      comment_file_delay: 0,
-      comment_list_performance: 'normal',
-      list_view_number: 30,
-      onclick_stream: false,
-      player_floating: true,
-      ljicrop_magnify: 100,
-      ljicrop_coordinateX: 0,
-      ljicrop_coordinateY: 0,
-      ljicrop_type: 'upperright',
+        twitter_show: true,
+        comment_show: true,
+        dark_theme: false,
+        subchannel_show: false,
+        list_view: false,
+        logo_show: true,
+        vertical_navmenu: false,
+        comment_size: 35,
+        comment_delay: 5,
+        comment_file_delay: 0,
+        comment_list_performance: 'normal',
+        list_view_number: 30,
+        onclick_stream: false,
+        player_floating: true,
+        ljicrop_magnify: 100,
+        ljicrop_coordinateX: 0,
+        ljicrop_coordinateY: 0,
+        ljicrop_type: 'upperright',
     };
     if (Cookies.get('settings') === undefined){
       var json = JSON.stringify(settings);
@@ -107,7 +108,10 @@
       settings = JSON.parse(Cookies.get('settings'));
     }
     if (settings['dark_theme']){
-      document.documentElement.classList.add('dark');
+        document.documentElement.classList.add('dark-theme');
+    }
+    if (settings['vertical_navmenu']){
+        document.documentElement.classList.add('vertical-navmenu');
     }
 
     window.addEventListener('load', function() {
