@@ -266,7 +266,7 @@
 <?php
 	if ($update_confirm == 'true'){
 		$update_context = stream_context_create( array('http' => array('timeout' => 5)) );
-		$update = file_get_contents('https://raw.githubusercontent.com/yt4687/TVRemotePlus/master/data/version.txt?_='.time(), false, $update_context);
+		$update = file_get_contents('https://raw.githubusercontent.com/yt4687/TVRemotePlus/SPHD2/data/version.txt?_='.time(), false, $update_context);
 		// 取得したバージョンと現在のバージョンが違う場合のみ
 		if ($update != $version){
 			echo '    <a class="nav-link" href="https://github.com/yt4687/TVRemotePlus/releases" target="_blank" '.
