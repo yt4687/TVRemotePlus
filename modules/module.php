@@ -516,13 +516,13 @@
 				if (preg_match("/;#SPACE\(.\,(CS|CS110)\)/", $ch2_data)){
 					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\).*;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // 地上波・BSを削除（混合チューナー用）
 					$ch2_data = preg_replace("/;#SPACE\(.\,BS\).*;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // BSを削除
-					$ch2_data = preg_replace("/;#SPACE\(.\,(スカパー|SKY)\).*$/s", "", $ch2_data); // スカパー以降を削除
+					$ch2_data = preg_replace("/;#SPACE\(.\,(スカパー|SKY|HIKARI)\).*$/s", "", $ch2_data); // スカパー以降を削除
 				} else {
 					$ch2_data = '';
 				}
 			} else if ($flg == 'SPHD') {
-				if (preg_match("/;#SPACE\(.\,(スカパー|SKY)\)/", $ch2_data)){
-					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\).*;#SPACE\(.\,(スカパー|SKY)\)/s", "", $ch2_data); // スカパー以外を削除削除（混合チューナー用）
+				if (preg_match("/;#SPACE\(.\,(スカパー|SKY|HIKARI)\)/", $ch2_data)){
+					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\).*;#SPACE\(.\,(スカパー|SKY|HIKARI)\)/s", "", $ch2_data); // スカパー以外を削除削除（混合チューナー用）
 					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\).*;#SPACE\(.\,BS\)/s", "", $ch2_data); // 地上波を削除
 					$ch2_data = preg_replace("/;#SPACE\(.\,BS\).*;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // BSを削除
 					$ch2_data = preg_replace("/;#SPACE\(.\,(CS|CS110).*;#SPACE\(.\,(スカパー|SKY)\)/s", "", $ch2_data); // CSを削除
@@ -535,8 +535,8 @@
 					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\)/s", "", $ch2_data); // 地上波を削除
 					$ch2_data = preg_replace("/;#SPACE\(.\,BS\).*;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // BSを削除
 					$ch2_data = preg_replace("/;#SPACE\(.\,(CS|CS110)\).*;#SPACE\(.\,(スターデジオ|StarDigio)\)/s", "", $ch2_data); // CSを削除
-				} else if (preg_match("/;#SPACE\(.\,(スカパー|SKY)\)/", $ch2_data)){ // スターデジオをスカパーがくっついてるときに使う
-					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\).*;#SPACE\(.\,(スカパー|SKY)\)/s", "", $ch2_data); // スカパー以外を削除削除（混合チューナー用）
+				} else if (preg_match("/;#SPACE\(.\,(スカパー|SKY|HIKARI)\)/", $ch2_data)){ // スターデジオをスカパーがくっついてるときに使う
+					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\).*;#SPACE\(.\,(スカパー|SKY|HIKARI)\)/s", "", $ch2_data); // スカパー以外を削除削除（混合チューナー用）
 					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\).*;#SPACE\(.\,BS\)/s", "", $ch2_data); // 地上波を削除
 					$ch2_data = preg_replace("/;#SPACE\(.\,BS\).*;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // BSを削除
 					$ch2_data = preg_replace("/;#SPACE\(.\,(CS|CS110)\).*;#SPACE\(.\,(スカパー|SKY)\)/s", "", $ch2_data); // CSを削除
