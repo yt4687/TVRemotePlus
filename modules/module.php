@@ -525,18 +525,23 @@
 					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\).*;#SPACE\(.\,(スカパー|SKY)\)/s", "", $ch2_data); // スカパー以外を削除削除（混合チューナー用）
 					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\).*;#SPACE\(.\,BS\)/s", "", $ch2_data); // 地上波を削除
 					$ch2_data = preg_replace("/;#SPACE\(.\,BS\).*;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // BSを削除
-					$ch2_data = preg_replace("/;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // CSを削除
-					$ch2_data = preg_replace("/;#SPACE\(.\,(スターデジオ|StarDigio)\).*$/s", "", $ch2_data); // スターデジオを削除
+					$ch2_data = preg_replace("/;#SPACE\(.\,(CS|CS110).*;#SPACE\(.\,(スカパー|SKY)\)/s", "", $ch2_data); // CSを削除
+					$ch2_data = preg_replace("/;#SPACE\(.\,(スカパー|SKY)\).*;#SPACE\(.\,(スターデジオ|StarDigio)\)/s", "", $ch2_data); // スターデジオを削除
 				} else {
 					$ch2_data = '';
 				}
                         } else if ($flg == 'SPSD') {
-				if (preg_match("/;#SPACE\(.\,(スターデジオ|StarDigio)\)/", $ch2_data)){
+				if (preg_match("/;#SPACE\(.\,(スターデジオ|StarDigio)\)/", $ch2_data)){ // スターデジオで専用のスペースがあるときはこっち
 					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\).*;#SPACE\(.\,(スターデジオ|StarDigio)\)/s", "", $ch2_data); // スターデジオ以外を削除を削除（混合チューナー用）
 					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\)/s", "", $ch2_data); // 地上波を削除
 					$ch2_data = preg_replace("/;#SPACE\(.\,BS\)/s", "", $ch2_data); // BSを削除
 					$ch2_data = preg_replace("/;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // CSを削除
 					$ch2_data = preg_replace("/;#SPACE\(.\,(スカパー|SKY)\).*$/s", "", $ch2_data); // スカパー！を削除
+				} else if (preg_match("/;#SPACE\(.\,(スカパー|SKY)\)/", $ch2_data)){ // スターデジオをスカパーがくっついてるときに使う
+					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\).*;#SPACE\(.\,(スカパー|SKY)\)/s", "", $ch2_data); // スカパー以外を削除削除（混合チューナー用）
+					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\).*;#SPACE\(.\,BS\)/s", "", $ch2_data); // 地上波を削除
+					$ch2_data = preg_replace("/;#SPACE\(.\,BS\).*;#SPACE\(.\,(CS|CS110)\)/s", "", $ch2_data); // BSを削除
+					$ch2_data = preg_replace("/;#SPACE\(.\,(CS|CS110).*;#SPACE\(.\,(スカパー|SKY)\)/s", "", $ch2_data); // CSを削除
 				} else {
 					$ch2_data = '';
 				}
@@ -838,7 +843,7 @@
 					// サービス状態が1の物のみセットする
 					// あとワンセグ(192)・データ放送(192)・ラジオチャンネル(2)はセットしない
 					// サブチャンネルはサブチャンネル表示がオンになっている場合のみ
-					if ($value[4] != 192 and
+					if ($value[4] != 192 and $value[3] >= 500 and
 						(($value[8] == 1 and !isset($ch_SPHD[strval($value[3])])) ) ){
 						// 全角は半角に直す
 						// チャンネル名
@@ -865,7 +870,7 @@
 					// サービス状態が1の物のみセットする
 					// あとワンセグ(192)・データ放送(192)・ラジオチャンネル(2)はセットしない
 					// サブチャンネルはサブチャンネル表示がオンになっている場合のみ
-					if ($value[4] != 192 and
+					if ($value[4] != 192 and $value[3] <= 499 and
 						(($value[8] == 1 and !isset($ch_SPSD[strval($value[3])])) )  ){
 						// 全角は半角に直す
 							// チャンネル名
