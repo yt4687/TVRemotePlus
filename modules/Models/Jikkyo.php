@@ -136,7 +136,7 @@ class Jikkyo {
             // 地上波の時は ServiceID を 10進数に変換する（変換時に頭の 0x は不要なので除去）
             // BS CS の時はそのまま流す
             // 切り替え基準の sid は衛星で存在する実況チャンネルが AT-X(333)までなのでそれを目安に設定
-            if　(intval($channel_sid) > 333) {
+            if (intval($channel_sid) > 333) {
                 $jikkyo_sid = hexdec(mb_substr($channel_record['ServiceID'], 2));
             } else {
                 $jikkyo_sid = $channel_record['ServiceID'];
