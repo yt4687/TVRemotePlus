@@ -852,8 +852,9 @@
 						$onid_SPHD[strval($value[3])] = mb_convert_kana($value[6], 'asv');
 						// トランスポートストリームID(TSID)
 						$tsid_SPHD[strval($value[3])] = mb_convert_kana($value[7], 'asv');
-					}
+					} 
 				}
+
 			} else {
 				$ch_SPHD = array();
 				$sid_SPHD = array();
@@ -879,6 +880,12 @@
 							$onid_SPSD[strval($value[5])] = mb_convert_kana($value[6], 'asv');
 							// トランスポートストリームID(TSID)
 							$tsid_SPSD[strval($value[5])] = mb_convert_kana($value[7], 'asv');
+							// SPSDの時は仕組み上の関係でエラーするのでからデータを返す
+					} else {
+						    $ch_SPSD = array();
+						    $sid_SPSD = array();
+						    $onid_SPSD = array();
+						    $tsid_SPSD = array();
 					}
 				}
 
