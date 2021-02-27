@@ -544,7 +544,7 @@
                   ffmpeg が通常のエンコーダー(ソフトウェアエンコーダー)、
                   QSVEncC・NVEncC・VCEEncC がハードウェアエンコーダーです<br>
                   QSVEncC・NVEncC・VCEEncC の方が CPU を消費しない・エンコードが早いためおすすめですが、
-                  QSVEncC は Intel 製の一部の GPU 、NVEncC は nvidia 製の GPU 環境、VCEEncC は AMD の Radeon GPU でしか利用できません<br>
+                  QSVEncC は Intel 製の一部の GPU 、NVEncC は nvidia 製の GPU 、VCEEncC は AMD の Radeon GPU でしか利用できません<br>
                 </p>
               </div>
               <div class="select-wrap">
@@ -830,9 +830,10 @@
               <div class="setting-content">
                 <span>ニコニコにログインする際のメールアドレス</span>
                 <p>
-                  ニコニコ実況への投稿・ファイル再生時の過去ログの取得に必須です<br>
+                  ニコニコ実況へのコメントの投稿に必須です（過去ログ再生では不要になりました）<br>
                   利用する場合、予めニコニコアカウントを作成しておく必要があります<br>
-                  設定しなくても生放送のコメントは取得できますが、コメント投稿・過去ログの取得はできません<br>
+                  ログインしなくても生放送のコメントは取得できますが、コメント投稿はできません<br>
+                  また、同時視聴者数が多くなった場合に追い出されやすくなります<br>
                 </p>
               </div>
               <input class="text-box" name="nicologin_mail" type="email" value="<?php echo $nicologin_mail; ?>" placeholder="example@gmail.com" autocomplete="off" />
@@ -842,9 +843,10 @@
               <div class="setting-content">
                 <span>ニコニコにログインする際のパスワード</span>
                 <p>
-                  ニコニコ実況への投稿・ファイル再生時の過去ログの取得に必須です<br>
+                  ニコニコ実況へのコメントの投稿に必須です（過去ログ再生では不要になりました）<br>
                   利用する場合、予めニコニコアカウントを作成しておく必要があります<br>
-                  設定しなくても生放送のコメントは取得できますが、コメント投稿・過去ログの取得はできません<br>
+                  ログインしなくても生放送のコメントは取得できますが、コメント投稿はできません<br>
+                  また、同時視聴者数が多くなった場合に追い出されやすくなります<br>
                 </p>
               </div>
               <div class="password-box-wrap">
@@ -1096,12 +1098,12 @@
                 <span>HLS セグメントあたりの秒数 (ファイル再生時)</span>
                 <p>
                   通常は変更する必要はありませんが、外出先から視聴する場合など回線が不安定な場合、
-                  秒数を 15 (秒) や 20 (秒) などに伸ばすことで、安定して再生できる場合があります<br>
+                  秒数を 10 (秒) や 20 (秒) などに伸ばすことで、安定して再生できる場合があります<br>
                   ただし、秒数を伸ばせば伸ばすほど、再生開始までにかかる待機時間が長くなります<br>
-                  新規インストール時のデフォルトは 10 (秒) です<br>
+                  新規インストール時のデフォルトは 8 (秒) です<br>
                 </p>
               </div>
-              <input class="text-box" name="hlsfile_time" type="number" step="0.1" min="0.5" max="60" placeholder="10" value="<?php echo $hlsfile_time; ?>" required />
+              <input class="text-box" name="hlsfile_time" type="number" step="0.1" min="0.5" max="60" placeholder="8" value="<?php echo $hlsfile_time; ?>" required />
             </div>
 
             <div class="setting-form setting-input">
@@ -1112,10 +1114,10 @@
                   秒数を 10 (個) や 20 (個) などに設定することで、安定して再生できる場合があります<br>
                   ただし、秒数を伸ばせば伸ばすほど、放送波との遅延が大きくなってしまいます<br>
                   ファイル再生時は全てのセグメントをプレイリストに載せています<br>
-                  新規インストール時のデフォルトは 5 (個) です<br>
+                  新規インストール時のデフォルトは 8 (個) です<br>
                 </p>
               </div>
-              <input class="text-box" name="hlslive_list" type="number" min="1" max="60" placeholder="5" value="<?php echo $hlslive_list; ?>" required />
+              <input class="text-box" name="hlslive_list" type="number" min="1" max="60" placeholder="8" value="<?php echo $hlslive_list; ?>" required />
             </div>
 
 		  </form>
