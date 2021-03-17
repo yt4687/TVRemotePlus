@@ -1538,6 +1538,7 @@ $(function(){
     const videoToCanvas = function(video) {
         // 動画のキャンバス
         const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
         const caption = video.nextElementSibling;
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
@@ -1546,10 +1547,10 @@ $(function(){
             const draw = function() {
                 try {
                     // キャプチャを描画
-                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-                    // 字幕を描画（ Shift キーが押されていない場合のみ）
-                    if (!window.isShiftKey) {
-                        canvas.getContext('2d').drawImage(caption, 0, 0, canvas.width, canvas.height);
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    // 字幕を描画（ Shift キーが押されていない & 字幕キャンバスが存在する場合のみ）
+                    if (!window.isShiftKey && caption !== null) {
+                        context.drawImage(caption, 0, 0, canvas.width, canvas.height);
                     }
                 } catch (error){
                     // エラー補足（ Android 版 Firefox のバグ対策のはずだった）
@@ -1582,8 +1583,8 @@ $(function(){
         const img = new Image();
         img.width = width;
         img.height = height;
-        const canvas = document.createElement('canvas');
 
+        const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
         canvas.width = width;
         canvas.height = height;
@@ -1622,7 +1623,7 @@ $(function(){
         }
 
         const canvas = document.createElement('canvas');
-        const ct = canvas.getContext('2d');
+        const context = canvas.getContext('2d');
 
         canvas.width = width;
         canvas.height = height;
@@ -1630,10 +1631,10 @@ $(function(){
         return videoToCanvas(video).then(({canvas, img}) => {
 
             //canvas.style.border = '2px solid red'; document.body.appendChild(canvas);
-            ct.fillStyle = 'rgb(0, 0, 0)';
-            ct.fillRect(0, 0, width, height);
+            context.fillStyle = 'rgb(0, 0, 0)';
+            context.fillRect(0, 0, width, height);
 
-            ct.drawImage(
+            context.drawImage(
                 canvas,
                 (width - video.videoWidth * scale) / 2,
                 (height - video.videoHeight * scale) / 2,
@@ -1645,7 +1646,7 @@ $(function(){
 
             //canvas.style.border = '2px solid green'; document.body.appendChild(canvas);
 
-            ct.drawImage(canvas, 0, 0, width, height);
+            context.drawImage(canvas, 0, 0, width, height);
 
             return Promise.resolve({canvas, img});
         }).then(() => {
