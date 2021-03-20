@@ -56,9 +56,9 @@ $(window).on('DOMContentLoaded resize', function(event){
     // 画面の向きを取得
     var orientation = window.orientation;
 
-    $(window).on('load', function(){
+    $(window).on('load', function() {
         // スマホ・タブレットならplaceholder書き換え
-        if (settings['twitter_show']){
+        if (settings['twitter_show']) {
             if (windowWidth > 1024) {
                 if (navigator.userAgent.indexOf('Macintosh') != -1) {
                     document.getElementById('tweet').setAttribute('placeholder', 'ツイート (Command + Enterで送信)');
@@ -113,38 +113,79 @@ $(window).on('DOMContentLoaded resize', function(event){
                 
         }
 
+        // 縦メニューで横の余白が広い時、メインカラムが右に寄っているように見えるのを解消する
+        // メインカラムの margin-left が 0px 以外なら、body に margin-right: 54px を設定する
+        // メインカラムの margin-left が 0px なら、body の margin-right: 54px を解除する
+        if (settings['vertical_navmenu']) {
+            if (getComputedStyle(document.getElementById('main')).marginLeft !== '0px') {
+                document.body.style.marginRight = '54px';
+            } else {
+                document.body.style.marginRight = '';
+            }
+        }
+
         // DOMContentLoaded or resize(横方向)
         if (event.type == 'DOMContentLoaded' || (event.type == 'resize' && lastWindowWidth != windowWidth)){
-            
-            lastWindowWidth = windowWidth; // 記録しておく
-        
-            // 既に初期化されているなら一旦破棄する
-            if (typeof slideTab !== 'undefined'){
-                slideTabButton.destroy(false, true);
-                slideTab.destroy(false, true);
-            }
-
-            // タブを初期化
-            slideTab = new Swiper('#broadcast-tab-box', {
-                slidesPerView: 'auto',
-                watchSlidesVisibility: true,
-                watchSlidesProgress: true,
-                updateOnWindowResize: true,
-                slideActiveClass: 'swiper-slide-active'
-            });
-            slideTabButton = new Swiper('#broadcast-box', {
-                autoHeight: true,
-                thumbs: {
-                    swiper: slideTab
-                }
-            });
-
+            // 幅を記録しておく
+            lastWindowWidth = windowWidth;        
+            // スライダーのサイズを更新（重要）
+            // プレイヤー周辺を独自でリサイズしている関係で Swiper 本体のリサイズ検知機構がうまく動かない
+            // そのため手動でサイズを更新してあげる必要がある
+            slider.update();
         }
+
     }, 200);
 });
 
 
-$(function(){
+$(function() {
+
+    // ***** スライダー *****
+
+    // タブを初期化
+    slider = new Swiper('#broadcast-box', {
+        slideActiveClass: 'swiper-slide-active',
+        slidesPerView: 'auto',  // コンテナーに同時に表示されるスライドの数
+        autoHeight: true,  // コンテナの高さを自動調整するか
+        resizeObserver: true, // ResizeObserver を利用する
+        updateOnWindowResize: true,  // リサイズ時にコンテナの幅や高さを調整する
+        watchSlidesProgress: true,  // 各スライドの進行状況を計算する
+    });
+
+    // ボタンを初期化
+    // 最初に表示するスライドのインデックス
+    // localStorage の値か、ない場合は 0（地デジ）
+    const sliderInitialIndex = localStorage.getItem('tvrp-slider-index') || 0;
+    // スライドする
+    slider.slideTo(sliderInitialIndex, 0);  // 第二引数を 0 にするとアニメーションされない
+    // ハイライト用のクラスを付与
+    $(`.broadcast-button[data-index=${sliderInitialIndex}]`).addClass('swiper-slide-thumb-active');
+
+    // ボタンクリックでスライド
+    $('.broadcast-button').click((event) => {
+        // クリックされたボタンのインデックス
+        const sliderCurrentIndex = event.target.dataset.index;
+        // スライドする
+        slider.slideTo(sliderCurrentIndex);
+        // 一旦全てのクラスを削除
+        $('.broadcast-button').removeClass('swiper-slide-thumb-active');
+        // ハイライト用のクラスを付与
+        $(`.broadcast-button[data-index=${sliderCurrentIndex}]`).addClass('swiper-slide-thumb-active');
+    });
+    
+    // スライド時のイベント
+    slider.on('slideChange', () => {
+        // 一旦全てのクラスを削除
+        $('.broadcast-button').removeClass('swiper-slide-thumb-active');
+        // ハイライト用のクラスを付与
+        $(`.broadcast-button[data-index=${slider.activeIndex}]`).addClass('swiper-slide-thumb-active');
+    });
+
+    // ページから離れるときのイベント
+    $(window).on('beforeunload', () => {
+        // localStorage に現在アクティブなスライドのインデックスを保存
+        localStorage.setItem('tvrp-slider-index', slider.activeIndex);
+    });
     
     // ***** スクロールで動画をフロート表示 *****
 
@@ -165,15 +206,12 @@ $(function(){
 
                 // ターゲット座標以上
                 if (position_current > position_target) {
-
                     if (!dp.video.classList.contains('dplayer-floating')) {
 
                         // 一旦 transition を削除
                         dp.video.style.transition = 'none';
-
                         // 透明度を 0 に設定
                         dp.video.style.opacity = 0;
-
                         // transition を再付与
                         dp.video.style.transition = 'opacity 0.2s ease-in-out';
 
@@ -181,32 +219,27 @@ $(function(){
 
                             // 動画をフロート化
                             dp.video.classList.add('dplayer-floating');
-
                             // 透明度を 1 に設定
                             dp.video.style.opacity = 1;
 
                         }, 200);
-
                     }
 
                 // ターゲット座標以内
                 } else if (position_current < position_target) {
-
                     if (dp.video.classList.contains('dplayer-floating')) {
 
                         // 透明度を 0 に設定
                         dp.video.style.opacity = 0;
 
-                        setTimeout(function(){
+                        setTimeout(function() {
 
                             // 動画のフロート化を解除
                             dp.video.classList.remove('dplayer-floating');
-
                             // 透明度を 1 に設定
                             dp.video.style.opacity = 1;
 
                         }, 200);
-
                     }
                 }
             }
