@@ -18,9 +18,10 @@
 <html lang="ja">
 
 <head>
-<?php	if (strpos($backtrace[0]['file'], 'watch.php') !== false){ ?>
+
+<?php	if (strpos($backtrace[0]['file'], 'watch.php') !== false) { ?>
   <title>録画番組 - <?= $site_title; ?></title>
-<?php	} else if (strpos($backtrace[0]['file'], 'settings.php') !== false){ ?>
+<?php	} else if (strpos($backtrace[0]['file'], 'settings.php') !== false) { ?>
   <title>設定 - <?= $site_title; ?></title>
 <?php	} else { ?>
   <title><?= $site_title; ?></title>
@@ -41,13 +42,13 @@
   <link rel="stylesheet" type="text/css" href="/files/balloon.min.css">
   <link rel="stylesheet" type="text/css" href="/files/style.css?<?= $version; ?>">
 <?php
-	if (strpos($backtrace[0]['file'], 'index.php') !== false){ // index.php のみ
+	if (strpos($backtrace[0]['file'], 'index.php') !== false) { // index.php のみ
 		echo '  <link rel="stylesheet" type="text/css" href="/files/swiper.min.css">'."\n";
 	}
-	if (strpos($backtrace[0]['file'], 'watch.php') !== false){ // watch.php のみ
+	if (strpos($backtrace[0]['file'], 'watch.php') !== false) { // watch.php のみ
 		echo '  <link rel="stylesheet" type="text/css" href="/files/watch.css?'.$version.'">'."\n";
 	}
-	if (strpos($backtrace[0]['file'], 'settings.php') !== false){ // settings.php のみ
+	if (strpos($backtrace[0]['file'], 'settings.php') !== false) { // settings.php のみ
 		echo '  <link rel="stylesheet" type="text/css" href="/files/settings.css?'.$version.'">'."\n";
 	}
 ?>
@@ -55,8 +56,6 @@
   <script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
   <script type="text/javascript" src="/files/pwacompat.min.js" async></script>
   <script type="text/javascript" src="/files/jquery.min.js"></script>
-  <script type="text/javascript" src="/files/DPlayer.min.js"></script>
-  <script type="text/javascript" src="/files/hls-b24.min.js"></script>
   <script type="text/javascript" src="/files/toastr.min.js"></script>
   <script type="text/javascript" src="/files/js.cookie.min.js"></script>
   <script type="text/javascript" src="/files/velocity.min.js"></script>
@@ -64,19 +63,19 @@
   <script type="text/javascript" src="/files/css_browser_selector.js"></script>
   <script type="text/javascript" src="/files/common.js?<?= $version; ?>"></script>
 <?php
-	if (strpos($backtrace[0]['file'], 'index.php') !== false){ // index.php のみ
+	if (strpos($backtrace[0]['file'], 'index.php') !== false) { // index.php のみ
+    echo '  <script type="text/javascript" src="/files/DPlayer.min.js"></script>'."\n";
+    echo '  <script type="text/javascript" src="/files/hls-b24.min.js"></script>'."\n";
 		echo '  <script type="text/javascript" src="/files/clusterize.min.js"></script>'."\n";
 		echo '  <script type="text/javascript" src="/files/swiper.min.js"></script>'."\n";
 		echo '  <script type="text/javascript" src="/files/index.js?'.$version.'"></script>'."\n";
 		echo '  <script type="text/javascript" src="/files/script.js?'.$version.'"></script>'."\n";
 		echo '  <script type="text/javascript" src="/files/jikkyo.js?'.$version.'"></script>'."\n";
 	}
-	if (strpos($backtrace[0]['file'], 'watch.php') !== false){ // watch.php のみ
+	if (strpos($backtrace[0]['file'], 'watch.php') !== false) { // watch.php のみ
 		echo '  <script type="text/javascript" src="/files/watch.js?'.$version.'"></script>'."\n";
-	} else if (strpos($backtrace[0]["file"], 'settings.php') !== false){ // settings.php のみ
+	} else if (strpos($backtrace[0]["file"], 'settings.php') !== false) { // settings.php のみ
 		echo '  <script type="text/javascript" src="/files/settings.js?'.$version.'"></script>'."\n";
-	} else if ($ini[$stream]['state'] == 'ONAir'){
-	} else if ($ini[$stream]['state'] == 'File'){
 	}
 ?>
 
@@ -95,20 +94,21 @@
         comment_delay: 5,
         comment_file_delay: 0,
         comment_list_performance: 'normal',
+        quality_user_default: 'environment',
         list_view_number: 30,
         onclick_stream: false,
         player_floating: true,
     };
-    if (Cookies.get('settings') === undefined){
-      var json = JSON.stringify(settings);
-      Cookies.set('settings', json, { expires: 365 });
+    if (Cookies.get('settings') === undefined) {
+        var json = JSON.stringify(settings);
+        Cookies.set('settings', json, { expires: 365 });
     } else {
       settings = JSON.parse(Cookies.get('settings'));
     }
-    if (settings['dark_theme']){
+    if (settings['dark_theme']) {
         document.documentElement.classList.add('dark-theme');
     }
-    if (settings['vertical_navmenu']){
+    if (settings['vertical_navmenu']) {
         document.documentElement.classList.add('vertical-navmenu');
     }
 
@@ -118,8 +118,8 @@
         }
     });
 
-<?php	if (strpos($backtrace[0]["file"], 'index.php') !== false){ // index.php のみ ?>
-<?php		if ($ini[$stream]['state'] == 'File' and $ini[$stream]['fileext'] != 'ts' and $ini[$stream]['encoder'] == 'Progressive'){ ?>
+<?php	if (strpos($backtrace[0]["file"], 'index.php') !== false) { // index.php のみ ?>
+<?php		if ($ini[$stream]['state'] == 'File' and $ini[$stream]['fileext'] != 'ts' and $ini[$stream]['encoder'] == 'Progressive') { ?>
     stream = '<?= $stream; ?>';
     streamurl = 'http://<?= $_SERVER['SERVER_NAME'].':'.$http_port; ?>/api/stream/<?= $stream; ?>';
     streamtype = 'video/mp4';
@@ -152,7 +152,7 @@
       <i class="fas fa-cog"></i>
       <span class="top-link-href">設定</span>
     </a>
-<?php	if (strpos($backtrace[0]["file"], 'index.php') !== false or strpos($backtrace[0]["file"], 'watch.php') !== false){ // index.php・watch.php のみ ?>
+<?php	if (strpos($backtrace[0]["file"], 'index.php') !== false or strpos($backtrace[0]["file"], 'watch.php') !== false) { // index.php・watch.php のみ ?>
     <div id="menu-button">
       <i class="material-icons">more_vert</i>
     </div>
@@ -160,11 +160,22 @@
     <div id="menu-fakebutton"></div>
 <?php	} // 括弧終了 ?>
   </nav>
-<?php	if (strpos($backtrace[0]["file"], 'index.php') !== false){ // index.php のみ ?>
+<?php	if (strpos($backtrace[0]["file"], 'index.php') !== false) { // index.php のみ ?>
 
   <nav id="menu-content">
     <div id="menu-link-wrap">
-<?php	if (isSettingsItem('subchannel_show', true)){ ?>
+      <google-cast-launcher style="display: none;" aria-label="Chromecast や Android TV で再生できます" data-balloon-pos="up"></google-cast-launcher>
+      <div id="cast-toggle" class="menu-link" aria-label="Chromecast や Android TV で再生できます" data-balloon-pos="up">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 21px;">
+          <path fill="currentColor" d="M447.83 64H64a42.72 42.72 0 0 0-42.72 42.72v63.92H64v-63.92h383.83v298.56H298.64V448H448a42.72 42.72 0 0 0 42.72-42.72V106.72A42.72 42.72 0 0 0 448 64zM21.28 383.58v63.92h63.91a63.91 63.91 0 0 0-63.91-63.92zm0-85.28V341a106.63 106.63 0 0 1 106.64 106.66v.34h42.72a149.19 149.19 0 0 0-149-149.36h-.33zm0-85.27v42.72c106-.1 192 85.75 192.08 191.75v.5h42.72c-.46-129.46-105.34-234.27-234.8-234.64z"></path>
+        </svg>
+        <span class="menu-link-href">キャストを開始</span>
+      </div>
+      <div id="fullscreen" class="menu-link" aria-label="画面全体をフルスクリーンで表示します" data-balloon-pos="up">
+        <i class="fas fa-expand" style="font-size: 117%;"></i>
+        <span class="menu-link-href">フルスクリーンで表示</span>
+      </div>
+<?php	if (isSettingsItem('subchannel_show', true)) { ?>
       <div id="subchannel-hide" class="menu-link" aria-label="メインチャンネルのみ番組表に表示します" data-balloon-pos="up">
         <i class="fas fa-broadcast-tower"></i>
         <span class="menu-link-href">サブチャンネルを隠す</span>
@@ -183,26 +194,14 @@
         <i class="fas fa-keyboard"></i>
         <span class="menu-link-href">ショートカット一覧</span>
       </div>
-      <google-cast-launcher style="display: none;" aria-label="Chromecast などを使ってテレビで再生できます" data-balloon-pos="up"></google-cast-launcher>
-      <div id="cast-toggle" class="menu-link" aria-label="Chromecast などを使ってテレビで再生できます" data-balloon-pos="up">
-        <svg style="width: 21px;" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="chromecast" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-inline--fa fa-chromecast fa-w-16">
-          <path fill="currentColor" d="M447.83 64H64a42.72 42.72 0 0 0-42.72 42.72v63.92H64v-63.92h383.83v298.56H298.64V448H448a42.72 42.72 0 0 0 42.72-42.72V106.72A42.72 42.72 0 0 0 448 64zM21.28 383.58v63.92h63.91a63.91 63.91 0 0 0-63.91-63.92zm0-85.28V341a106.63 106.63 0 0 1 106.64 106.66v.34h42.72a149.19 149.19 0 0 0-149-149.36h-.33zm0-85.27v42.72c106-.1 192 85.75 192.08 191.75v.5h42.72c-.46-129.46-105.34-234.27-234.8-234.64z" class="">
-          </path>
-        </svg>
-        <span class="menu-link-href">キャストを開始</span>
-      </div>
-      <div id="cast-scan" class="menu-link" aria-label="キャストするデバイスをスキャンします" data-balloon-pos="up">
-        <i class="fas fa-sync-alt"></i>
-        <span class="menu-link-href">デバイスをスキャン</span>
-      </div>
     </div>
   </nav>
 <?php	} // 括弧終了 ?>
-<?php	if (strpos($backtrace[0]["file"], 'watch.php') !== false){ // watch.php のみ ?>
+<?php	if (strpos($backtrace[0]["file"], 'watch.php') !== false) { // watch.php のみ ?>
 
   <nav id="menu-content">
     <div id="menu-link-wrap">
-<?php	if (isSettingsItem('list_view', true)){ ?>
+<?php	if (isSettingsItem('list_view', true)) { ?>
       <div id="normal-view" class="menu-link" aria-label="録画一覧を通常通り表示します" data-balloon-pos="up">
         <i class="fas fa-th-list"></i>
         <span class="menu-link-href">通常表示に切り替え</span>
@@ -237,7 +236,7 @@
       <i class="fas fa-home"></i>
       <span class="nav-link-href">ホーム</span>
     </a>
-<?php	if (strpos($backtrace[0]["file"], 'index.php') !== false){ // index.php のみ ?>
+<?php	if (strpos($backtrace[0]["file"], 'index.php') !== false) { // index.php のみ ?>
     <form method="post" name="quickstop" action="/settings/">
       <input type="hidden" name="state" value="Offline">
       <input type="hidden" name="stream" value="<?= $stream; ?>">
@@ -269,7 +268,7 @@
       <span class="nav-link-href">設定</span>
     </a>
 <?php
-	if ($update_confirm == 'true'){
+	if ($update_confirm == 'true') {
 		$update_context = stream_context_create( array('http' => array('timeout' => 5)) );
 		$update = file_get_contents('https://raw.githubusercontent.com/yt4687/TVRemotePlus/SPHD2/data/version.txt?_='.time(), false, $update_context);
 		// 取得したバージョンと現在のバージョンが違う場合のみ
@@ -292,7 +291,7 @@
       </span>
     </a>
   </nav>
-<?php	if (strpos($backtrace[0]["file"], 'watch.php') !== false){ // watch.php のみ ?>
+<?php	if (strpos($backtrace[0]["file"], 'watch.php') !== false) { // watch.php のみ ?>
   <div id="cover" class="open"></div>
 <?php	} else { ?>
   <div id="cover"></div>

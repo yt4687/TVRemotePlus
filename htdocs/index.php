@@ -632,7 +632,7 @@
           <span>動画の画質：</span>
           <div class="select-wrap">
             <select name="quality">
-              <option value="<?= $quality_default; ?>">デフォルト (<?= $quality_default; ?>)</option>
+              <option value="<?= getQualityDefault(); ?>">デフォルト (<?= getQualityDefault(); ?>)</option>
               <option value="1080p-high">1080p-high (1920×1080)</option>
               <option value="1080p">1080p (1440×1080)</option>
               <option value="810p">810p (1440×810)</option>
@@ -852,13 +852,13 @@
             <div class="hotkey-list">
               <div class="hotkey-list-name">15秒巻き戻し</div>
               <div class="hotkey-list-key-box">
-                <div class="hotkey-list-key">Ctrl (or Command)</div> + <div class="hotkey-list-key"><i class="fas fa-arrow-left"></i></div>
+                <div class="hotkey-list-key">Ctrl (or Cmd)</div> + <div class="hotkey-list-key"><i class="fas fa-arrow-left"></i></div>
               </div>
             </div>
             <div class="hotkey-list">
               <div class="hotkey-list-name">15秒早送り</div>
               <div class="hotkey-list-key-box">
-                <div class="hotkey-list-key">Ctrl (or Command)</div> + <div class="hotkey-list-key"><i class="fas fa-arrow-right"></i></div>
+                <div class="hotkey-list-key">Ctrl (or Cmd)</div> + <div class="hotkey-list-key"><i class="fas fa-arrow-right"></i></div>
               </div>
             </div>
             <div class="hotkey-list">
@@ -991,7 +991,7 @@
             <div class="hotkey-list">
               <div class="hotkey-list-name">クリップボードの画像を取り込む</div>
               <div class="hotkey-list-key-box">
-                <div class="hotkey-list-key">(ツイート入力フォームにフォーカス)</div> + <div class="hotkey-list-key">Ctrl (or Command)</div> + <div class="hotkey-list-key alphabet">V</div>
+                <div class="hotkey-list-key">(ツイート入力フォームにフォーカス)</div> + <div class="hotkey-list-key" style="flex-shrink: 0;">Ctrl (or Cmd)</div> + <div class="hotkey-list-key alphabet">V</div>
               </div>
             </div>
           </div>

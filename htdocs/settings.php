@@ -65,7 +65,7 @@
 				if ($_POST['start_timestamp']) $ini[$stream]['start_timestamp'] = $_POST['start_timestamp'];
 				if ($_POST['end_timestamp']) $ini[$stream]['end_timestamp'] = $_POST['end_timestamp'];
 				if ($_POST['quality']) $ini[$stream]['quality'] = $_POST['quality'];
-				else $ini[$stream]['quality'] = $quality_default;
+				else $ini[$stream]['quality'] = getQualityDefault();
 				if ($_POST['encoder']) $ini[$stream]['encoder'] = $_POST['encoder'];
 				else $ini[$stream]['quality'] = $encoder_default;
 				if ($_POST['subtitle']) $ini[$stream]['subtitle'] = $_POST['subtitle'];
@@ -133,7 +133,7 @@
 				// 連想配列に格納
 				if (isset($_POST['channel'])) $ini[$stream]['channel'] = strval($_POST['channel']);
 				if (isset($_POST['quality'])) $ini[$stream]['quality'] = $_POST['quality'];
-				else $ini[$stream]['quality'] = $quality_default;
+				else $ini[$stream]['quality'] = getQualityDefault();
 				if (isset($_POST['encoder'])) $ini[$stream]['encoder'] = $_POST['encoder'];
 				else $ini[$stream]['encoder'] = $encoder_default;
 				if (isset($_POST['subtitle'])) $ini[$stream]['subtitle'] = $_POST['subtitle'];
@@ -290,7 +290,7 @@
           </h2>
 
           <p>
-            <?= $site_title; ?> の設定を Web 上から行えます。<br>
+            <?= $site_title; ?> の設定ができます。<br>
           </p>
           
           <form id="setting-user" class="setting-form-wrap">
@@ -307,6 +307,7 @@
             </h3>
 
             <p>個人設定はブラウザ・端末ごとに反映されます。</p>
+            <p>(＊) … PC・タブレットのみ適用される設定</p>
 
             <h4><i class="fas fa-eye"></i>表示</h4>
 
@@ -323,7 +324,7 @@
             </div>
 
             <div class="setting-form">
-              <span>コメントリスト</span>
+              <span>コメントリスト (＊)</span>
               <div class="toggle-switch">
 <?php	if (isSettingsItem('comment_show', true, true) !== false){ ?>
                 <input id="comment_show" class="toggle-input" type="checkbox" value="true" checked />
@@ -383,7 +384,7 @@
             </div>
 
             <div class="setting-form">
-              <span>ナビゲーションメニューを垂直に配置（PC・タブレットのみ）</span>
+              <span>ナビゲーションメニューを垂直に配置 (＊)</span>
               <div class="toggle-switch">
 <?php	if (isSettingsItem('vertical_navmenu', true, false) !== false){ ?>
                 <input id="vertical_navmenu" class="toggle-input" type="checkbox" value="true" checked />
@@ -460,6 +461,24 @@
             <h4><i class="fas fa-sliders-h"></i>機能</h4>
 
             <div class="setting-form setting-select">
+              <span>デフォルトの動画の画質（環境設定よりも優先されます）</span>
+              <div class="select-wrap">
+                <select id="quality_user_default" required>
+                  <?php $quality_user_default = isSettingsItem('quality_user_default'); ?>
+                  <option value="environment"<?php if ($quality_user_default == 'environment') echo ' selected'; ?>>環境設定を引き継ぐ</option>
+                  <option value="1080p-high"<?php if ($quality_user_default == '1080p-high') echo ' selected'; ?>>1080p-high (1920×1080)</option>
+                  <option value="1080p"<?php if ($quality_user_default == '1080p') echo ' selected'; ?>>1080p (1440×1080)</option>
+                  <option value="810p"<?php if ($quality_user_default == '810p') echo ' selected'; ?>>810p (1440×810)</option>
+                  <option value="720p"<?php if ($quality_user_default == '720p') echo ' selected'; ?>>720p (1280×720)</option>
+                  <option value="540p"<?php if ($quality_user_default == '540p') echo ' selected'; ?>>540p (960×540)</option>
+                  <option value="360p"<?php if ($quality_user_default == '360p') echo ' selected'; ?>>360p (640×360)</option>
+                  <option value="240p"<?php if ($quality_user_default == '240p') echo ' selected'; ?>>240p (426×240)</option>
+                  <option value="144p"<?php if ($quality_user_default == '144p') echo ' selected'; ?>>144p (256×144)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="setting-form setting-select">
               <span>一度に表示する録画番組リストの番組数（件）</span>
 <?php	if (isSettingsItem('list_view_number') !== false){ ?>
               <input class="text-box" id="list_view_number" type="number" min="10" max="100" placeholder="30" value="<?= isSettingsItem('list_view_number'); ?>" required />
@@ -481,7 +500,7 @@
             </div>
 
             <div class="setting-form">
-              <span>番組表へスクロールした時にプレイヤーをフローティング表示する</span>
+              <span>番組表へスクロールした時にプレイヤーをフローティング表示する (＊)</span>
               <div class="toggle-switch">
 <?php	if (isSettingsItem('player_floating', true) !== false){ ?>
                 <input id="player_floating" class="toggle-input" type="checkbox" value="true" checked />
@@ -563,7 +582,6 @@
                 <p>
                   デフォルトで利用する BonDriver (地デジ用) です<br>
                   うまく再生出来ない場合、BonDriver_Spinel もしくは BonDriver_Proxy を利用すると安定して視聴できる場合があります<br>
-                  導入している場合は BonDriver_Spinel か BonDriver_Proxy を利用することをおすすめします<br>
                   Spinel よりも BonDriverProxyEx の方がストリーム開始にかかる時間は短くなります<br>
                 </p>
               </div>
@@ -586,7 +604,6 @@
                 <p>
                   デフォルトで利用する BonDriver (BS・CS用) です<br>
                   うまく再生出来ない場合、BonDriver_Spinel もしくは BonDriver_Proxy を利用すると安定して視聴できる場合があります<br>
-                  導入している場合は BonDriver_Spinel か BonDriver_Proxy を利用することをおすすめします<br>
                   BonDriver_Spinel よりも BonDriver_Proxy の方がストリーム開始にかかる時間は短くなります<br>
                 </p>
               </div>
@@ -1135,7 +1152,7 @@
                   PWA (Progressive Web Apps) 機能を利用する場合は、HTTPS でのアクセスが必須です<br>
                   そのため、インストール時に作成した自己署名証明書を予め TVRemotePlus を利用する端末にインポートしておく必要があります<br>
                   右 or 下のダウンロードボタンから証明書 (server.crt) をダウンロードしてください<br>
-                  証明書のインストール手順は <a href="https://github.com/tsukumijima/TVRemotePlus#PWA%20%E3%81%AE%E3%82%A4%E3%83%B3%E3%82%B9%E3%83%88%E3%83%BC%E3%83%AB%E6%89%8B%E9%A0%86" target="_blank">こちら</a> を参照してください<br>
+                  証明書のインストール手順は <a href="https://github.com/tsukumijima/TVRemotePlus#pwa-%E3%81%AE%E3%82%A4%E3%83%B3%E3%82%B9%E3%83%88%E3%83%BC%E3%83%AB%E6%89%8B%E9%A0%86" target="_blank">こちら</a> を参照してください<br>
                 </p>
               </div>
               <a class="download" href="/files/TVRemotePlus.crt" download>
