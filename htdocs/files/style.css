@@ -719,7 +719,7 @@ section {
     box-shadow: -1px 4px 2px 0 rgba(0,0,0,.14),
                 0 3px 1px -2px rgba(0,0,0,.10),
                 5px 2px 5px 0 rgba(0,0,0,.12);
-    z-index:500;
+    z-index: 500;
     transition: opacity 0.2s, visibility 0.2s ease-out;
     opacity: 0;
     visibility: hidden;
@@ -763,7 +763,7 @@ section {
 
 google-cast-launcher {
     position: absolute !important;
-    top: 8px;
+    top: 104px;
     width: 100%;
     height: 48px;
     opacity: 0;
@@ -998,7 +998,9 @@ google-cast-launcher:hover + #cast-toggle:before, google-cast-launcher:hover + #
     position: relative;
     width: 100%;
     height: 0;
-    padding-top: 56.25%;
+    /* 56.25% (16:9) と 100vh (画面高さ) のどちらか小さい方の値を高さに設定 */
+    /* スマホでプレイヤーのコンテナの高さが 100vh を超えると字幕のコンテナがおかしくなるため */
+    padding-top: min(56.25%, 100vh);
     background-color: #000000;
 }
 
@@ -1041,15 +1043,19 @@ google-cast-launcher:hover + #cast-toggle:before, google-cast-launcher:hover + #
 }
 
 @media (max-width: 1024px) {
-
     .dplayer-floating {
         width: 230px !important;
         height: calc(230px / 16 * 9) !important;
     }
 }
-
+@media screen and (max-width: 767px) {
+    .dplayer-floating {
+        top: 18px !important;
+        width: 190px !important;
+        height: calc(190px / 16 * 9) !important;
+    }
+}
 @media (max-width: 500px) {
-
     #dplayer-box {
         height: auto;
         padding-top: 0px;
@@ -1278,6 +1284,39 @@ td {
     margin-left: 3vw;
     margin-right: 3vw;
     font-size: 90%;
+}
+
+/* Luminous（キャプチャ画像拡大表示） */
+
+.lum-lightbox {
+    background: rgba(0, 0, 0, 0.5) !important;
+    z-index: 700;
+}
+
+.lum-close-button {
+    cursor: pointer;
+}
+
+.lum-gallery-button, .lum-gallery-button:hover {
+    background: none;
+    outline: 0;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+.lum-lightbox-inner img {
+    max-width: 77% !important;
+    max-height: 77% !important;
+}
+@media (max-width: 460px) {
+    .lum-lightbox-inner img {
+        max-width: 100% !important;
+        max-height: 100% !important;
+    }
+}
+
+.lum-img {
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 /* ツイート関連 */
@@ -2886,11 +2925,14 @@ td {
     display: block;
     width: 95%;
     max-width: 540px;
+    max-height: 95vh;
     padding: 18px 22px;
     border-radius: 5px;
     font-size: 15px;
     background-color: var(--color-white);
     box-sizing: border-box;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .ljicrop-head-box {
@@ -3037,10 +3079,12 @@ td {
     display: block;
     width: 95%;
     max-width: 1050px;
+    max-height: 95vh;
     padding: 18px 22px;
     border-radius: 5px;
     font-size: 15px;
     background-color: var(--color-white);
+    overflow-y: auto;
     box-sizing: border-box;
 }
 
@@ -3066,6 +3110,8 @@ td {
 
 .hotkey-head {
     display: inline-block;
+    flex-shrink: 0;
+    padding-right: 10px;
     margin-left: 7px;
 }
 
@@ -3094,7 +3140,7 @@ td {
     align-items: center;
     width: 100%;
     box-sizing: border-box;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .hotkey-list-name {

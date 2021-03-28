@@ -367,7 +367,8 @@
 			}
 ?>
               <div id="ch<?= str_replace('.', '_', $i); ?>" class="broadcast-wrap" data-ch="<?= $i; ?>"
-                    data-channel="<?= $ch_T_channel; ?>" data-name="<?= $value; ?>">
+                    data-channel="<?= $ch_T_channel; ?>" data-name="<?= $value; ?>"
+                    data-starttime="00:00" data-endtime="00:00" data-title="取得中です…">
 
                 <div class="broadcast">
                   <div class="broadcast-img material-icons">tv
@@ -408,7 +409,8 @@
 <?php	foreach ($ch_S as $i => $value): // BSchの数だけ繰り返す ?>
 <?php		$ch_S_channel = 'Ch: '.sprintf('%03d', $i); ?>
               <div id="ch<?= $i; ?>" class="broadcast-wrap" data-ch="<?= $i; ?>"
-                    data-channel="<?= $ch_S_channel; ?>" data-name="<?= $value; ?>">
+                    data-channel="<?= $ch_S_channel; ?>" data-name="<?= $value; ?>"
+                    data-starttime="00:00" data-endtime="00:00" data-title="取得中です…">
 
                 <div class="broadcast">
                   <div class="broadcast-img material-icons">tv
@@ -449,7 +451,8 @@
 <?php	foreach ($ch_CS as $i => $value): // CSchの数だけ繰り返す ?>
 <?php		$ch_CS_channel = 'Ch: '.sprintf('%03d', $i); ?>
               <div id="ch<?= $i; ?>" class="broadcast-wrap" data-ch="<?= $i; ?>"
-                    data-channel="<?= $ch_CS_channel; ?>" data-name="<?= $value; ?>">
+                    data-channel="<?= $ch_CS_channel; ?>" data-name="<?= $value; ?>"
+                    data-starttime="00:00" data-endtime="00:00" data-title="取得中です…">
 
                 <div class="broadcast">
                   <div class="broadcast-img material-icons">tv
@@ -819,11 +822,14 @@
     </div>
 
     <div id="hotkey-box">
-      <div id="hotkey-wrap">
+      <div id="hotkey-wrap" class="scrollbar">
         <div class="hotkey-head-box title">
           <i class="fas fa-keyboard"></i>
           <span class="hotkey-head">キーボードショートカット一覧</span>
-          <span class="hotkey-head-sub">(＊) … ツイート入力フォーム以外にフォーカスした状態</span>
+          <span class="hotkey-head-sub">
+            (＊) … ツイート入力フォーム以外にフォーカスした状態　
+            (＃) … Shift キーを押しながらで字幕を入れずにキャプチャする
+          </span>
         </div>
         <div id="hotkey-list-box">
           <div class="hotkey-list-wrap">
@@ -898,15 +904,21 @@
               </div>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">字幕の表示 / 非表示の切り替え</div>
+              <div class="hotkey-list-name">字幕の表示 / 非表示を切り替える</div>
               <div class="hotkey-list-key-box">
                 <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">S</div>
               </div>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">コメントの表示 / 非表示の切り替え</div>
+              <div class="hotkey-list-name">コメントの表示 / 非表示を切り替える</div>
               <div class="hotkey-list-key-box">
                 <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">D</div>
+              </div>
+            </div>
+            <div class="hotkey-list">
+              <div class="hotkey-list-name">コメント入力フォームを表示してフォーカスを当てる</div>
+              <div class="hotkey-list-key-box">
+                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">C</div>
               </div>
             </div>
             <div class="hotkey-list">
@@ -922,27 +934,27 @@
               <span class="hotkey-head">全般</span>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">全画面のオン / オフの切り替え</div>
+              <div class="hotkey-list-name">フルスクリーンのオン / オフを切り替える</div>
               <div class="hotkey-list-key-box">
                 <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">F</div>
               </div>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">ブラウザ全画面のオン / オフの切り替え</div>
+              <div class="hotkey-list-name">ブラウザフルスクリーンのオン / オフを切り替える</div>
               <div class="hotkey-list-key-box">
                 <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">W</div>
               </div>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">ピクチャーインピクチャーのオン / オフの切り替え（対応ブラウザのみ）</div>
+              <div class="hotkey-list-name">画面全体のフルスクリーンのオン / オフを切り替える</div>
               <div class="hotkey-list-key-box">
-                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">P</div>
+                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">E</div>
               </div>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">コメント入力フォームを表示してフォーカスする</div>
+              <div class="hotkey-list-name">ピクチャーインピクチャーのオン / オフを切り替える（対応ブラウザのみ）</div>
               <div class="hotkey-list-key-box">
-                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">C</div>
+                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">P</div>
               </div>
             </div>
             <div class="hotkey-list">
@@ -957,8 +969,8 @@
             </div>
             <div class="hotkey-list">
               <div class="hotkey-list-name">
-                ツイート入力フォームにフォーカスする / フォーカスを外す<br>
-                プレイヤーにフォーカスする / フォーカスを外す（キャプチャ画像リスト表示時のみ）
+                通常時：ツイート入力フォームにフォーカスを当てる / 外す<br>
+                キャプチャ画像リスト表示時：プレイヤーにフォーカスを当てる / 外す
               </div>
               <div class="hotkey-list-key-box">
                 <div class="hotkey-list-key">Tab</div>
@@ -971,19 +983,19 @@
               </div>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">ストリームをキャプチャする</div>
+              <div class="hotkey-list-name">ストリームをキャプチャする (＃)</div>
               <div class="hotkey-list-key-box">
                 <div class="hotkey-list-key">Alt (or Option)</div> + <div class="hotkey-list-key">1</div>
               </div>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">ストリームをコメント付きでキャプチャする</div>
+              <div class="hotkey-list-name">ストリームをコメント付きでキャプチャする (＃)</div>
               <div class="hotkey-list-key-box">
                 <div class="hotkey-list-key">Alt (or Option)</div> + <div class="hotkey-list-key">2</div>
               </div>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">キャプチャとツイートをリセットする</div>
+              <div class="hotkey-list-name">キャプチャの選択とツイートをリセットする</div>
               <div class="hotkey-list-key-box">
                 <div class="hotkey-list-key">Alt (or Option)</div> + <div class="hotkey-list-key">3</div>
               </div>
