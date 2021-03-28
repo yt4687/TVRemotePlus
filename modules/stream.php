@@ -194,9 +194,9 @@
 	}
 
 	// ライブ配信を開始する
-	function stream_start($stream, $ch, $sid, $tsid, $BonDriver, $quality, $encoder, $subtitle) {
+	function stream_start($stream, $ch, $sid, $onid, $tsid, $BonDriver, $quality, $encoder, $subtitle) {
 
-		global $inifile, $udp_port, $ffmpeg_path, $qsvencc_path, $nvencc_path, $vceencc_path, $tstask_path, $tstaskcentreex_path, $segment_folder, $hlslive_time, $hlslive_list, $base_dir, $encoder_log, $encoder_window, $TSTask_window;
+		global $inifile, $udp_port, $ffmpeg_path, $qsvencc_path, $nvencc_path, $vceencc_path, $tstask_path,  $tstask_exe, $tstask_SPHD_exe,$tstaskcentreex_path, $segment_folder, $hlslive_time, $hlslive_list, $base_dir, $encoder_log, $encoder_window, $TSTask_window;
 
 		// 設定ファイル読み込み
 		$settings = json_decode(file_get_contents($inifile), true);
