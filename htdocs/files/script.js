@@ -8,7 +8,7 @@ $(function() {
     setInterval(clock, 1000);
 
     // 最初に実行
-    if (Cookies.get('twitter')) {
+    if (Cookies.get('tvrp_twitter_settings')) {
         $('#tweet-status').html('<a id="tweet-logout" href="javascript:void(0)"><i class="fas fa-sign-out-alt"></i>ログアウト</a>');
     } else {
         $('#tweet-status').html('<a id="tweet-login" href="/tweet/auth"><i class="fas fa-sign-in-alt"></i>ログイン</a>');
@@ -16,8 +16,8 @@ $(function() {
 
     // Twitterアカウント情報を読み込み
     twitter = {account_name:'ログインしていません', account_id:'', account_icon:'/files/account_default.jpg'};
-    if (Cookies.get('twitter') != undefined) { // Cookieがあれば読み込む
-        twitter = JSON.parse(Cookies.get('twitter'));
+    if (Cookies.get('tvrp_twitter_settings') != undefined) { // Cookieがあれば読み込む
+        twitter = JSON.parse(Cookies.get('tvrp_twitter_settings'));
     }
     $('#tweet-account-icon').attr('src', twitter['account_icon']);
     $('#tweet-account-name').text(twitter['account_name']);
@@ -46,6 +46,7 @@ $(function() {
                     url: '/settings/',
                     type: 'post',
                     data: {
+                        '_csrf_token': Cookies.get('tvrp_csrf_token'),
                         'state': 'Offline',
                         'stream': stream
                     },
@@ -61,6 +62,7 @@ $(function() {
                     url: '/settings/',
                     type: 'post',
                     data: {
+                        '_csrf_token': Cookies.get('tvrp_csrf_token'),
                         'state': 'ONAir',
                         'stream': stream,
                         'restart': 'true'
@@ -226,10 +228,10 @@ $(function() {
                     // ON Air
                     epginfo_state.textContent = '● ON Air';
                     epginfo_state.style.color = '#007cff';
-
-                    // 実況勢い
-                    epginfo_ikioi.textContent = `実況勢い: ${data['stream'][stream]['ikioi']}`;
                 }
+
+                // 実況勢いは変化に関わらず常に更新
+                epginfo_ikioi.textContent = `実況勢い: ${data['stream'][stream]['ikioi']}`;
 
             } else if (data['stream'][stream]['state'] == 'Offline') {
 
@@ -264,7 +266,7 @@ $(function() {
                     broadcast_elems[`ch${key}`]['wrap'].dataset.title != data['onair'][key]['program_name']) {
 
                     // 書き換え用html
-                    var html = 
+                    let html = 
                         `<div class="broadcast-channel-box">
                             <div class="broadcast-channel">` + broadcast_elems[`ch${key}`]['wrap'].dataset.channel + `</div>
                             <div class="broadcast-name-box">
@@ -292,6 +294,11 @@ $(function() {
                     broadcast_elems[`ch${key}`]['wrap'].dataset.starttime = data['onair'][key]['starttime'];
                     broadcast_elems[`ch${key}`]['wrap'].dataset.endtime = data['onair'][key]['endtime'];
                     broadcast_elems[`ch${key}`]['wrap'].dataset.title =  data['onair'][key]['program_name'];
+
+                } else {
+
+                    // 実況勢いは変化に関わらず常に更新
+                    broadcast_elems[`ch${key}`]['wrap'].querySelector('.broadcast-ikioi').textContent = data['onair'][key]['ikioi'];
                 }
 
                 // プログレスバー
@@ -470,7 +477,7 @@ $(function() {
             $.ajax({
                 url: '/settings/',
                 type: 'post',
-                data: {state: 'Offline', stream: streamnum},
+                data: {_csrf_token: Cookies.get('tvrp_csrf_token'), state: 'Offline', stream: streamnum},
                 cache: false,
             }).done(function(data) {
 
@@ -736,7 +743,7 @@ $(function() {
                         dp.focus = false;
                         if (document.querySelectorAll('.tweet-capture').length > 0) { // キャプチャ画像があれば
 
-                            // コメント入力欄のフォーカスを外す
+                            // コメント入力フォームのフォーカスを外す
                             dp.comment.hide();
 
                             // 他のフォーカスがあれば削除
@@ -749,21 +756,26 @@ $(function() {
                         }
                     }
                 }
-
             }
         }
 
-        // E キー
-        if (document.activeElement.id != 'tweet' && document.activeElement.className != 'dplayer-comment-input' && event.key.toUpperCase() == 'E') {
-            event.preventDefault();
-            $('#fullscreen').click();
-        }
+        // ツイートフォーム・ハッシュタグフォーム・コメント入力フォームいずれにもフォーカスしていない
+        if (document.activeElement.id != 'tweet' &&
+            document.activeElement.id != 'tweet-hashtag' &&
+            document.activeElement.className != 'dplayer-comment-input') {
 
-        // ? キー
-        if (document.activeElement.id != 'tweet' && document.activeElement.className != 'dplayer-comment-input' && event.key == '?') {
-            event.preventDefault();
-            $('#hotkey-box').toggleClass('open');
-            $('#nav-close').toggleClass('open');
+            // E キー
+            if (event.key.toUpperCase() == 'E') {
+                event.preventDefault();
+                $('#fullscreen').click();
+            }
+
+            // ? キー
+            if (event.key == '?') {
+                event.preventDefault();
+                $('#hotkey-box').toggleClass('open');
+                $('#nav-close').toggleClass('open');
+            }
         }
 
         // Alt (or option) キー
@@ -844,7 +856,7 @@ $(function() {
                     // イベントをキャンセル
                     event.preventDefault();
 
-                    // コメント入力欄のフォーカスを外す
+                    // コメント入力フォームのフォーカスを外す
                     dp.comment.hide();
 
                     // focus_elem があれば
@@ -866,7 +878,7 @@ $(function() {
                     // イベントをキャンセル
                     event.preventDefault();
 
-                    // コメント入力欄のフォーカスを外す
+                    // コメント入力フォームのフォーカスを外す
                     dp.comment.hide();
 
                     // focus_elem があれば
@@ -927,7 +939,7 @@ $(function() {
                     // イベントをキャンセル
                     event.preventDefault();
 
-                    // コメント入力欄のフォーカスを外す
+                    // コメント入力フォームのフォーカスを外す
                     dp.comment.hide();
 
                     // focus_elem があれば
@@ -1442,7 +1454,7 @@ $(function() {
         $('#content-box').show();
         $('#footer').show();
 
-        if (Cookies.get('twitter')) {
+        if (Cookies.get('tvrp_twitter_settings')) {
             $('#tweet-status').html('<a id="tweet-logout" href="javascript:void(0)"><i class="fas fa-sign-out-alt"></i>ログアウト</a>');
         } else {
             $('#tweet-status').html('<a id="tweet-login" href="/tweet/auth"><i class="fas fa-sign-in-alt"></i>ログイン</a>');

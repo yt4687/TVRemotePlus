@@ -106,8 +106,8 @@
             // aribb24.js
             aribb24: {
                 forceStrokeColor: 'black',
-                normalFont: '"Windows TV MaruGothic","Yu Gothic",sans-serif',
-                gaijiFont: '"Windows TV MaruGothic","Yu Gothic",sans-serif',
+                normalFont: '"Windows TV MaruGothic","Windows TV Gothic","Hiragino Sans","Yu Gothic Medium",sans-serif',
+                gaijiFont: '"Windows TV MaruGothic","Windows TV Gothic","Hiragino Sans","Yu Gothic Medium",sans-serif',
                 drcsReplacement: true
             }
         },
@@ -578,6 +578,7 @@
       <div id="broadcast-stream-title"></div>
       <div id="broadcast-stream-info"></div>
       <form id="setting-form" action="/settings/" method="post">
+        <input type="hidden" name="_csrf_token" value="<?= $csrf_token ?>">
         <input type="hidden" name="state" value="ONAir">
         <input id="broadcast-stream-channel" type="hidden" name="channel" value="">
 

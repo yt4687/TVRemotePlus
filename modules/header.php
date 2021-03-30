@@ -4,6 +4,14 @@
 	require_once (dirname(__FILE__).'/require.php');
 	require_once (dirname(__FILE__).'/module.php');
   
+	// 設定変更用のトークンを管理
+	if (isset($_COOKIE['tvrp_csrf_token']) && is_string($_COOKIE['tvrp_csrf_token'])) {
+		$csrf_token = $_COOKIE['tvrp_csrf_token'];
+	} else {
+		$csrf_token = '_'.bin2hex(openssl_random_pseudo_bytes(16));
+		setcookie('tvrp_csrf_token', $csrf_token, 0, '/');
+	}
+
 	// ストリーム番号を取得
 	$stream = getStreamNumber($_SERVER['REQUEST_URI']);
 
@@ -95,17 +103,17 @@
         comment_size: 35,
         comment_delay: 5,
         comment_file_delay: 0,
-        comment_list_performance: 'normal',
+        comment_list_performance: 'light',
         quality_user_default: 'environment',
         list_view_number: 30,
         onclick_stream: false,
         player_floating: true,
     };
-    if (Cookies.get('settings') === undefined) {
+    if (Cookies.get('tvrp_settings') === undefined) {
         var json = JSON.stringify(settings);
-        Cookies.set('settings', json, { expires: 365 });
+        Cookies.set('tvrp_settings', json, { expires: 365 });
     } else {
-      settings = JSON.parse(Cookies.get('settings'));
+        settings = JSON.parse(Cookies.get('tvrp_settings'));
     }
     if (settings['dark_theme']) {
         document.documentElement.classList.add('dark-theme');
@@ -240,6 +248,7 @@
     </a>
 <?php	if (strpos($backtrace[0]["file"], 'index.php') !== false) { // index.php のみ ?>
     <form method="post" name="quickstop" action="/settings/">
+      <input type="hidden" name="_csrf_token" value="<?= $csrf_token ?>">
       <input type="hidden" name="state" value="Offline">
       <input type="hidden" name="stream" value="<?= $stream; ?>">
       <a class="nav-link" href="javascript:quickstop.submit()">
@@ -249,6 +258,7 @@
     </form>
 <?php	} // 括弧終了 ?>
     <form method="post" name="allstop" action="/settings/">
+      <input type="hidden" name="_csrf_token" value="<?= $csrf_token ?>">
       <input type="hidden" name="state" value="Offline">
       <input type="hidden" name="stream" value="<?= $stream; ?>">
       <input type="hidden" name="allstop" value="true">

@@ -148,10 +148,10 @@
 		$slash = explode('/', str_replace('v3/', '', trim($url, '/')));
 
 		// 配列の最後の値を取得
-		$stream = end($slash);
+		$stream = filter_var(end($slash), FILTER_VALIDATE_INT);
 
 		// URLに正しいストリーム番号が入っていなかった場合はストリーム1とする
-		if (is_empty($stream) or !is_numeric($stream)){
+		if ($stream === false or $stream < 1 or $stream > 99){
 			$stream = 1;
 			$stream_flg = false;
 		} else {
@@ -275,10 +275,10 @@
 	function isSettingsItem($item, $match = null, $default = false){
 
 		// Cookieが存在する
-		if (isset($_COOKIE['settings'])){
+		if (isset($_COOKIE['tvrp_settings'])){
 
 			// 設定内容を読み込み
-			$settings = json_decode($_COOKIE['settings'], true);
+			$settings = json_decode($_COOKIE['tvrp_settings'], true);
 
 			if (isset($settings[$item])){
 				if ($settings[$item] === $match){
