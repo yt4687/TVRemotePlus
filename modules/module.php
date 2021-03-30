@@ -515,7 +515,7 @@
 					if (intval($line[6]) == 1){
 						$ch2[$key] = $line;
 					}
-                                }
+				}
 			}
 
 		// 通常
@@ -550,7 +550,7 @@
 				} else {
 					$ch2_data = '';
 				}
-                        } else if ($flg == 'SPSD') {
+            } else if ($flg == 'SPSD') {
 				if (preg_match("/;#SPACE\(.\,(スターデジオ|StarDigio)\)/", $ch2_data)){ // スターデジオで専用のスペースがあるときはこっち
 					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\).*;#SPACE\(.\,(スターデジオ|StarDigio)\)/s", "", $ch2_data); // スターデジオ以外を削除を削除（混合チューナー用）
 					$ch2_data = preg_replace("/;#SPACE\(.\,(UHF|GR|地上D)\)/s", "", $ch2_data); // 地上波を削除
@@ -627,7 +627,6 @@
 		}
 		if (!isset($BonDriver_dll_SPHD)) $BonDriver_dll_SPHD = array();
 
-
 		// 無印BonDriverを洗い出す
 		$BonDriver_dll_raw = $BonDriver_dll;
 		foreach ($BonDriver_dll as $key => $value) {
@@ -655,7 +654,6 @@
 		$BonDriver_dll_T = array_merge($BonDriver_dll_T, $BonDriver_dll_raw);
 		$BonDriver_dll_S = array_merge($BonDriver_dll_S, $BonDriver_dll_raw);
 		$BonDriver_dll_SPHD = array_merge($BonDriver_dll_SPHD, $BonDriver_dll_raw);
-
 
 		// ch2を検索する
 		// 地デジ用
@@ -697,7 +695,7 @@
 
 					// サービス状態が1の物のみセットする
 					// あとワンセグ(192)・データ放送(192)・ラジオチャンネル(2)・サブチャンネルはセットしない
-					if ($value[4] != 192 and $value[8] == 1){
+					if ($value[4] != 192 and $value[4] != 2 and $value[8] == 1){
 						// 全角は半角に直す
 						// 衝突回避でリモコン番号が衝突したら元番号 + 20にする
 						if (empty($ch_T[strval($value[3] . '_1')])){
@@ -901,7 +899,7 @@
 							$onid_SPSD[strval($value[5])] = mb_convert_kana($value[6], 'asv');
 							// トランスポートストリームID(TSID)
 							$tsid_SPSD[strval($value[5])] = mb_convert_kana($value[7], 'asv');
-							// SPSDの時は仕組み上の関係でエラーするのでからデータを返す
+							// SPSDの時は仕組み上の関係でエラーするので空データを返す
 					} else {
 						    $ch_SPSD = array();
 						    $sid_SPSD = array();

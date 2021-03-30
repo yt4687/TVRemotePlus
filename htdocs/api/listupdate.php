@@ -368,6 +368,6 @@
 
 	}
 
-	// 出力 
+	// 出力
 	header('content-type: application/json; charset=utf-8');
 	echo json_encode($json, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT);

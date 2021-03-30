@@ -12,12 +12,12 @@
 	echo '    <pre id="debug">';
 
 	// BonDriverとチャンネルを取得
-	list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, $BonDriver_dll_SPHD, // BonDriver
-		$ch, $ch_T, $ch_S, $ch_CS, $ch_SPHD, $ch_SPSD, // チャンネル番号
-		$sid, $sid_T, $sid_S, $sid_CS, $sid_SPHD, $sid_SPSD, // SID
-		$onid, $onid_T, $onid_S, $onid_CS, $onid_SPHD, $onid_SPSD, // ONID(NID)
-		$tsid, $tsid_T, $tsid_S, $tsid_CS, $tsid_SPHD, $tsid_SPSD) // TSID
-	= initBonChannel($BonDriver_dir);
+  list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, $BonDriver_dll_SPHD, // BonDriver
+    $ch, $ch_T, $ch_S, $ch_CS, $ch_SPHD, $ch_SPSD, // チャンネル番号
+    $sid, $sid_T, $sid_S, $sid_CS, $sid_SPHD, $sid_SPSD, // SID
+    $onid, $onid_T, $onid_S, $onid_CS, $onid_SPHD, $onid_SPSD, // ONID(NID)
+    $tsid, $tsid_T, $tsid_S, $tsid_CS, $tsid_SPHD, $tsid_SPSD) // TSID
+    = initBonChannel($BonDriver_dir);
 	
 	// 時計
 	$clock = date('Y/m/d H:i:s');
@@ -47,14 +47,6 @@
 		// 2行目の条件文は重複してストリームを再起動しないための措置
 		if ((!isset($_POST['restart']) and !isset($_POST['setting-env'])) or 
 			(isset($_POST['restart']) and !isset($_POST['setting-env']) and time() - filemtime($segment_folder.'stream'.$stream.'.m3u8') > 20)){
-
-			// 一旦現在のストリームを終了する
-			// state に関わらず実行
-			if (isset($_POST['allstop'])) {
-				stream_stop($stream, true);
-			} else {
-				stream_stop($stream, false);
-			}
 
 			// File
 			if ($ini[$stream]['state'] == 'File'){
@@ -146,7 +138,7 @@
 
 				// BonDriverのデフォルトを要求される or 何故かBonDriverが空
 				if ($ini[$stream]['BonDriver'] == 'default' or empty($ini[$stream]['BonDriver'])){
-					// ネットワークIDが10かどうか(スカパーか)
+          // ネットワークIDが10かどうか(スカパーか)
 					if (intval($onid[$ini[$stream]['channel']]) == 10 or intval($onid[$ini[$stream]['channel']]) == 1){
 						$ini[$stream]['BonDriver'] = $BonDriver_default_SPHD;
 					}else if (intval($ini[$stream]['channel']) >= 100 or intval($ini[$stream]['channel']) === 55){ // チャンネルの値が100より上(=BS・CSか・ショップチャンネルは055なので例外指定)
@@ -169,7 +161,11 @@
 			// Offline
 			} else if ($_POST['state'] == 'Offline'){
 
+				// このストリームを終了
 				if (!isset($_POST['allstop'])){
+					
+					// 現在のストリームを終了する
+					stream_stop($stream);
 
 					// Offline に設定する
 					$ini[$stream]['state'] = 'Offline';
@@ -189,7 +185,11 @@
 						@unlink($base_dir.'htdocs/stream/stream'.$stream.'.m3u8');
 					}
 
+				// 全てのストリームを終了
 				} else {
+
+					// 全てのストリームを終了する
+					stream_stop($stream, true);
 
 					// ストリーム番号ごとに実行
 					foreach ($ini as $key => $value) {
@@ -628,21 +628,20 @@
 
             <div class="setting-form setting-input">
               <div class="setting-content">
-                <span>デフォルトの BonDriver (スカパー！用)</span>
+                <span>デフォルトの BonDriver (スカパー用)</span>
                 <p>
-                  デフォルトで利用する BonDriver (スカパー！) です<br>
+                  デフォルトで利用する BonDriver (スカパー用) です<br>
                   うまく再生出来ない場合、BonDriver_Spinel もしくは BonDriver_Proxy を利用すると安定して視聴できる場合があります<br>
-                  導入している場合は BonDriver_Spinel か BonDriver_Proxy を利用することをおすすめします<br>
                   BonDriver_Spinel よりも BonDriver_Proxy の方がストリーム開始にかかる時間は短くなります<br>
                 </p>
               </div>
               <div class="select-wrap">
-                <select name="BonDriver_default_SPHD" required>
+                <select name="BonDriver_default_S">
 <?php		foreach ($BonDriver_dll_SPHD as $i => $value){ //chの数だけ繰り返す ?>
 <?php			if ($value == $BonDriver_default_SPHD){ ?>
-                  <option value="<?php echo $value; ?>" selected><?php echo $value; ?></option>
+                  <option value="<?= $value; ?>" selected><?= $value; ?></option>
 <?php			} else { ?>
-                  <option value="<?php echo $value; ?>"><?php echo $value; ?></option>
+                  <option value="<?= $value; ?>"><?= $value; ?></option>
 <?php			} //括弧終了 ?>
 <?php		} //括弧終了 ?>
                 </select>

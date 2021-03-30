@@ -43,9 +43,9 @@ class Jikkyo {
         'jk161' => 'co5176119', // BS-TBS
         'jk171' => 'co5176122', // BSテレ東
         'jk181' => 'co5176125', // BSフジ
-        'jk191' => 'co5251972', // WOWOW_Prime
-        'jk192' => 'co5251976', // WOWOW_Live
-        'jk193' => 'co5251983', // WOWOW_Cinema
+        'jk191' => 'co5251972', // WOWOW PRIME
+        'jk192' => 'co5251976', // WOWOW LIVE
+        'jk193' => 'co5251983', // WOWOW CINEMA
         'jk211' => 'ch2646846', // BS11
         'jk222' => 'co5193029', // BS12
         'jk236' => 'co5296297', // BSアニマックス

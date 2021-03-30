@@ -35,17 +35,9 @@ $BonDriver_default_T = '';
 // 例：$BonDriver_default_S = 'BonDriver_Proxy_S.dll';
 $BonDriver_default_S = '';
 
-// デフォルトの BonDriver (スカパー！用・変更必須)
-// 例：$BonDriver_default_SPHD = 'BonDriver_Proxy_SPHD.dll';
+// デフォルトの BonDriver (BS用・変更必須)
+// 例：$BonDriver_default_S = 'BonDriver_Proxy_S.dll';
 $BonDriver_default_SPHD = '';
-
-// スカパー！プレミアムサービスを利用する
-// スカパー！プレミアムサービスを利用する場合にONにしてください。ONにすることでタブが表示されます。
-$BonDriver_using_SPHD = 'true';
-
-// スターデジオをを利用する
-// スターデジオを利用する場合にONにしてください。ONにすることでタブが表示されます。
-$BonDriver_using_SPSD = 'true';
 
 // ライブ配信開始時に現在視聴中のストリームをデフォルトのストリームにする (する… true しない… false )
 // この設定をオンにすると、現在視聴中のストリームをライブ配信を開始するときのデフォルトのストリームにします（同時配信機能が追加される前の動作に近い）

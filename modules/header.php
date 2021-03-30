@@ -61,6 +61,7 @@
 		echo '  <link rel="stylesheet" type="text/css" href="/files/settings.css?'.$version.'">'."\n";
 	}
 ?>
+
   <!-- Script -->
   <script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
   <script type="text/javascript" src="/files/pwacompat.min.js" async></script>
@@ -282,18 +283,18 @@
 <?php
 	if ($update_confirm == 'true') {
 		$update_context = stream_context_create( array('http' => array('timeout' => 5)) );
-		$update = file_get_contents('https://raw.githubusercontent.com/yt4687/TVRemotePlus/SPHD2/data/version.txt?_='.time(), false, $update_context);
+		$update = file_get_contents('https://raw.githubusercontent.com/tsukumijima/TVRemotePlus/master/data/version.txt?_='.time(), false, $update_context);
 		// 取得したバージョンと現在のバージョンが違う場合のみ
-		if ($update != $version){
-			echo '    <a class="nav-link" href="https://github.com/yt4687/TVRemotePlus/releases" target="_blank" '.
+		if ($update != $version) {
+			echo '    <a class="nav-link" href="https://github.com/tsukumijima/TVRemotePlus/releases" target="_blank" '.
 						'aria-label="アップデートがあります (version '.str_replace('v', '', $update).')" data-balloon-pos="up">'."\n";
 			echo '      <i class="fas fa-history" style="color: #e8004a;"></i>'."\n";
 		} else {
-			echo '    <a class="nav-link" href="https://github.com/yt4687/TVRemotePlus/releases" target="_blank">'."\n";
+			echo '    <a class="nav-link" href="https://github.com/tsukumijima/TVRemotePlus/releases" target="_blank">'."\n";
 			echo '      <i class="fas fa-history"></i>'."\n";
 		}
 	} else {
-		echo '    <a class="nav-link" href="https://github.com/yt4687/TVRemotePlus/releases" target="_blank">'."\n";
+		echo '    <a class="nav-link" href="https://github.com/tsukumijima/TVRemotePlus/releases" target="_blank">'."\n";
 		echo '      <i class="fas fa-history"></i>'."\n";
 	}
 ?>
