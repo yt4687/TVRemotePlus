@@ -201,59 +201,61 @@
 		// 設定ファイル読み込み
 		$settings = json_decode(file_get_contents($inifile), true);
 
+		// スカパーとその他の切り替えを判別する手段がないのでこの関数は使わない。方法ができたらそれ込みで元に戻す
 		// 以前の state が ONAir (TSTask を再利用できる)
-		if ($settings[strval($stream)]['state'] === 'ONAir') {
+		/*if ($settings[strval($stream)]['state'] === 'ONAir') {
 
-			// 事前に前のストリームを終了する
-			// TSTask は再利用するため終了させない
-			stream_stop($stream, false, true);
-
-			// ストリーム番号から TSTask の PID を取得
-			// TaskID だと TVRemotePlus の想定と異なる ID になる可能性があるため
-			$tstask_pid = getTSTaskPID($stream);
-
-			// BonDriver が同じなのでチャンネル切り替えのみ
-			if ($settings[strval($stream)]['BonDriver'] == $BonDriver) {
-
+			if ($onid == 10 or $onid == 1) {
+				// 事前に前のストリームを終了する
+				stream_stop($stream);
+	
 				// TSTaskCentreEx のコマンド
-				$tstaskcentreex_cmd = (
-					// チャンネルをセット
-					"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c SetChannel -o \"ServiceID:{$sid}|TransportStreamID:{$tsid}\" "
-				);
-
-			// BonDriver が違うので BonDriver を読み込み直してからチャンネルを切り替える
+				$tstaskcentreex_cmd = '';
 			} else {
 
-				// TSTaskCentreEx のコマンド
-				$tstaskcentreex_cmd = (
-					// BonDriver をロード
-					"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c LoadBonDriver -o \"FilePath:'{$BonDriver}'\" && ".
-					// チューナーを開く
-					"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c OpenTuner && ".
-					// チャンネルをセット
-					"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c SetChannel -o \"ServiceID:{$sid}|TransportStreamID:{$tsid}\" "
-				);
+				// 事前に前のストリームを終了する
+				// TSTask は再利用するため終了させない
+				stream_stop($stream, false, true);
+
+				// ストリーム番号から TSTask の PID を取得
+				// TaskID だと TVRemotePlus の想定と異なる ID になる可能性があるため
+				$tstask_pid = getTSTaskPID($stream);
+
+				// BonDriver が同じなのでチャンネル切り替えのみ
+				if ($settings[strval($stream)]['BonDriver'] == $BonDriver) {
+
+					// TSTaskCentreEx のコマンド
+					$tstaskcentreex_cmd = (
+						// チャンネルをセット
+						"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c SetChannel -o \"ServiceID:{$sid}|TransportStreamID:{$tsid}\" "
+					);
+				
+			
+				// BonDriver が違うので BonDriver を読み込み直してからチャンネルを切り替える
+				} else {
+
+					// TSTaskCentreEx のコマンド
+					$tstaskcentreex_cmd = (
+						// BonDriver をロード
+						"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c LoadBonDriver -o \"FilePath:'{$BonDriver}'\" && ".
+						// チューナーを開く
+						"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c OpenTuner && ".
+						// チャンネルをセット
+						"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c SetChannel -o \"ServiceID:{$sid}|TransportStreamID:{$tsid}\" "
+					);
+				}
 			}
 
 		// 以前の state が File か Offline
 		} else {
-
+		*/
+			// どうしようもないのでいちいちTSTskを終了させて動かすことにする
 			// 事前に前のストリームを終了する
 			stream_stop($stream);
 
 			// TSTaskCentreEx のコマンド
 			$tstaskcentreex_cmd = '';
-		}
-
-
-		if ($onid == 10 or $onid == 1) {
-			// 事前に前のストリームを終了する
-			stream_stop($stream);
-
-			// TSTaskCentreEx のコマンド
-			$tstaskcentreex_cmd = '';
-		}
-
+		//}
 
 		// UDPポート
 		$stream_port = $udp_port + intval($stream);
