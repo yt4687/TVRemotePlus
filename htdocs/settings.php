@@ -636,7 +636,7 @@
                 </p>
               </div>
               <div class="select-wrap">
-                <select name="BonDriver_default_S">
+                <select name="BonDriver_default_SPHD">
 <?php		foreach ($BonDriver_dll_SPHD as $i => $value){ //chの数だけ繰り返す ?>
 <?php			if ($value == $BonDriver_default_SPHD){ ?>
                   <option value="<?= $value; ?>" selected><?= $value; ?></option>

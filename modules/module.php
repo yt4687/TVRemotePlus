@@ -640,8 +640,8 @@
 					unset($BonDriver_dll_raw[$key]);
 				}
 			}
-			foreach ($BonDriver_dll_SPHD as $key2 => $value2) {
-				if ($value === $value2){
+			foreach ($BonDriver_dll_SPHD as $key3 => $value3) {
+				if ($value === $value3){
 					unset($BonDriver_dll_raw[$key]);
 				}
 			}

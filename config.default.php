@@ -35,8 +35,8 @@ $BonDriver_default_T = '';
 // 例：$BonDriver_default_S = 'BonDriver_Proxy_S.dll';
 $BonDriver_default_S = '';
 
-// デフォルトの BonDriver (BS用・変更必須)
-// 例：$BonDriver_default_S = 'BonDriver_Proxy_S.dll';
+// デフォルトの BonDriver (スカパー用・変更必須)
+// 例：$BonDriver_default_SPHD = 'BonDriver_Proxy_SPHD.dll';
 $BonDriver_default_SPHD = '';
 
 // ライブ配信開始時に現在視聴中のストリームをデフォルトのストリームにする (する… true しない… false )
