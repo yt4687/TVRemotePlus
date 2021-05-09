@@ -408,7 +408,7 @@
 				$stream_cmd = '"'.$ffmpeg_path.'"'.
 
 					// 入力
-					' -dual_mono_mode main -i "'.$receive.'"'.
+					' -f mpegts -probesize 8192 -analyzeduration 0 -dual_mono_mode main -i "'.$receive.'"'.
 					// HLS
 					' -f hls'.
 					' -hls_segment_type mpegts'.
@@ -437,9 +437,9 @@
 				$stream_cmd = '"'.$qsvencc_path.'"'.
 
 					// 入力
-					' -i "'.$receive.'"'.
-					// avqsvエンコード
-					' --avqsv'.
+					' --input-format mpegts --input-analyze 0 -i "'.$receive.'"'.
+					// avhw エンコード
+					' --avhw'.
 					// HLS
 					' -m hls_time:'.$hlslive_time.' --gop-len '.($hlslive_time * 30).
 					' -m hls_list_size:'.$hlslive_list.
@@ -467,9 +467,9 @@
 				$stream_cmd = '"'.$nvencc_path.'"'.
 
 					// 入力
-					' -i "'.$receive.'"'.
-					// avcuvidエンコード
-					' --avcuvid'.
+					' --input-format mpegts --input-analyze 0 -i "'.$receive.'"'.
+					// avhw エンコード
+					' --avhw'.
 					// HLS
 					' -m hls_time:'.$hlslive_time.' --gop-len '.($hlslive_time * 30).
 					' -m hls_list_size:'.$hlslive_list.
@@ -497,8 +497,8 @@
 				$stream_cmd = '"'.$vceencc_path.'"'.
 
 					// 入力
-					' -i "'.$receive.'"'.
-					// avhwエンコード
+					' --input-format mpegts --input-analyze 0 -i "'.$receive.'"'.
+					// avhw エンコード
 					' --avhw'.
 					// HLS
 					' -m hls_time:'.$hlslive_time.' --gop-len '.($hlslive_time * 30).
