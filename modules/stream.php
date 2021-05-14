@@ -536,6 +536,7 @@
 						' /d '.$BonDriver.' /sendservice 1 /logfile '.$base_dir.'logs/stream'.$stream.'.tstask.log';
 			$tstask_cmd = 'start "TSTask Process" /B /min cmd.exe /C "'.win_exec_escape($tstask_cmd).' & rem TVRP('.$udp_port.'):TSTask('.$stream.')"';
 			win_exec($tstask_cmd);
+			}
 
 		// TSTask にチャンネル切り替えのコマンドを送信
 		} else {
