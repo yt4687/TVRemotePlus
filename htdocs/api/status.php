@@ -4,11 +4,11 @@
 	require_once ('../../modules/require.php');
 	require_once ('../../modules/module.php');
 
-    // ストリーム番号を取得
+	// ストリーム番号を取得
 	$stream = getStreamNumber($_SERVER['REQUEST_URI']);
 
 	// 設定ファイル読み込み
-	$ini = json_decode(file_get_contents($inifile), true);
+	$ini = json_decode(file_get_contents_lock_sh($inifile), true);
 
 	// セッションのファイル数を返す関数
 	function getActiveCount() {
@@ -39,7 +39,7 @@
 
 	// 視聴数カウント用セッション名
 	// Twitter認証用にもセッションを使っていてIDが重複すると面倒な事になるので設定
-	session_name('watching_session');
+	session_name('tvrp_watching_session');
 
 	// セッション管理開始
 	session_start();

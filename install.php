@@ -81,6 +81,7 @@
 	echo "\n";
 	echo '    TVRemotePlus のセットアップを行うインストーラーです。'."\n";
 	echo '    途中でキャンセルする場合はそのままウインドウを閉じてください。'."\n";
+	echo '    アップデートの場合は Apache が起動していない事を確認してから行ってください。'."\n";
 	echo "\n";
 	echo '  -------------------------------------------------------------------'."\n";
 
@@ -169,42 +170,6 @@
 		$https_port = $http_port + 100; // SSL用ポート
 		echo "\n";
 
-		echo '    4. お使いの TVTest の BonDriver は 32bit ですか？ 64bit ですか？'."\n";
-		echo "\n";
-		echo '      32bit の場合は 1 、64bit の場合は 2 と入力してください。'."\n";
-		echo '      この設定で 32bit 版・64bit 版どちらの TSTask を使うかが決まります。'."\n";
-		echo '      インストール終了後、お使いの TVTest の BonDriver と ch2 ファイルを'."\n";
-		echo '      '.$serverroot.'/bin/TSTask/BonDriver/ にコピーしてください。'."\n";
-		echo "\n";
-		echo '      Enter キーで次に進む場合、自動で 32bit の TSTask を選択します。'."\n";
-		echo "\n";
-		echo '      TVTest の BonDriver：';
-		// TVTestのBonDriver
-		$bondriver = trim(fgets(STDIN));
-		// 判定
-		if ($bondriver != 2) $bondriver = 1;
-		echo "\n";
-
-		echo '    5. EDCB Material WebUI (EMWUI) のある URL を入力してください。'."\n";
-		echo "\n";
-		echo '      通常は http://(EDCBのあるPCのIPアドレス):5510/ になっています。'."\n";
-		echo '      以前は http://(EDCBのあるPCのIPアドレス):5510/api/ でしたが、変更になりました。'."\n";
-		echo '      EDCB Material WebUI のポートやフォルダ構成を変更していたり、'."\n";
-		echo '      EDCB が別の PC に入っている場合は、適宜設定を変更してください。'."\n";
-		echo "\n";
-		echo '      Enter キーで次に進む場合、同じ PC に EDCB が導入されていると仮定し、'."\n";
-		echo '      自動で http://'.$serverip.':5510/ に設定します。'."\n";
-		echo '      この設定は ≡ サイドメニュー → 設定 → 環境設定 からも変更できます。'."\n";
-		echo "\n";
-		echo '      EMWUI のある URL：';
-		// TVTestのBonDriver
-		$EDCB_http_url = trim(fgets(STDIN));
-		// 判定
-		if (empty($EDCB_http_url)){
-			$EDCB_http_url = 'http://'.$serverip.':5510/';
-		}
-		echo "\n";
-
 		echo '    6. 録画ファイルのあるフォルダを指定します。'."\n";
 		echo "\n";
 		echo '      フォルダをドラッグ&ドロップするか、フォルダパスを入力してください。'."\n";
@@ -282,29 +247,11 @@
 		// Apache の設定ファイル
 		$httpd_conf_file = $serverroot.'/bin/Apache/conf/httpd.conf';
 		$httpd_default_file = $serverroot.'/bin/Apache/conf/httpd.default.conf';
-		// PHP の設定ファイル
-		$php_ini_file = $serverroot.'/bin/PHP/php.ini';
-		$php_default_file = $serverroot.'/bin/PHP/php.default.ini';
 
 		// config.default.php を config.php にコピー
 		copy($tvrp_default_file, $tvrp_conf_file);
 		// httpd.default.conf を httpd.conf にコピー
 		copy($httpd_default_file, $httpd_conf_file);
-		// php.default.ini を php.ini にコピー
-		copy($php_default_file, $php_ini_file);
-		
-		// TSTask のコピー
-		if ($bondriver == 2){
-			copy($serverroot.'/bin/TSTask/64bit/BonDriver_TSTask.dll', $serverroot.'/bin/TSTask/BonDriver_TSTask.dll');
-			copy($serverroot.'/bin/TSTask/64bit/TSTask.exe', $serverroot.'/bin/TSTask/TSTask-tvrp.exe');
-			copy($serverroot.'/bin/TSTask/64bit/TSTask_SPHD.exe', $serverroot.'/bin/TSTask/TSTask_SPHD-tvrp.exe');
-			copy($serverroot.'/bin/TSTask/64bit/TSTaskCentre.exe', $serverroot.'/bin/TSTask/TSTaskCentre-tvrp.exe');
-		} else {
-			copy($serverroot.'/bin/TSTask/32bit/BonDriver_TSTask.dll', $serverroot.'/bin/TSTask/BonDriver_TSTask.dll');
-			copy($serverroot.'/bin/TSTask/32bit/TSTask.exe', $serverroot.'/bin/TSTask/TSTask-tvrp.exe');
-			copy($serverroot.'/bin/TSTask/32bit/TSTask_SPHD.exe', $serverroot.'/bin/TSTask/TSTask_SPHD-tvrp.exe');
-			copy($serverroot.'/bin/TSTask/32bit/TSTaskCentre.exe', $serverroot.'/bin/TSTask/TSTaskCentre-tvrp.exe');
-		}
 
 		// 状態設定ファイルを初期化
 		$jsonfile = $serverroot.'/data/settings.json';
@@ -315,7 +262,6 @@
 		// TVRemotePlus の設定ファイル
 		$tvrp_conf = file_get_contents($tvrp_conf_file);
 		// 置換
-		$tvrp_conf = preg_replace('/^\$EDCB_http_url =.*/m', '$EDCB_http_url = \''.mb_convert_encoding($EDCB_http_url, 'UTF-8', 'SJIS, SJIS-WIN').'\';', $tvrp_conf);
 		$tvrp_conf = preg_replace('/^\$TSfile_dir =.*/m', '$TSfile_dir = \''.mb_convert_encoding($TSfile_dir, 'UTF-8', 'SJIS, SJIS-WIN').'\';', $tvrp_conf);
 		// 書き込み
 		file_put_contents($tvrp_conf_file, $tvrp_conf);
@@ -329,13 +275,6 @@
 		$httpd_conf = preg_replace("/Define HTTPS_PORT.*/", 'Define HTTPS_PORT "'.$https_port.'"', $httpd_conf);
 		// 書き込み
 		file_put_contents($httpd_conf_file, $httpd_conf);
-
-		// PHP の設定ファイル
-		$php_ini = file_get_contents($php_ini_file);
-		// 置換
-		$php_ini = preg_replace('/^extension_dir =.*/m', 'extension_dir = "'.mb_convert_encoding($serverroot.'/bin/PHP/ext/', 'UTF-8', 'SJIS, SJIS-WIN').'"', $php_ini);
-		// 書き込み
-		file_put_contents($php_ini_file, $php_ini);
 
 		// HTTPS 接続用オレオレ証明書の作成
 		echo '    HTTPS 接続用の自己署名証明書を作成します。'."\n";
@@ -400,15 +339,13 @@
 		// 設定を配列に格納
 		@$config['quality_default'] = $quality_default;
 		@$config['encoder_default'] = $encoder_default;
-		@$config['BonDriver_default_T'] = $BonDriver_default_T;
-		@$config['BonDriver_default_S'] = $BonDriver_default_S;
 		@$config['stream_current_live'] = $stream_current_live;
 		@$config['stream_current_file'] = $stream_current_file;
 		@$config['subtitle_default'] = $subtitle_default;
 		@$config['subtitle_file_default'] = $subtitle_file_default;
 		@$config['TSfile_dir'] = $TSfile_dir;
-		@$config['TSinfo_dir'] = $TSinfo_dir;
-		@$config['EDCB_http_url'] = $EDCB_http_url;
+		@$config['ctrlcmd_addr'] = $ctrlcmd_addr;
+		@$config['logo_dir'] = $logo_dir;
 		@$config['reverse_proxy_url'] = $reverse_proxy_url;
 		@$config['setting_hide'] = $setting_hide;
 		@$config['silent'] = $silent;
@@ -427,8 +364,6 @@
 		@$config['setting_redirect'] = $setting_redirect;
 		@$config['encoder_log'] = $encoder_log;
 		@$config['encoder_window'] = $encoder_window;
-		@$config['TSTask_shutdown'] = $TSTask_shutdown;
-		@$config['udp_port'] = $udp_port;
 		@$config['hlslive_time'] = $hlslive_time;
 		@$config['hlsfile_time'] = $hlsfile_time;
 		@$config['hlslive_list'] = $hlslive_list;
@@ -475,11 +410,12 @@
 	// 新規インストールのみの処理
 	if ($update === false){
 		echo '    セットアップはまだ終わっていません。'."\n\n";
-		echo '    BonDriver と TVTest のチャンネル設定ファイル (.ch2) は '."\n";
-		echo '    '.$serverroot .'/bin/TSTask/BonDriver/ に忘れずに入れてください。'."\n\n";
-		echo '    終わったら、デスクトップのショートカットから TVRemotePlus を起動し、'."\n";
+		echo '    デスクトップのショートカットから TVRemotePlus を起動し、'."\n";
 		echo '    ブラウザから http://'.$serverip.':'.$http_port.'/ へアクセスします。'."\n";
 		echo '    その後、≡ サイドメニュー → 設定 → 環境設定 から必要な箇所を設定してください。'."\n\n";
+		echo '    使用する BonDriver は EDCB の EpgTimerSrv 設定の「視聴に使用する BonDriver」から自動選択されます。'."\n";
+		echo '    ストリームは EpgDataCap_Bon のパイプ通信を経由して受信します。'."\n";
+		echo '    EpgDataCap_Bon のネットワーク設定で SrvPipe (0.0.0.1:0) を送信先一覧に加えてください。'."\n\n";
 		echo '    PWA 機能を使用する場合は、設定ページからダウンロードできる自己署名証明書を'."\n";
 		echo '    あらかじめ端末にインストールした上で、 https://'.$serverip.':'.$https_port.'/ にアクセスしてください。'."\n";
 		echo "\n";

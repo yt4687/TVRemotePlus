@@ -1,4 +1,4 @@
-
+﻿
 /** 基本 **/
 
 :root {
@@ -378,6 +378,7 @@ select:-moz-focusring {
     display: inline-block;
     width: 56px;
     height: 28px;
+    flex-shrink: 0;
 }
 
 .toggle-input {
@@ -394,8 +395,8 @@ select:-moz-focusring {
 }
 
 .toggle-label {
-    width: 56px;
-    height: 28px;
+    width: 100%;
+    height: 100%;
     background: #ccc;
     position: relative;
     display: inline-block;
@@ -408,8 +409,8 @@ select:-moz-focusring {
 .toggle-label:after {
     content: '';
     position: absolute;
-    width: 28px;
-    height: 28px;
+    width: 50%;
+    height: 100%;
     border-radius: 100%;
     left: 0;
     top: 0;
@@ -423,8 +424,8 @@ select:-moz-focusring {
     background-color: #4bd8a2;
 }
 
-.toggle-input:checked + .toggle-label:after{
-    left: 28px;
+.toggle-input:checked + .toggle-label:after {
+    left: 50%;
 }
 
 /* セクション */
@@ -718,7 +719,7 @@ section {
     box-shadow: -1px 4px 2px 0 rgba(0,0,0,.14),
                 0 3px 1px -2px rgba(0,0,0,.10),
                 5px 2px 5px 0 rgba(0,0,0,.12);
-    z-index:500;
+    z-index: 500;
     transition: opacity 0.2s, visibility 0.2s ease-out;
     opacity: 0;
     visibility: hidden;
@@ -762,7 +763,7 @@ section {
 
 google-cast-launcher {
     position: absolute !important;
-    bottom: 8px;
+    top: 104px;
     width: 100%;
     height: 48px;
     opacity: 0;
@@ -997,7 +998,9 @@ google-cast-launcher:hover + #cast-toggle:before, google-cast-launcher:hover + #
     position: relative;
     width: 100%;
     height: 0;
-    padding-top: 56.25%;
+    /* 56.25% (16:9) と 100vh (画面高さ) のどちらか小さい方の値を高さに設定 */
+    /* スマホでプレイヤーのコンテナの高さが 100vh を超えると字幕のコンテナがおかしくなるため */
+    padding-top: min(56.25%, 100vh);
     background-color: #000000;
 }
 
@@ -1040,15 +1043,19 @@ google-cast-launcher:hover + #cast-toggle:before, google-cast-launcher:hover + #
 }
 
 @media (max-width: 1024px) {
-
     .dplayer-floating {
         width: 230px !important;
         height: calc(230px / 16 * 9) !important;
     }
 }
-
+@media screen and (max-width: 767px) {
+    .dplayer-floating {
+        top: 18px !important;
+        width: 190px !important;
+        height: calc(190px / 16 * 9) !important;
+    }
+}
 @media (max-width: 500px) {
-
     #dplayer-box {
         height: auto;
         padding-top: 0px;
@@ -1279,6 +1286,39 @@ td {
     font-size: 90%;
 }
 
+/* Luminous（キャプチャ画像拡大表示） */
+
+.lum-lightbox {
+    background: rgba(0, 0, 0, 0.5) !important;
+    z-index: 700;
+}
+
+.lum-close-button {
+    cursor: pointer;
+}
+
+.lum-gallery-button, .lum-gallery-button:hover {
+    background: none;
+    outline: 0;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+.lum-lightbox-inner img {
+    max-width: 77% !important;
+    max-height: 77% !important;
+}
+@media (max-width: 460px) {
+    .lum-lightbox-inner img {
+        max-width: 100% !important;
+        max-height: 100% !important;
+    }
+}
+
+.lum-img {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
 /* ツイート関連 */
 
 #tweet-account-box {
@@ -1313,6 +1353,7 @@ td {
 
 #tweet-account-info {
     display: flex;
+    align-items: flex-start;
     flex-direction: column;
     width: 100%;
     margin-left: 15px;
@@ -1320,7 +1361,7 @@ td {
 
 #tweet-account-name {
     display: block;
-    width: 190px;
+    max-width: 190px;
     color: var(--color-text);
     font-weight: bold;
     font-size: 17px;
@@ -1336,7 +1377,7 @@ td {
 
 #tweet-account-id {
     display: block;
-    width: 190px;
+    max-width: 190px;
     color: var(--color-text-darkgray);
     font-size: 15px;
     white-space: nowrap;
@@ -1391,17 +1432,17 @@ td {
 #tweet-title {
     display: block;
     position: relative;
-    width: 30px;
+    width: 40px;
     color: var(--color-tweet);
     font-size: 111%;
     float: left;
-    text-align: center;
+    text-align: left;
     cursor: pointer;
 }
 
 #tweet-status {
     display: block;
-    width: calc(100% - 30px);
+    width: calc(100% - 40px);
     color: var(--color-tweet);
     float: right;
     text-align: right;
@@ -2236,8 +2277,8 @@ td {
     justify-content: center;
     flex-shrink: 0;
     position: relative;
-    width: 71px;
-    height: 40px;
+    width: 69px;
+    height: 39px;
     border-radius: 7px;
     color: #FFFFFF;
     background-color: var(--color-green);
@@ -2675,6 +2716,8 @@ td {
 
 .custom-radio .custom-control-label::before {
     border-radius: 50%;
+    -webkit-transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .custom-radio .custom-control-input:checked ~ .custom-control-label::after {
@@ -2682,7 +2725,9 @@ td {
 }
 
 .custom-radio .custom-control-input:disabled:checked ~ .custom-control-label::before {
-    background-color: rgba(0, 123, 255, 0.5);
+    /* background-color: rgba(0, 123, 255, 0.5); */
+    background-color: #adb5bd;
+    border-color: #adb5bd;
 }
 
 /* カスタムレンジコントロール（ Bootstrap4 より拝借）*/
@@ -2881,11 +2926,14 @@ td {
     display: block;
     width: 95%;
     max-width: 540px;
+    max-height: 95vh;
     padding: 18px 22px;
     border-radius: 5px;
     font-size: 15px;
     background-color: var(--color-white);
     box-sizing: border-box;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .ljicrop-head-box {
@@ -2910,6 +2958,18 @@ td {
 .ljicrop-head {
     display: inline-block;
     margin-left: 7px;
+}
+
+.ljicrop-toggle-box {
+    width: 44px;
+    height: 22px;
+    margin-left: auto;
+}
+
+.ljicrop-toggle-box {
+    width: 42px;
+    height: 21px;
+    margin-left: auto;
 }
 
 #ljicrop-point-box {
@@ -2953,12 +3013,18 @@ td {
     width: 100%;
 }
 
+.ljicrop-range-start, .ljicrop-range-end {
+    flex-shrink: 0;
+    width: 39px;
+    text-align: right;
+}
+
 .ljicrop-range-start {
-    margin-right: 20px;
+    margin-right: 14px;
 }
 
 .ljicrop-range-end {
-    margin-left: 20px;
+    margin-left: 14px;
 }
 
 @media screen and (max-width: 767px) {
@@ -3014,10 +3080,12 @@ td {
     display: block;
     width: 95%;
     max-width: 1050px;
+    max-height: 95vh;
     padding: 18px 22px;
     border-radius: 5px;
     font-size: 15px;
     background-color: var(--color-white);
+    overflow-y: auto;
     box-sizing: border-box;
 }
 
@@ -3043,6 +3111,8 @@ td {
 
 .hotkey-head {
     display: inline-block;
+    flex-shrink: 0;
+    padding-right: 10px;
     margin-left: 7px;
 }
 
@@ -3071,11 +3141,12 @@ td {
     align-items: center;
     width: 100%;
     box-sizing: border-box;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .hotkey-list-name {
     margin-right: auto;
+    font-size: 14.5px;
 }
 
 .hotkey-list-name.focus {
@@ -3085,8 +3156,8 @@ td {
 .hotkey-list-key-box {
     display: flex;
     align-items: center;
-    font-size: 15px;
     padding-left: 15px;
+    font-size: 14px;
 }
 
 .hotkey-list-key-box.focus {
@@ -3183,7 +3254,7 @@ td {
     outline: none;
     border-radius: 4px;
     border-style: none;
-    background-color: var(--color-tweet);
+    background-color: var(--color-blue);
     transition: all  0.1s ease;
     cursor: pointer;
 }

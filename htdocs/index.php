@@ -5,16 +5,16 @@
 
 	// ヘッダー読み込み
 	require_once ('../modules/header.php');
+	require_once ('../modules/classloader.php');
 
 	echo '    <pre id="debug">';
 
-	// BonDriverとチャンネルを取得
-	list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, $BonDriver_dll_SPHD, // BonDriver
-		$ch, $ch_T, $ch_S, $ch_CS, $ch_SPHD, $ch_SPSD, // チャンネル番号
-		$sid, $sid_T, $sid_S, $sid_CS, $sid_SPHD, $sid_SPSD, // SID
-		$onid, $onid_T, $onid_S, $onid_CS, $onid_SPHD, $onid_SPSD, // ONID(NID)
-		$tsid, $tsid_T, $tsid_S, $tsid_CS, $tsid_SPHD, $tsid_SPSD) // TSID
-		= initBonChannel($BonDriver_dir);
+	// チャンネルを取得
+	$cmd = new CtrlCmdUtil;
+	if (isset($ctrlcmd_addr) && $ctrlcmd_addr !== '') {
+		$cmd->setNWSetting($ctrlcmd_addr);
+	}
+	$ch = initBonChannel($cmd);
 
 	// ストリーム番号を取得
 	$stream = getStreamNumber($_SERVER['REQUEST_URI']);
@@ -31,7 +31,7 @@
 	}
 
 	// 設定ファイル読み込み
-	$ini = json_decode(file_get_contents($inifile), true);
+	$ini = json_decode(file_get_contents_lock_sh($inifile), true);
 
 	// basic 認証設定を実行
 	basicAuth($basicauth, $basicauth_user, $basicauth_password);
@@ -106,8 +106,8 @@
             // aribb24.js
             aribb24: {
                 forceStrokeColor: 'black',
-                normalFont: '"Windows TV MaruGothic","Yu Gothic",sans-serif',
-                gaijiFont: '"Windows TV MaruGothic","Yu Gothic",sans-serif',
+                normalFont: '"Windows TV MaruGothic","Windows TV Gothic","Hiragino Sans","Yu Gothic Medium",sans-serif',
+                gaijiFont: '"Windows TV MaruGothic","Windows TV Gothic","Hiragino Sans","Yu Gothic Medium",sans-serif',
                 drcsReplacement: true
             }
         },
@@ -313,27 +313,9 @@
       </div>
 
       <div id="information">
-<?php	if (empty($BonDriver_dll) and empty($ch)): // エラーを吐く ?>
-        <div class="error">
-          BonDriver とチャンネル設定ファイルが見つからないため、ライブ配信を開始できません。<br>
-          ファイルが BonDriver フォルダに正しく配置されているか、確認してください。<br>
-        </div>
-<?php	elseif (empty($BonDriver_dll)): ?>
-        <div class="error">
-          BonDriver が見つからないため、ライブ配信を開始できません。<br>
-          ファイルが BonDriver フォルダに正しく配置されているか、確認してください。<br>
-        </div>
-<?php	elseif (empty($ch)): ?>
+<?php	if (empty($ch)): ?>
         <div class="error">
           チャンネル設定ファイルが見つからないため、ライブ配信を開始できません。<br>
-          ファイルが BonDriver フォルダに正しく配置されているか、確認してください。<br>
-        </div>
-<?php	endif;
-
-		if (empty($EDCB_http_url) or !@file_get_contents($EDCB_http_url.'api/EnumEventInfo', false, $ssl_context)): // EMWUI ?>
-        <div class="error">
-          EEDCB Material WebUI のある URL が正しく設定されていないため、番組情報が表示できません。<br>
-          設定ページの「EDCB Material WebUI (EMWUI) のある URL」が正しく設定されているかどうか、確認してください。<br>
         </div>
 <?php	endif; ?>
 
@@ -351,23 +333,13 @@
           <div class="swiper-wrapper">
 
             <nav class="broadcast-nav swiper-slide">
+<?php	$ch_T = array_filter($ch, function ($value) { return $value['onid'] >= 15; }); ?>
+<?php	uasort($ch_T, function ($a, $b) { return (($a['remocon'] ?? 99) - ($b['remocon'] ?? 99)) * 0x10000 + $a['sid'] - $b['sid']; }); ?>
 <?php	foreach ($ch_T as $i => $value): // 地デジchの数だけ繰り返す ?>
-<?php		// リモコン番号が被ってるチャンネル
-			// もうちょっとスマートに実装したかったけどうまくいかなかったのでハードコード
-			$subchcount = substr($i, -1);
-			if ($i > 60){
-				$ch_T_channel = 'Ch: '.sprintf('%02d', intval($i) - 60).$subchcount.'-3';
-      		} elseif ($i > 40){
-				$ch_T_channel = 'Ch: '.sprintf('%02d', intval($i) - 40).$subchcount.'-2';
-			} elseif ($i > 20){
-				$ch_T_channel = 'Ch: '.sprintf('%02d', intval($i) - 20).$subchcount.'-1';
-			// 通常
-      		} else {
-				$ch_T_channel = 'Ch: '.sprintf('%02d', intval($i)).$subchcount;
-			}
-?>
-              <div id="ch<?= str_replace('.', '_', $i); ?>" class="broadcast-wrap" data-ch="<?= $i; ?>"
-                    data-channel="<?= $ch_T_channel; ?>" data-name="<?= $value; ?>">
+<?php		$ch_T_channel = 'Ch: '.sprintf('%02d', $value['remocon'] ?? 99); ?>
+              <div id="ch<?= $i; ?>" class="broadcast-wrap" data-ch="<?= $i; ?>"
+                    data-channel="<?= $ch_T_channel; ?>" data-name="<?= $value['name']; ?>"
+                    data-starttime="00:00" data-endtime="00:00" data-title="取得中です…">
 
                 <div class="broadcast">
                   <div class="broadcast-img material-icons">tv
@@ -377,7 +349,7 @@
                     <div class="broadcast-channel-box">
                       <div class="broadcast-channel"><?= $ch_T_channel; ?></div>
                       <div class="broadcast-name-box">
-                        <div class="broadcast-name"><?= $value; ?></div>
+                        <div class="broadcast-name"><?= $value['name']; ?></div>
                         <div class="broadcast-jikkyo">実況勢い: <span class="broadcast-ikioi"> - </span></div>
                       </div>
                     </div>
@@ -405,10 +377,12 @@
             </nav>
 
             <nav class="broadcast-nav swiper-slide">
+<?php	$ch_S = array_filter($ch, function ($value) { return $value['onid'] === 4; }); ?>
 <?php	foreach ($ch_S as $i => $value): // BSchの数だけ繰り返す ?>
-<?php		$ch_S_channel = 'Ch: '.sprintf('%03d', $i); ?>
+<?php		$ch_S_channel = 'Ch: '.sprintf('%03d', $value['sid']); ?>
               <div id="ch<?= $i; ?>" class="broadcast-wrap" data-ch="<?= $i; ?>"
-                    data-channel="<?= $ch_S_channel; ?>" data-name="<?= $value; ?>">
+                    data-channel="<?= $ch_S_channel; ?>" data-name="<?= $value['name']; ?>"
+                    data-starttime="00:00" data-endtime="00:00" data-title="取得中です…">
 
                 <div class="broadcast">
                   <div class="broadcast-img material-icons">tv
@@ -418,7 +392,7 @@
                     <div class="broadcast-channel-box">
                       <div class="broadcast-channel"><?= $ch_S_channel; ?></div>
                       <div class="broadcast-name-box">
-                        <div class="broadcast-name"><?= $value; ?></div>
+                        <div class="broadcast-name"><?= $value['name']; ?></div>
                         <div class="broadcast-jikkyo">実況勢い: <span class="broadcast-ikioi"> - </span></div>
                       </div>
                     </div>
@@ -446,10 +420,12 @@
             </nav>
 
             <nav class="broadcast-nav swiper-slide">
+<?php	$ch_CS = array_filter($ch, function ($value) { return $value['onid'] < 15 && $value['onid'] !== 4 && $value['onid'] !== 10 && $value['onid'] !== 1; }); ?>
 <?php	foreach ($ch_CS as $i => $value): // CSchの数だけ繰り返す ?>
-<?php		$ch_CS_channel = 'Ch: '.sprintf('%03d', $i); ?>
+<?php		$ch_CS_channel = 'Ch: '.sprintf('%03d', $value['sid']); ?>
               <div id="ch<?= $i; ?>" class="broadcast-wrap" data-ch="<?= $i; ?>"
-                    data-channel="<?= $ch_CS_channel; ?>" data-name="<?= $value; ?>">
+                    data-channel="<?= $ch_CS_channel; ?>" data-name="<?= $value['name']; ?>"
+                    data-starttime="00:00" data-endtime="00:00" data-title="取得中です…">
 
                 <div class="broadcast">
                   <div class="broadcast-img material-icons">tv
@@ -459,7 +435,7 @@
                     <div class="broadcast-channel-box">
                       <div class="broadcast-channel"><?= $ch_CS_channel; ?></div>
                       <div class="broadcast-name-box">
-                        <div class="broadcast-name"><?= $value; ?></div>
+                        <div class="broadcast-name"><?= $value['name']; ?></div>
                         <div class="broadcast-jikkyo">実況勢い: <span class="broadcast-ikioi"> - </span></div>
                       </div>
                     </div>
@@ -485,61 +461,24 @@
               </div>
 <?php	endforeach; ?>
             </nav>
+
             <nav class="broadcast-nav swiper-slide">
-<?php	foreach ($ch_SPHD as $i => $value){ // スカパー！chの数だけ繰り返す ?>
-<?php		$ch_SPHD_channel = 'Ch: '.sprintf('%03d', $i); ?>
-              <div id="ch<?php echo $i; ?>" class="broadcast-wrap" data-ch="<?php echo $i; ?>"
-                    data-channel="<?php echo $ch_SPHD_channel; ?>" data-name="<?php echo $value; ?>">
+<?php	$ch_SPHD = array_filter($ch, function ($value) { return $value['onid'] === 10; }); ?>
+<?php	foreach ($ch_SPHD as $i => $value): // スカパーchの数だけ繰り返す ?>
+<?php		$ch_SPHD_channel = 'Ch: '.sprintf('%03d', $value['sid']); ?>
+              <div id="ch<?= $i; ?>" class="broadcast-wrap" data-ch="<?= $i; ?>"
+                    data-channel="<?= $ch_SPHD_channel; ?>" data-name="<?= $value['name']; ?>"
+                    data-starttime="00:00" data-endtime="00:00" data-title="取得中です…">
 
                 <div class="broadcast">
                   <div class="broadcast-img material-icons">tv
-                    <div class="broadcast-logo" style="background-image: url(<?php echo getLogoURL($i); ?>);"></div>
+                    <div class="broadcast-logo" style="background-image: url(<?= getLogoURL($i); ?>);"></div>
                   </div>
                   <div class="broadcast-content">
                     <div class="broadcast-channel-box">
-                      <div class="broadcast-channel"><?php echo $ch_SPHD_channel; ?></div>
+                      <div class="broadcast-channel"><?= $ch_SPHD_channel; ?></div>
                       <div class="broadcast-name-box">
-                        <div class="broadcast-name"><?php echo $value; ?></div>
-                        <div class="broadcast-jikkyo">実況勢い: <span class="broadcast-ikioi"> - </span></div>
-                      </div>
-                    </div>
-                    <div class="broadcast-title">
-                      <span class="broadcast-start">00:00</span>
-                      <span class="broadcast-to">～</span>
-                      <span class="broadcast-end">00:00</span>
-                      <span class="broadcast-title-id">取得中です…</span>
-                    </div>
-                    <div class="broadcast-next">
-                      <span>00:00</span>
-                      <span>～</span>
-                      <span>00:00</span>
-                      <span>取得中です…</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="progressbar">
-                  <div class="progress"></div>
-                </div>
-
-              </div>
-<?php	} //括弧終了 ?>
-            </nav>
-            <nav class="broadcast-nav swiper-slide">
-<?php	foreach ($ch_SPSD as $i => $value){ // 	スターデジオchの数だけ繰り返す ?>
-<?php		$ch_SPSD_channel = 'Ch: '.sprintf('%03d', $i); ?>
-              <div id="ch<?php echo $i; ?>" class="broadcast-wrap" data-ch="<?php echo $i; ?>"
-                    data-channel="<?php echo $ch_SPSD_channel; ?>" data-name="<?php echo $value; ?>">
-
-                <div class="broadcast">
-                  <div class="broadcast-img material-icons">radio
-                    <div class="broadcast-logo" style="background-image: url(<?php echo getLogoURL($i); ?>);"></div>
-                  </div>
-                  <div class="broadcast-content">
-                    <div class="broadcast-channel-box">
-                      <div class="broadcast-channel"><?php echo $ch_SPSD_channel; ?></div>
-                      <div class="broadcast-name-box">
-                        <div class="broadcast-name"><?php echo $value; ?></div>
+                        <div class="broadcast-name"><?= $value['name']; ?></div>
                         <div class="broadcast-jikkyo">実況勢い: <span class="broadcast-ikioi"> - </span></div>
                       </div>
                     </div>
@@ -563,7 +502,50 @@
                 </div>
 
               </div>
-<?php	} //括弧終了 ?>
+<?php	endforeach; ?>
+            </nav>
+
+            <nav class="broadcast-nav swiper-slide">
+<?php	$ch_SPSD = array_filter($ch, function ($value) { return $value['onid'] === 1; }); ?>
+<?php	foreach ($ch_SPSD as $i => $value): // スターデジオchの数だけ繰り返す ?>
+<?php		$ch_SPSD_channel = 'Ch: '.sprintf('%03d', $value['sid']); ?>
+              <div id="ch<?= $i; ?>" class="broadcast-wrap" data-ch="<?= $i; ?>"
+                    data-channel="<?= $ch_SPSD_channel; ?>" data-name="<?= $value['name']; ?>"
+                    data-starttime="00:00" data-endtime="00:00" data-title="取得中です…">
+
+                <div class="broadcast">
+                  <div class="broadcast-img material-icons">tv
+                    <div class="broadcast-logo" style="background-image: url(<?= getLogoURL($i); ?>);"></div>
+                  </div>
+                  <div class="broadcast-content">
+                    <div class="broadcast-channel-box">
+                      <div class="broadcast-channel"><?= $ch_SPSD_channel; ?></div>
+                      <div class="broadcast-name-box">
+                        <div class="broadcast-name"><?= $value['name']; ?></div>
+                        <div class="broadcast-jikkyo">実況勢い: <span class="broadcast-ikioi"> - </span></div>
+                      </div>
+                    </div>
+                    <div class="broadcast-title">
+                      <span class="broadcast-start">00:00</span>
+                      <span class="broadcast-to">～</span>
+                      <span class="broadcast-end">00:00</span>
+                      <span class="broadcast-title-id">取得中です…</span>
+                    </div>
+                    <div class="broadcast-next">
+                      <span">00:00</span>
+                      <span>～</span>
+                      <span>00:00</span>
+                      <span>取得中です…</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="progressbar">
+                  <div class="progress"></div>
+                </div>
+
+              </div>
+<?php	endforeach; ?>
             </nav>
 
           </div>
@@ -575,6 +557,7 @@
       <div id="broadcast-stream-title"></div>
       <div id="broadcast-stream-info"></div>
       <form id="setting-form" action="/settings/" method="post">
+        <input type="hidden" name="_csrf_token" value="<?= $csrf_token ?>">
         <input type="hidden" name="state" value="ONAir">
         <input id="broadcast-stream-channel" type="hidden" name="channel" value="">
 
@@ -632,7 +615,7 @@
           <span>動画の画質：</span>
           <div class="select-wrap">
             <select name="quality">
-              <option value="<?= $quality_default; ?>">デフォルト (<?= $quality_default; ?>)</option>
+              <option value="<?= getQualityDefault(); ?>">デフォルト (<?= getQualityDefault(); ?>)</option>
               <option value="1080p-high">1080p-high (1920×1080)</option>
               <option value="1080p">1080p (1440×1080)</option>
               <option value="810p">810p (1440×810)</option>
@@ -673,42 +656,8 @@
           </div>
         </div>
 
-        <div class="setBonDriver form">
-          <span>使用 BonDriver：</span>
-          <div id="broadcast-BonDriver-T" class="select-wrap">
-            <select name="BonDriver">
-<?php		if (!empty($BonDriver_default_T)): ?>
-              <option value="default">デフォルトの BonDriver</option>
-<?php		endif; ?>
-<?php		foreach ($BonDriver_dll_T as $i => $value): //chの数だけ繰り返す ?>
-              <option value="<?= $value; ?>"><?= $value; ?></option>
-<?php		endforeach; ?>
-            </select>
-          </div>
-          <div id="broadcast-BonDriver-S" class="select-wrap">
-            <select name="BonDriver">
-<?php		if (!empty($BonDriver_default_S)): ?>
-              <option value="default">デフォルトの BonDriver</option>
-<?php		endif; ?>
-<?php		foreach ($BonDriver_dll_S as $i => $value): //chの数だけ繰り返す ?>
-              <option value="<?= $value; ?>"><?= $value; ?></option>
-<?php		endforeach; ?>
-            </select>
-          </div>
-          <div id="broadcast-BonDriver-SPHD" class="select-wrap">
-            <select name="BonDriver">
-<?php		if (!empty($BonDriver_default_SPHD)){ ?>
-              <option value="default">デフォルトの BonDriver</option>
-<?php		} //括弧終了 ?>
-<?php		foreach ($BonDriver_dll_SPHD as $i => $value){ //chの数だけ繰り返す ?>
-              <option value="<?php echo $value; ?>"><?php echo $value; ?></option>
-<?php		} //括弧終了 ?>
-            </select>
-          </div>
-        </div>
-
         <div id="button-box" class="broadcast-button-box">
-<?php		if (!empty($BonDriver_dll) and !empty($ch)): ?>
+<?php		if (!empty($ch)): ?>
           <button class="bluebutton" type="submit"><i class="fas fa-play"></i>ストリーム開始</button>
 <?php		else: ?>
           <button class="bluebutton" type="submit" disabled><i class="fas fa-play"></i>ストリーム開始</button>
@@ -746,14 +695,18 @@
         <div class="ljicrop-head-box title">
           <i class="fas fa-tv"></i>
           <span class="ljicrop-head">Ｌ字画面のクロップ</span>
+          <div class="ljicrop-toggle-box toggle-switch">
+            <input class="toggle-input" name="ljicrop_toggle" type="checkbox">
+            <label for="ljicrop-toggle" class="toggle-label"></label>
+          </div>
         </div>
         <div class="ljicrop-head-box">
           <i class="fas fa-search-plus" style="font-size: 13.5px;"></i>
-          <span class="ljicrop-head">拡大率 : <span id="ljicrop-magnify-percentage">100%<span></span>
+          <span class="ljicrop-head">拡大率 : <span id="ljicrop-magnification-percentage">100%<span></span>
         </div>
         <div class="ljicrop-range-box">
           <span class="ljicrop-range-start">100%</span>
-          <input id="ljicrop-magnify" class="custom-range" name="ljicrop_magnify" type="range" min="100" max="200" value="100">
+          <input class="custom-range" name="ljicrop_magnification" type="range" min="100" max="200" value="100">
           <span class="ljicrop-range-end">200%</span>
         </div>
         <div class="ljicrop-head-box">
@@ -761,8 +714,8 @@
           <span class="ljicrop-head">X 座標 : <span id="ljicrop-coordinatex-percentage">0%<span></span>
         </div>
         <div class="ljicrop-range-box">
-          <span class="ljicrop-range-start" style="padding-left: 18px;">0%</span>
-          <input id="ljicrop-coordinatex" class="custom-range" name="ljicrop_coordinateX" type="range" min="0" max="100" value="0">
+          <span class="ljicrop-range-start">0%</span>
+          <input class="custom-range" name="ljicrop_coordinateX" type="range" min="0" max="100" value="0">
           <span class="ljicrop-range-end">100%</span>
         </div>
         <div class="ljicrop-head-box">
@@ -770,8 +723,8 @@
           <span class="ljicrop-head">Y 座標 : <span id="ljicrop-coordinatey-percentage">0%<span></span>
         </div>
         <div class="ljicrop-range-box">
-          <span class="ljicrop-range-start" style="padding-left: 18px;">0%</span>
-          <input id="ljicrop-coordinatey" class="custom-range" name="ljicrop_coordinateY" type="range" min="0" max="100" value="0">
+          <span class="ljicrop-range-start">0%</span>
+          <input class="custom-range" name="ljicrop_coordinateY" type="range" min="0" max="100" value="0">
           <span class="ljicrop-range-end">100%</span>
         </div>
         <div class="ljicrop-head-box">
@@ -815,11 +768,14 @@
     </div>
 
     <div id="hotkey-box">
-      <div id="hotkey-wrap">
+      <div id="hotkey-wrap" class="scrollbar">
         <div class="hotkey-head-box title">
           <i class="fas fa-keyboard"></i>
           <span class="hotkey-head">キーボードショートカット一覧</span>
-          <span class="hotkey-head-sub">(＊) … ツイート入力フォーム以外にフォーカスした状態</span>
+          <span class="hotkey-head-sub">
+            (＊) … ツイート入力フォーム以外にフォーカスした状態　
+            (＃) … Shift キーを押しながらで字幕を入れずにキャプチャする
+          </span>
         </div>
         <div id="hotkey-list-box">
           <div class="hotkey-list-wrap">
@@ -848,13 +804,13 @@
             <div class="hotkey-list">
               <div class="hotkey-list-name">15秒巻き戻し</div>
               <div class="hotkey-list-key-box">
-                <div class="hotkey-list-key">Ctrl (or Command)</div> + <div class="hotkey-list-key"><i class="fas fa-arrow-left"></i></div>
+                <div class="hotkey-list-key">Ctrl (or Cmd)</div> + <div class="hotkey-list-key"><i class="fas fa-arrow-left"></i></div>
               </div>
             </div>
             <div class="hotkey-list">
               <div class="hotkey-list-name">15秒早送り</div>
               <div class="hotkey-list-key-box">
-                <div class="hotkey-list-key">Ctrl (or Command)</div> + <div class="hotkey-list-key"><i class="fas fa-arrow-right"></i></div>
+                <div class="hotkey-list-key">Ctrl (or Cmd)</div> + <div class="hotkey-list-key"><i class="fas fa-arrow-right"></i></div>
               </div>
             </div>
             <div class="hotkey-list">
@@ -894,15 +850,21 @@
               </div>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">字幕の表示 / 非表示の切り替え</div>
+              <div class="hotkey-list-name">字幕の表示 / 非表示を切り替える</div>
               <div class="hotkey-list-key-box">
                 <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">S</div>
               </div>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">コメントの表示 / 非表示の切り替え</div>
+              <div class="hotkey-list-name">コメントの表示 / 非表示を切り替える</div>
               <div class="hotkey-list-key-box">
                 <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">D</div>
+              </div>
+            </div>
+            <div class="hotkey-list">
+              <div class="hotkey-list-name">コメント入力フォームを表示してフォーカスを当てる</div>
+              <div class="hotkey-list-key-box">
+                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">C</div>
               </div>
             </div>
             <div class="hotkey-list">
@@ -918,27 +880,27 @@
               <span class="hotkey-head">全般</span>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">全画面のオン / オフの切り替え</div>
+              <div class="hotkey-list-name">フルスクリーンのオン / オフを切り替える</div>
               <div class="hotkey-list-key-box">
                 <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">F</div>
               </div>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">ブラウザ全画面のオン / オフの切り替え</div>
+              <div class="hotkey-list-name">ブラウザフルスクリーンのオン / オフを切り替える</div>
               <div class="hotkey-list-key-box">
                 <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">W</div>
               </div>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">ピクチャーインピクチャーのオン / オフの切り替え（対応ブラウザのみ）</div>
+              <div class="hotkey-list-name">画面全体のフルスクリーンのオン / オフを切り替える</div>
               <div class="hotkey-list-key-box">
-                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">P</div>
+                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">E</div>
               </div>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">コメント入力フォームを表示してフォーカスする</div>
+              <div class="hotkey-list-name">ピクチャーインピクチャーのオン / オフを切り替える（対応ブラウザのみ）</div>
               <div class="hotkey-list-key-box">
-                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">C</div>
+                <div class="hotkey-list-key">(＊)</div> + <div class="hotkey-list-key alphabet">P</div>
               </div>
             </div>
             <div class="hotkey-list">
@@ -953,8 +915,8 @@
             </div>
             <div class="hotkey-list">
               <div class="hotkey-list-name">
-                ツイート入力フォームにフォーカスする / フォーカスを外す<br>
-                プレイヤーにフォーカスする / フォーカスを外す（キャプチャ画像リスト表示時のみ）
+                通常時：ツイート入力フォームにフォーカスを当てる / 外す<br>
+                キャプチャ画像リスト表示時：プレイヤーにフォーカスを当てる / 外す
               </div>
               <div class="hotkey-list-key-box">
                 <div class="hotkey-list-key">Tab</div>
@@ -967,19 +929,19 @@
               </div>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">ストリームをキャプチャする</div>
+              <div class="hotkey-list-name">ストリームをキャプチャする (＃)</div>
               <div class="hotkey-list-key-box">
                 <div class="hotkey-list-key">Alt (or Option)</div> + <div class="hotkey-list-key">1</div>
               </div>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">ストリームをコメント付きでキャプチャする</div>
+              <div class="hotkey-list-name">ストリームをコメント付きでキャプチャする (＃)</div>
               <div class="hotkey-list-key-box">
                 <div class="hotkey-list-key">Alt (or Option)</div> + <div class="hotkey-list-key">2</div>
               </div>
             </div>
             <div class="hotkey-list">
-              <div class="hotkey-list-name">キャプチャとツイートをリセットする</div>
+              <div class="hotkey-list-name">キャプチャの選択とツイートをリセットする</div>
               <div class="hotkey-list-key-box">
                 <div class="hotkey-list-key">Alt (or Option)</div> + <div class="hotkey-list-key">3</div>
               </div>
@@ -987,7 +949,7 @@
             <div class="hotkey-list">
               <div class="hotkey-list-name">クリップボードの画像を取り込む</div>
               <div class="hotkey-list-key-box">
-                <div class="hotkey-list-key">(ツイート入力フォームにフォーカス)</div> + <div class="hotkey-list-key">Ctrl (or Command)</div> + <div class="hotkey-list-key alphabet">V</div>
+                <div class="hotkey-list-key">(ツイート入力フォームにフォーカス)</div> + <div class="hotkey-list-key" style="flex-shrink: 0;">Ctrl (or Cmd)</div> + <div class="hotkey-list-key alphabet">V</div>
               </div>
             </div>
           </div>

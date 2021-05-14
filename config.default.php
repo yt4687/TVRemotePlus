@@ -26,27 +26,6 @@ $quality_default = '1080p'; // 1080p-high・1080p・810p・720p・540p・360p・
 // QSVEncC は Intel 製の一部の GPU 、NVEncC は nvidia 製の GPU 、VCEEncC は AMD の Radeon GPU でしか利用できません
 $encoder_default = 'QSVEncC'; // ffmpeg・QSVEncC・NVEncC・VCEEncC から選択
 
-// BonDriver は (TVRemotePlusをインストールしたフォルダ)/bin/TSTask/BonDriver/ に配置してください
-// デフォルトの BonDriver (地デジ用・変更必須)
-// 例：$BonDriver_default_T = 'BonDriver_Proxy_T.dll';
-$BonDriver_default_T = '';
-
-// デフォルトの BonDriver (BS用・変更必須)
-// 例：$BonDriver_default_S = 'BonDriver_Proxy_S.dll';
-$BonDriver_default_S = '';
-
-// デフォルトの BonDriver (スカパー！用・変更必須)
-// 例：$BonDriver_default_SPHD = 'BonDriver_Proxy_SPHD.dll';
-$BonDriver_default_SPHD = '';
-
-// スカパー！プレミアムサービスを利用する
-// スカパー！プレミアムサービスを利用する場合にONにしてください。ONにすることでタブが表示されます。
-$BonDriver_using_SPHD = 'true';
-
-// スターデジオをを利用する
-// スターデジオを利用する場合にONにしてください。ONにすることでタブが表示されます。
-$BonDriver_using_SPSD = 'true';
-
 // ライブ配信開始時に現在視聴中のストリームをデフォルトのストリームにする (する… true しない… false )
 // この設定をオンにすると、現在視聴中のストリームをライブ配信を開始するときのデフォルトのストリームにします（同時配信機能が追加される前の動作に近い）
 // この設定をオフにすると、ライブ配信開始時点で空いているストリームをデフォルトのストリームにし、配信中のストリームを選択しないようにします
@@ -80,18 +59,20 @@ $subtitle_file_default = 'true';
 // 例：$TSfile_dir = 'E:/TV-Record/';
 $TSfile_dir = '';
 
-// 番組情報ファイルのあるフォルダ
-// ファイル再生の際、番組情報が録画ファイルから取得できない場合 ( MP4 ファイル等) に利用します
-// フォルダを指定しない場合、録画ファイルと同じファイル名の .ts.program.txt を参照します
-// 例：$TSinfo_dir = 'E:/TV-Record/録画情報/';
-$TSinfo_dir = '';
+// EDCB の EpgTimerSrv プロセスとの通信用のアドレス
+// チャンネルリスト、番組表、録画番組情報の取得に利用します
+// TVRemotePlus を EpgTimerSrv と異なる PC で使用する場合、EpgTimerSrv 設定の [ネットワーク接続を許可する (EpgTimerNW 用)] にチェックして、
+// EpgTimerSrv のある PC のアドレスとポート番号を指定します
+// EpgTimerSrv と同一の PC で使用する場合、指定する必要ありません
+// 例：$ctrlcmd_addr = '192.168.x.xx:4510';
+$ctrlcmd_addr = '';
 
-// EDCB Material WebUI (EMWUI) のある URL を指定します (番組表取得で利用します・変更必須)
-// この機能を利用する場合、EDCB_Material_WebUI を導入しておいてください (APIを番組表取得で利用します)
-// http://(EDCB(EMWUI)の動いてるPCのローカルIP):5510/ のように指定します
-// 以前は http://(EDCB(EMWUI)の動いてるPCのローカルIP):5510/api/ でしたが、変更になりました
-// 例：$EDCB_http_url = 'http://192.168.1.11:5510/';
-$EDCB_http_url = '';
+// 局ロゴ情報 (LogoData.ini) のあるフォルダ
+// 局ロゴの表示に利用します
+// TVTest (設定の [BMP 形式のロゴを保存する] にチェックが必要) のフォルダや、
+// EpgDataCap_Bon (設定の [ロゴデータを保存する] にチェックが必要) の Setting フォルダを指定します
+// 例：$logo_dir = 'E:/TVTest/';
+$logo_dir = '';
 
 // リバースプロキシからアクセスする場合の URL を指定します
 // リバースプロキシからのアクセス時のみ利用されます
@@ -193,21 +174,6 @@ $encoder_log = 'true';
 // エンコードが不安定な場合はこの設定をオンにした上で [エンコーダーのログをファイルに書き出す] をオフにし、
 // ウインドウが表示される（起動されている）かどうか、エンコードが止まっていないかを確認してみてください
 $encoder_window = 'false';
-
-// TSTask の起動時に TSTaskCentre も起動する
-// この設定がオンの場合、TSTask の起動時に TSTaskCentre（TSTask のクライアントプログラム）も一緒に起動します（デフォルトはオフです）
-// 正常に放送が受信できているか、TSTask が起動できているか確認したい場合などにオンにしてみてください
-$TSTask_window = 'false';
-
-// TSTask を強制終了させるかどうか
-// 一部の環境にて TSTask がうまく終了しない場合用の設定です(基本は変える必要はありません)
-// 強制終了させる場合は true にしてください(デフォルトは false (通常終了)です)
-$TSTask_shutdown = 'false';
-
-// UDP 送信時の開始ポート番号
-// エンコードソフトが落ちてしまう場合、ポートがバッティングしている可能性が高いです
-// その場合は、ここの値を空いているポートに変更してください
-$udp_port = 8200;
 
 // HLS セグメントあたりの秒数
 // 基本は変える必要はありませんが、外出先から視聴する場合など回線が不安定な場合、

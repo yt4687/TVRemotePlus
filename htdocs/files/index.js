@@ -2,8 +2,9 @@
 // 生放送・ファイル再生共通その2 (script.jsが肥大化したためこっちに)
 
 // 定義
-var remotePlayer;
-var remotePlayerController;
+let slider;
+let remotePlayer;
+let remotePlayerController;
 
 // php の isset みたいなの
 function isset(data){
@@ -88,7 +89,7 @@ $(window).on('DOMContentLoaded resize', function(event){
     timer = setTimeout(function() {
 
         // リサイズが終了した後に実行する
-        
+
         // 1024px以上
         if (windowWidth > 1024){
 
@@ -110,7 +111,7 @@ $(window).on('DOMContentLoaded resize', function(event){
 
             // フッターも忘れずに
             document.getElementById('footer').style.maxWidth = Math.ceil(targetWidth * percentage + (gap * 2.3)) + 'px';
-                
+
         }
 
         // 縦メニューで横の余白が広い時、メインカラムが右に寄っているように見えるのを解消する
@@ -127,11 +128,13 @@ $(window).on('DOMContentLoaded resize', function(event){
         // DOMContentLoaded or resize(横方向)
         if (event.type == 'DOMContentLoaded' || (event.type == 'resize' && lastWindowWidth != windowWidth)){
             // 幅を記録しておく
-            lastWindowWidth = windowWidth;        
+            lastWindowWidth = windowWidth;
             // スライダーのサイズを更新（重要）
             // プレイヤー周辺を独自でリサイズしている関係で Swiper 本体のリサイズ検知機構がうまく動かない
             // そのため手動でサイズを更新してあげる必要がある
-            slider.update();
+            if (slider) {
+                slider.update();
+            }
         }
 
     }, 200);
@@ -172,7 +175,7 @@ $(function() {
         // ハイライト用のクラスを付与
         $(`.broadcast-button[data-index=${sliderCurrentIndex}]`).addClass('swiper-slide-thumb-active');
     });
-    
+
     // スライド時のイベント
     slider.on('slideChange', () => {
         // 一旦全てのクラスを削除
@@ -186,66 +189,157 @@ $(function() {
         // localStorage に現在アクティブなスライドのインデックスを保存
         localStorage.setItem('tvrp-slider-index', slider.activeIndex);
     });
-    
-    // ***** スクロールで動画をフロート表示 *****
 
-    // 個人設定で有効 & 501px より大きい（スマホを除外）
-    if (settings['player_floating'] && window.innerWidth > 500) {
+    // ***** フルスクリーン *****
+
+    $('#fullscreen').click((event) => {
+
+        // プロパティ名を統一
+        const fullscreenElement = (
+            document.fullscreenElement || // HTML5 standard
+            document.mozFullScreenElement || // Gecko
+            document.webkitFullscreenElement || // Webkit
+            document.webkitCurrentFullScreenElement || // Webkit (old)
+            document.msFullscreenElement // Trident
+        );
+
+        // すでにフルスクリーンになっている
+        if (fullscreenElement && fullscreenElement.tagName.toLowerCase() === 'html') {
+
+            // メソッド名を統一
+            document.exitFullscreen = (
+                document.exitFullscreen || // HTML5 standard
+                document.mozCancelFullScreen || // Gecko
+                document.webkitExitFullscreen || // Webkit
+                document.webkitCancelFullScreen || // Webkit (old)
+                document.msExitFullscreen // Trident
+            );
+
+            // フルスクリーンを終了
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+
+        } else {
+
+            // メソッド名を統一
+            document.documentElement.requestFullscreen = (
+                document.documentElement.requestFullscreen || // HTML5 standard
+                document.documentElement.mozRequestFullScreen || // Gecko
+                document.documentElement.webkitRequestFullscreen || // Webkit
+                document.documentElement.webkitRequestFullScreen || // Webkit (old)
+                document.documentElement.msRequestFullscreen // Trident
+            );
+
+            // フルスクリーンを開始
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else {  // FullScreen API をサポートしていないブラウザ（主に iOS Safari ）
+                if (/Mobile/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent)) {
+                    toastr.error('iOS Safari では、フルスクリーン機能はサポートされていません。');
+                } else {
+                    toastr.error('フルスクリーン機能はサポートされていません。');
+                }
+            }
+        }
+    });
+
+    // フルスクリーン状態が変わったとき
+    $(document).on('fullscreenchange webkitfullscreenchange', () => {
+
+        // プロパティ名を統一
+        const fullscreenElement = (
+            document.fullscreenElement || // HTML5 standard
+            document.mozFullScreenElement || // Gecko
+            document.webkitFullscreenElement || // Webkit
+            document.webkitCurrentFullScreenElement || // Webkit (old)
+            document.msFullscreenElement // Trident
+        );
+
+        // フルスクリーンを開始
+        if (fullscreenElement && fullscreenElement.tagName.toLowerCase() === 'html') {
+
+            $('#fullscreen').attr('aria-label', 'フルスクリーン表示を終了します');
+            $('#fullscreen i').removeClass('fa-expand').addClass('fa-compress');
+            $('#fullscreen .menu-link-href').text('フルスクリーンを終了');
+
+        // フルスクリーンを終了
+        } else {
+
+            $('#fullscreen').attr('aria-label', '画面全体をフルスクリーンで表示します');
+            $('#fullscreen i').removeClass('fa-compress').addClass('fa-expand');
+            $('#fullscreen .menu-link-href').text('フルスクリーンで表示');
+        }
+    });
+
+    // ***** スクロールでプレイヤーをフロート表示 *****
+
+    // 個人設定で有効
+    if (settings['player_floating']) {
 
         // スクロール時のイベント
-        $(window).scroll(function(){
+        $(window).scroll(() => {
 
-            const position_current = $(this).scrollTop() + (settings['vertical_navmenu'] ? 0 : 54);
-            const position_target = $('#epg-box').offset().top; // 計算めんどいのであえて jQuery
+            // 501px より大きい（スマホを除外）
+            if (window.innerWidth > 500) {
 
-            // State を取得
-            const state = document.getElementById('state').value;
+                const position_current = $(this).scrollTop() + (settings['vertical_navmenu'] ? 0 : 54);
+                const position_target = $('#epg-box').offset().top; // 計算めんどいのであえて jQuery
 
-            // State が Offline 以外
-            if (state !== 'Offline' && state !== '' && state !== undefined) {
+                // State を取得
+                const state = document.getElementById('state').value;
 
-                // ターゲット座標以上
-                if (position_current > position_target) {
-                    if (!dp.video.classList.contains('dplayer-floating')) {
+                // State が Offline 以外
+                if (state !== 'Offline' && state !== '' && state !== undefined) {
 
-                        // 一旦 transition を削除
-                        dp.video.style.transition = 'none';
-                        // 透明度を 0 に設定
-                        dp.video.style.opacity = 0;
-                        // transition を再付与
-                        dp.video.style.transition = 'opacity 0.2s ease-in-out';
+                    // ターゲット座標以上
+                    if (position_current > position_target) {
+                        if (!dp.video.classList.contains('dplayer-floating')) {
 
-                        setTimeout(function(){
+                            // 一旦 transition を削除
+                            dp.video.style.transition = 'none';
+                            // 透明度を 0 に設定
+                            dp.video.style.opacity = 0;
+                            // transition を再付与
+                            dp.video.style.transition = 'opacity 0.2s ease-in-out';
 
-                            // 動画をフロート化
-                            dp.video.classList.add('dplayer-floating');
-                            // 透明度を 1 に設定
-                            dp.video.style.opacity = 1;
+                            setTimeout(() => {
 
-                        }, 200);
-                    }
+                                // 動画をフロート化
+                                dp.video.classList.add('dplayer-floating');
+                                // 透明度を 1 に設定
+                                dp.video.style.opacity = 1;
 
-                // ターゲット座標以内
-                } else if (position_current < position_target) {
-                    if (dp.video.classList.contains('dplayer-floating')) {
+                            }, 200);
+                        }
 
-                        // 透明度を 0 に設定
-                        dp.video.style.opacity = 0;
+                    // ターゲット座標以内
+                    } else if (position_current < position_target) {
+                        if (dp.video.classList.contains('dplayer-floating')) {
 
-                        setTimeout(function() {
+                            // 透明度を 0 に設定
+                            dp.video.style.opacity = 0;
 
-                            // 動画のフロート化を解除
-                            dp.video.classList.remove('dplayer-floating');
-                            // 透明度を 1 に設定
-                            dp.video.style.opacity = 1;
+                            setTimeout(() => {
 
-                        }, 200);
+                                // 動画のフロート化を解除
+                                dp.video.classList.remove('dplayer-floating');
+                                // 透明度を 1 に設定
+                                dp.video.style.opacity = 1;
+
+                            }, 200);
+                        }
                     }
                 }
+
+            } else {
+
+                // 動画のフロート化を解除
+                dp.video.classList.remove('dplayer-floating');
             }
         });
     }
-    
+
     // ***** リロードボタン *****
 
     $('#reload').click(function(){
@@ -260,7 +354,7 @@ $(function() {
         // Cookieに書き込み
         settings['subchannel_show'] = true;
         var json = JSON.stringify(settings);
-        Cookies.set('settings', json, { expires: 365 });
+        Cookies.set('tvrp_settings', json, { expires: 365 });
         // リロード
         setTimeout(function(){
             location.reload();
@@ -272,7 +366,7 @@ $(function() {
         // Cookieに書き込み
         settings['subchannel_show'] = false;
         var json = JSON.stringify(settings);
-        Cookies.set('settings', json, { expires: 365 });
+        Cookies.set('tvrp_settings', json, { expires: 365 });
         // リロード
         setTimeout(function(){
             location.reload();
@@ -296,138 +390,154 @@ $(function() {
     });
 
     // 設定読み込み
-    if (typeof settings['ljicrop_magnify'] !== 'undefined') {
-        $('input[name="ljicrop_magnify"]').val(settings['ljicrop_magnify']);
-        $('input[name="ljicrop_coordinateX"]').val(settings['ljicrop_coordinateX']);
-        $('input[name="ljicrop_coordinateY"]').val(settings['ljicrop_coordinateY']);
-        $('input[name="ljicrop_type"]').val([settings['ljicrop_type']]);
-        ljicrop();
-    }
+    // 設定が存在しないなら初期値を使う
+    $('input[name=ljicrop_toggle]').prop('checked', Boolean(Number(localStorage.getItem('tvrp-ljicrop-toggle') || '0')));  // Boolean に戻す
+    $('input[name="ljicrop_magnification"]').val(localStorage.getItem('tvrp-ljicrop-magnification') || 100);
+    $('input[name="ljicrop_coordinateX"]').val(localStorage.getItem('tvrp-ljicrop-coordinateX') || 0);
+    $('input[name="ljicrop_coordinateY"]').val(localStorage.getItem('tvrp-ljicrop-coordinateY') || 0);
+    $('input[name="ljicrop_type"]').val([localStorage.getItem('tvrp-ljicrop-type') || 'upperright']);  // ラジオボタンにおいては配列にするのが重要
 
     // イベントハンドラーを設定
-    $('input[name="ljicrop_magnify"]').on('input', ljicrop);
+    $('input[name="ljicrop_toggle"]').on('change', ljicrop);
+    $('input[name="ljicrop_magnification"]').on('input', ljicrop);
     $('input[name="ljicrop_coordinateX"]').on('input', ljicrop);
     $('input[name="ljicrop_coordinateY"]').on('input', ljicrop);
     $('input[name="ljicrop_type"]').on('input', ljicrop);
+
+    // Ｌ字クロップを実行
+    ljicrop();
 
     function ljicrop() {
 
         // 要素を取得
         const ljicrop_video = dp.video;
-        const ljicrop_video_aspect = dp.video.parentNode;
 
         if (ljicrop_video) {
 
+            // 有効/無効
+            const ljicrop_toggle = document.querySelector('input[name=ljicrop_toggle]').checked;
             // 拡大率
-            const ljicrop_magnify = parseInt(document.querySelector('input[name=ljicrop_magnify]').value);
+            const ljicrop_magnification = parseInt(document.querySelector('input[name=ljicrop_magnification]').value);
             // X座標
             const ljicrop_coordinateX = parseInt(document.querySelector('input[name=ljicrop_coordinateX]').value);
             // Y座標
             const ljicrop_coordinateY = parseInt(document.querySelector('input[name=ljicrop_coordinateY]').value);
             // 拡大起点
             const ljicrop_type = document.querySelector('input[name=ljicrop_type]:checked').value;
-    
+
             // 設定を保存
-            settings['ljicrop_magnify'] = ljicrop_magnify;
-            settings['ljicrop_coordinateX'] = ljicrop_coordinateX;
-            settings['ljicrop_coordinateY'] = ljicrop_coordinateY;
-            settings['ljicrop_type'] = ljicrop_type;
-            Cookies.set('settings', JSON.stringify(settings), { expires: 365 });
-    
+            localStorage.setItem('tvrp-ljicrop-toggle', Number(ljicrop_toggle)); // Number に変換
+            localStorage.setItem('tvrp-ljicrop-magnification', ljicrop_magnification);
+            localStorage.setItem('tvrp-ljicrop-coordinateX', ljicrop_coordinateX);
+            localStorage.setItem('tvrp-ljicrop-coordinateY', ljicrop_coordinateY);
+            localStorage.setItem('tvrp-ljicrop-type', ljicrop_type);
+
             // 表示
-            document.querySelector('#ljicrop-magnify-percentage').textContent = ljicrop_magnify + '%';
+            document.querySelector('#ljicrop-magnification-percentage').textContent = ljicrop_magnification + '%';
             document.querySelector('#ljicrop-coordinatex-percentage').textContent = ljicrop_coordinateX + '%';
             document.querySelector('#ljicrop-coordinatey-percentage').textContent = ljicrop_coordinateY + '%';
-    
-            // 全てデフォルト（オフ）状態ならスタイルを削除
-            if (ljicrop_magnify === 100 && ljicrop_coordinateX === 0 && ljicrop_coordinateY === 0) {
 
-                // 空文字を入れると style 属性から当該スタイルが除去される
+            // 無効ならフォームを無効化
+            if (!ljicrop_toggle) {
+
+                // disabled を設定
+                $('input[name="ljicrop_magnification"]').prop('disabled', true);
+                $('input[name="ljicrop_coordinateX"]').prop('disabled', true);
+                $('input[name="ljicrop_coordinateY"]').prop('disabled', true);
+                $('input[name="ljicrop_type"]').prop('disabled', true);
+
+                // スタイルを除去
                 ljicrop_video.style.position = '';
                 ljicrop_video.style.width = '';
                 ljicrop_video.style.height = '';
                 ljicrop_video.style.left = '';
                 ljicrop_video.style.bottom = '';
-                ljicrop_video_aspect.style.width = '';
-                ljicrop_video_aspect.style.height = '';
 
-            } else {
+            // 有効ならＬ字クロップを実行
+            } else if (ljicrop_toggle) {
 
-                // video 要素を拡大
-                ljicrop_video.style.position = 'relative';
-                ljicrop_video.style.width = ljicrop_magnify + '%';
-                ljicrop_video.style.height = ljicrop_magnify + '%';
+                // disabled を解除
+                $('input[name="ljicrop_magnification"]').prop('disabled', false);
+                $('input[name="ljicrop_coordinateX"]').prop('disabled', false);
+                $('input[name="ljicrop_coordinateY"]').prop('disabled', false);
+                $('input[name="ljicrop_type"]').prop('disabled', false);
 
-                // magic
-                ljicrop_video_aspect.style.width = '100%';
-                ljicrop_video_aspect.style.height = '100%';
-    
-                // 拡大起点別
-                switch (ljicrop_type) {
-        
-                    // 右上
-                    case 'upperright':
-        
-                        if ((ljicrop_magnify - 100) > ljicrop_coordinateX) {
-                            ljicrop_video.style.left = -(ljicrop_magnify - ljicrop_coordinateX - 100) + '%';
-                        } else {
-                            ljicrop_video.style.left = -(ljicrop_magnify - (ljicrop_magnify - 100) - 100) + '%';
-                        }
-                        if ((ljicrop_magnify - 100) > ljicrop_coordinateY) {
-                            ljicrop_video.style.bottom = ljicrop_coordinateY + '%';
-                        } else {
-                            ljicrop_video.style.bottom = (ljicrop_magnify - 100) + '%';
-                        }
-        
-                    break;
-        
-                    // 右下
-                    case 'lowerright':
-        
-                        if ((ljicrop_magnify - 100) > ljicrop_coordinateX) {
-                            ljicrop_video.style.left = -(ljicrop_magnify - ljicrop_coordinateX - 100) + '%';
-                        } else {
-                            ljicrop_video.style.left = -(ljicrop_magnify - (ljicrop_magnify - 100) - 100) + '%';
-                        }
-                        if ((ljicrop_magnify - 100) > ljicrop_coordinateY) {
-                            ljicrop_video.style.bottom = (ljicrop_magnify - ljicrop_coordinateY - 100) + '%';
-                        } else {
-                            ljicrop_video.style.bottom = (ljicrop_magnify - (ljicrop_magnify - 100) - 100) + '%';
-                        }
-        
-                    break;
-        
-                    // 左上
-                    case 'upperleft':
-        
-                        if ((ljicrop_magnify - 100) > ljicrop_coordinateX) {
-                            ljicrop_video.style.left = -ljicrop_coordinateX + '%';
-                        } else {
-                            ljicrop_video.style.left = -(ljicrop_magnify - 100) + '%';
-                        }
-                        if ((ljicrop_magnify - 100) > ljicrop_coordinateY) {
-                            ljicrop_video.style.bottom = ljicrop_coordinateY + '%';
-                        } else {
-                            ljicrop_video.style.bottom = (ljicrop_magnify - 100) + '%';
-                        }
-        
-                    break;
-        
-                    // 左下
-                    case 'lowerleft':
-        
-                        if ((ljicrop_magnify - 100) > ljicrop_coordinateX) {
-                            ljicrop_video.style.left = -ljicrop_coordinateX + '%';
-                        } else {
-                            ljicrop_video.style.left = -(ljicrop_magnify - 100) + '%';
-                        }
-                        if ((ljicrop_magnify - 100) > ljicrop_coordinateY) {
-                            ljicrop_video.style.bottom = (ljicrop_magnify - ljicrop_coordinateY - 100) + '%';
-                        } else {
-                            ljicrop_video.style.bottom = (ljicrop_magnify - (ljicrop_magnify - 100) - 100) + '%';
-                        }
-        
-                    break;
+                // 全てデフォルト（オフ）状態ならスタイルを削除
+                if (ljicrop_magnification === 100 && ljicrop_coordinateX === 0 && ljicrop_coordinateY === 0) {
+
+                    // 空文字を入れると style 属性から当該スタイルが除去される
+                    ljicrop_video.style.position = '';
+                    ljicrop_video.style.width = '';
+                    ljicrop_video.style.height = '';
+                    ljicrop_video.style.left = '';
+                    ljicrop_video.style.bottom = '';
+
+                } else {
+
+                    // video 要素を拡大
+                    ljicrop_video.style.position = 'relative';
+                    ljicrop_video.style.width = ljicrop_magnification + '%';
+                    ljicrop_video.style.height = ljicrop_magnification + '%';
+
+                    // 拡大起点別
+                    switch (ljicrop_type) {
+
+                        // 右上
+                        case 'upperright':
+                            if ((ljicrop_magnification - 100) > ljicrop_coordinateX) {
+                                ljicrop_video.style.left = -(ljicrop_magnification - ljicrop_coordinateX - 100) + '%';
+                            } else {
+                                ljicrop_video.style.left = -(ljicrop_magnification - (ljicrop_magnification - 100) - 100) + '%';
+                            }
+                            if ((ljicrop_magnification - 100) > ljicrop_coordinateY) {
+                                ljicrop_video.style.bottom = ljicrop_coordinateY + '%';
+                            } else {
+                                ljicrop_video.style.bottom = (ljicrop_magnification - 100) + '%';
+                            }
+                        break;
+
+                        // 右下
+                        case 'lowerright':
+                            if ((ljicrop_magnification - 100) > ljicrop_coordinateX) {
+                                ljicrop_video.style.left = -(ljicrop_magnification - ljicrop_coordinateX - 100) + '%';
+                            } else {
+                                ljicrop_video.style.left = -(ljicrop_magnification - (ljicrop_magnification - 100) - 100) + '%';
+                            }
+                            if ((ljicrop_magnification - 100) > ljicrop_coordinateY) {
+                                ljicrop_video.style.bottom = (ljicrop_magnification - ljicrop_coordinateY - 100) + '%';
+                            } else {
+                                ljicrop_video.style.bottom = (ljicrop_magnification - (ljicrop_magnification - 100) - 100) + '%';
+                            }
+                        break;
+
+                        // 左上
+                        case 'upperleft':
+                            if ((ljicrop_magnification - 100) > ljicrop_coordinateX) {
+                                ljicrop_video.style.left = -ljicrop_coordinateX + '%';
+                            } else {
+                                ljicrop_video.style.left = -(ljicrop_magnification - 100) + '%';
+                            }
+                            if ((ljicrop_magnification - 100) > ljicrop_coordinateY) {
+                                ljicrop_video.style.bottom = ljicrop_coordinateY + '%';
+                            } else {
+                                ljicrop_video.style.bottom = (ljicrop_magnification - 100) + '%';
+                            }
+                        break;
+
+                        // 左下
+                        case 'lowerleft':
+                            if ((ljicrop_magnification - 100) > ljicrop_coordinateX) {
+                                ljicrop_video.style.left = -ljicrop_coordinateX + '%';
+                            } else {
+                                ljicrop_video.style.left = -(ljicrop_magnification - 100) + '%';
+                            }
+                            if ((ljicrop_magnification - 100) > ljicrop_coordinateY) {
+                                ljicrop_video.style.bottom = (ljicrop_magnification - ljicrop_coordinateY - 100) + '%';
+                            } else {
+                                ljicrop_video.style.bottom = (ljicrop_magnification - (ljicrop_magnification - 100) - 100) + '%';
+                            }
+                        break;
+                    }
                 }
             }
         }
@@ -485,7 +595,9 @@ $(function() {
         $('#cast-scan').prop('disabled', true).addClass('disabled');
         toastr.info('スキャンしています…');
         $.ajax({
-            url: '/api/chromecast/' + stream + '?cmd=scan',
+            url: '/api/chromecast/' + stream,
+            type: 'post',
+            data: {_csrf_token: Cookies.get('tvrp_csrf_token'), cmd: 'scan'},
             dataType: 'json',
             cache: false,
         }).done(function(data) {
@@ -516,6 +628,8 @@ $(function() {
     // 現在すでにキャスト中かを調べる
     $.ajax({
         url: '/api/chromecast/' + stream,
+        type: 'post',
+        data: {_csrf_token: Cookies.get('tvrp_csrf_token')},
         dataType: 'json',
         cache: false,
     }).done(function(data) {
@@ -543,12 +657,14 @@ $(function() {
 
             $.ajax({
                 url: '/api/chromecast/' + stream,
+                type: 'post',
+                data: {_csrf_token: Cookies.get('tvrp_csrf_token')},
                 dataType: 'json',
                 cache: false,
             }).done(function(data) {
 
                 var html = '';
-                
+
                 // デバイスごとに
                 Object.keys(data['scandata']).forEach(function(key){
 
@@ -576,10 +692,10 @@ $(function() {
 
                 // 一気に代入
                 document.getElementById('chromecast-device-box').innerHTML = html;
-                
+
                 // クリックイベントを付与
                 document.querySelectorAll('.chromecast-device').forEach(function(elem) {
-                    
+
                     // キャスト開始
                     elem.addEventListener('click', function() {
                         initServerCast(elem);
@@ -592,7 +708,9 @@ $(function() {
         } else if ($('#cast-toggle > .menu-link-href').text() == 'キャストを終了'){
 
             $.ajax({
-                url: '/api/chromecast/' + stream + '?cmd=stop',
+                url: '/api/chromecast/' + stream,
+                type: 'post',
+                data: {_csrf_token: Cookies.get('tvrp_csrf_token'), cmd: 'stop'},
                 dataType: 'json',
                 cache: false,
             }).done(function(data) {
@@ -650,19 +768,19 @@ function initBrowserCast(){
     // キャストボタンクリック時に発火
     remotePlayerController.addEventListener(
         cast.framework.RemotePlayerEventType.IS_CONNECTED_CHANGED, function() {
-            
+
             if (remotePlayer.isConnected){
 
                 $('#cast-toggle > .menu-link-href').text('キャストを終了');
                 toastr.info('キャストを開始しています…');
-                
+
                 // 動画を一旦止める
                 dp.video.pause();
                 // 端末はミュートにする
                 dp.video.muted = true;
                 // 音量を半分にする
                 dp.video.volume = 0.7;
-                
+
                 // シークを通知
                 $('#dplayer').addClass('dplayer-seeking');
                 // ローディング表示
@@ -670,7 +788,7 @@ function initBrowserCast(){
                 // 動画表示を消す
                 dp.video.style.transition = 'opacity 0.3s ease';
                 dp.video.style.opacity = 0;
-                
+
                 // キャスト端末の名前
                 var castName = cast.framework.CastContext.getInstance().getCurrentSession().getSessionObj().receiver.friendlyName;
 
@@ -705,7 +823,7 @@ function initBrowserCast(){
 
 // JavaScript から Chromecast を制御する関数
 function controlBrowserCast(){
-    
+
     // セッション周り
     var castSession = cast.framework.CastContext.getInstance().getCurrentSession();
     var mediaInfo = new chrome.cast.media.MediaInfo(streamurl, streamtype);
@@ -738,7 +856,7 @@ function controlBrowserCast(){
 
                     // 読み込み中のとき
                     if (player.playerState == 'BUFFERING'){
-                        
+
                         buffering = true;
                         // シークを通知
                         $('#dplayer').addClass('dplayer-seeking');
@@ -790,7 +908,7 @@ function controlBrowserCast(){
             // 最初に現在の位置までシーク
             player.currentTime = dp.video.currentTime;
             playerController.seek();
-            
+
             // 再生
             $('.dplayer-video-current').on('play playing', function(){
                 if ($('#cast-toggle > .menu-link-href').text() === 'キャストを終了'){
@@ -861,7 +979,7 @@ function initServerCast(elem){
 
     // キャスト端末の名前
     var castName = $(elem).find('.chromecast-name').text();
-    
+
     // 「〇〇で再生しています」を出す
     if (!$('.dplayer-casting').length){
         $('.dplayer-danmaku').before('<div class="dplayer-casting">' + castName + 'で再生しています</div>');
@@ -879,7 +997,9 @@ function initServerCast(elem){
 
     // Chromecast を起動
     $.ajax({
-        url: '/api/chromecast/' + stream + '?cmd=start&ip=' + $(elem).attr('data-ip') + '&port=' + $(elem).attr('data-port'),
+        url: '/api/chromecast/' + stream,
+        type: 'post',
+        data: {_csrf_token: Cookies.get('tvrp_csrf_token'), cmd: 'start', ip: $(elem).attr('data-ip'), port: $(elem).attr('data-port')},
         dataType: 'json',
         cache: false,
     }).done(function(data) {
@@ -915,7 +1035,9 @@ function controlServerCast(state){
 
         // 再生系処理 
         $.ajax({
-            url: '/api/chromecast/' + stream + '?cmd=seek&arg=' + dp.video.currentTime,
+            url: '/api/chromecast/' + stream,
+            type: 'post',
+            data: {_csrf_token: Cookies.get('tvrp_csrf_token'), cmd: 'seek', arg: dp.video.currentTime},
             dataType: 'json',
             cache: false,
         }).done(function(data) {
@@ -933,12 +1055,14 @@ function controlServerCast(state){
         if ($('#cast-toggle > .menu-link-href').text() == 'キャストを終了'){
 
             $.ajax({
-                url: '/api/chromecast/' + stream + '?cmd=restart',
+                url: '/api/chromecast/' + stream,
+                type: 'post',
+                data: {_csrf_token: Cookies.get('tvrp_csrf_token'), cmd: 'restart'},
                 dataType: 'json',
                 cache: false,
             }).done(function(data) {
             });
-        
+
         }
     });
 
@@ -951,7 +1075,9 @@ function controlServerCast(state){
             if (state == 'File'){
 
                 $.ajax({
-                    url: '/api/chromecast/' + stream + '?cmd=seek&arg=' + dp.video.currentTime,
+                    url: '/api/chromecast/' + stream,
+                    type: 'post',
+                    data: {_csrf_token: Cookies.get('tvrp_csrf_token'), cmd: 'seek', arg: dp.video.currentTime},
                     dataType: 'json',
                     cache: false,
                 }).done(function(data) {
@@ -960,7 +1086,9 @@ function controlServerCast(state){
             } else {
 
                 $.ajax({
-                    url: '/api/chromecast/' + stream + '?cmd=pause',
+                    url: '/api/chromecast/' + stream,
+                    type: 'post',
+                    data: {_csrf_token: Cookies.get('tvrp_csrf_token'), cmd: 'pause'},
                     dataType: 'json',
                     cache: false,
                 }).done(function(data) {
@@ -980,7 +1108,9 @@ function controlServerCast(state){
             if ($('#cast-toggle > .menu-link-href').text() == 'キャストを終了'){
 
                 $.ajax({
-                    url: '/api/chromecast/' + stream + '?cmd=seek&arg=' + dp.video.currentTime,
+                    url: '/api/chromecast/' + stream,
+                    type: 'post',
+                    data: {_csrf_token: Cookies.get('tvrp_csrf_token'), cmd: 'seek', arg: dp.video.currentTime},
                     dataType: 'json',
                     cache: false,
                 }).done(function(data) {
@@ -997,12 +1127,14 @@ function controlServerCast(state){
         if ($('#cast-toggle > .menu-link-href').text() == 'キャストを終了'){
 
             $.ajax({
-                url: '/api/chromecast/' + stream + '?cmd=volume&arg=' + dp.video.volume,
+                url: '/api/chromecast/' + stream,
+                type: 'post',
+                data: {_csrf_token: Cookies.get('tvrp_csrf_token'), cmd: 'volume', arg: dp.video.volume},
                 dataType: 'json',
                 cache: false,
             }).done(function(data) {
             });
-            
+
             dp.video.muted = true; // 端末はミュートにする
 
         }

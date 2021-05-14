@@ -13,7 +13,7 @@ class Scroll {
      * @param {Boolean} is_file ファイル再生かどうか
      */
     constructor(comment_draw_box, comment_scroll, scroll_amount, is_file = false) {
-        
+
         // 引数をセット
         this.comment_draw_box = comment_draw_box;
         this.comment_scroll = comment_scroll;
@@ -22,10 +22,10 @@ class Scroll {
 
         // 自動スクロールモードか
         this.is_autoscroll_mode = true;
-    
+
         // 自動スクロール中か
         this.is_autoscroll_now = false;
-    
+
         // setTimeout の ID
         this.is_autoscroll_now_timer;
     }
@@ -72,7 +72,7 @@ class Scroll {
             };
         }
     }
-    
+
     /**
      * 手動スクロールでかつ下まで完全にスクロールされているかどうか
      * 参考: https://developer.mozilla.org/ja/docs/Web/API/Element/scrollHeight
@@ -84,8 +84,9 @@ class Scroll {
             const height = Math.ceil(this.comment_draw_box.scrollHeight); // ボックス全体の高さ
             const scroll = Math.ceil(this.comment_draw_box.scrollTop + this.comment_draw_box.clientHeight);  // スクロールで見えている部分の下辺
             const diff = Math.abs(height - scroll); // 絶対値を取得
-            // 差が 3 以内なら（イコールだとたまにずれる時に判定漏れが起きる）
-            if (diff <= 3) {
+            // 差が 8 以内なら（イコールだとたまにずれる時に判定漏れが起きる）
+            console.log(diff)
+            if (diff <= 8) {
                 return true;
             } else {
                 return false;
@@ -102,34 +103,34 @@ class Scroll {
 
         let timeout;
         this.comment_draw_box.addEventListener('scroll', (event) => {
-    
+
             // setTimeout() がセットされていたら無視
             if (timeout) return;
             timeout = setTimeout(() => {
                 timeout = 0;
-    
+
                 // 自動スクロール中でない
                 if (this.is_autoscroll_now === false) {
-    
+
                     // 手動スクロールでかつ下まで完全にスクロールされている場合は自動スクロールに戻す
                     if (this.isManualBottomScroll()) {
-    
+
                         // 自動スクロール中
                         this.is_autoscroll_mode = true;
-    
+
                         // ボタンを非表示
                         this.comment_scroll.classList.remove('show');
-    
+
                     } else {
-                    
+
                         // 手動スクロール中
                         this.is_autoscroll_mode = false;
-    
+
                         // ボタンを表示
                         this.comment_scroll.classList.add('show');
                     }
                 }
-    
+
             }, 100);  // 100ms ごと
         });
     }
@@ -140,13 +141,13 @@ class Scroll {
     clickScrollButtonEvent() {
 
         this.comment_scroll.addEventListener('click', (event) => {
-    
+
             // ボタンを非表示
             this.comment_scroll.classList.remove('show');
 
             // スクロール
             this.scroll(true);
-        
+
             // 700ms 後に自動スクロールに戻す
             setTimeout(() => {
                 this.is_autoscroll_mode = true;
@@ -158,21 +159,21 @@ class Scroll {
      * ウインドウがリサイズされたときのイベント
      */
     windowResizeEvent() {
-        
+
         window.addEventListener('resize', (event) => {
-                        
+
             // 500ms 後に実行
             setTimeout(() => {
-    
+
                 // ボタンを非表示
                 this.comment_scroll.classList.remove('show');
 
                 // スクロール
-                this.scroll(true);
-            
+                this.scroll();
+
                 // 自動スクロールに戻す
                 this.is_autoscroll_mode = true;
-                
+
             }, 500);
         });
     }
@@ -186,15 +187,15 @@ class Scroll {
 function newNicoJKAPIBackend(stream_state) {
 
     switch (stream_state) {
-        
+
         // ライブ配信
         case 'ONAir':
             return newNicoJKAPIBackendONAir();
-    
+
         // ファイル再生
         case 'File':
             return newNicoJKAPIBackendFile();
-    
+
         // オフライン
         default:
             return newNicoJKAPIBackendOffline();
@@ -223,10 +224,10 @@ function newNicoJKAPIBackendONAir() {
     // 各要素
     // コメントボックス
     let comment_draw_box = null;
-    
+
     // コメントボックスの実際の描画領域
     let comment_draw_box_real = null;
-    
+
     // コメントスクロールボタン
     let comment_scroll = null;
 
@@ -256,10 +257,12 @@ function newNicoJKAPIBackendONAir() {
         // 視聴セッション情報を取得
         // await で Ajax が完了するまで待つ
         let watchsession_info;
-        
+
         try {
             watchsession_info = await $.ajax({
                 url: '/api/jikkyo/' + stream,
+                type: 'post',
+                data: {_csrf_token: Cookies.get('tvrp_csrf_token')},
                 dataType: 'json',
                 cache: false,
             });
@@ -477,7 +480,7 @@ function newNicoJKAPIBackendONAir() {
                             if (dp.danmaku.showing) {
                                 dp.notice('ニコニコ実況に再接続しています…');
                             }
-            
+
                             // プレイヤー側のコメント機能をリロード
                             restart();
 
@@ -505,7 +508,7 @@ function newNicoJKAPIBackendONAir() {
                     if (dp.danmaku.showing) {
                         dp.notice('ニコニコ実況に再接続しています…');
                     }
-    
+
                     // プレイヤー側のコメント機能をリロード
                     restart()
 
@@ -625,7 +628,7 @@ function newNicoJKAPIBackendONAir() {
 
             // HLS 配信に伴う遅延（指定された秒数）分待ってから描画
             await new Promise(r => setTimeout(r, settings.comment_delay * 1000));
-            
+
             // コメントリストが表示されている場合のみ
             if (settings['comment_show']) {
 
@@ -649,7 +652,7 @@ function newNicoJKAPIBackendONAir() {
                     if (comment_live === null) {
                         comment_live = document.getElementsByClassName('comment-live');
                     }
-                    
+
                     // コメント数が 100 個を超えたら古いコメントを削除
                     if (comment_live.length > 100){
                         comment_live[0].remove();
@@ -721,7 +724,7 @@ function newNicoJKAPIBackendONAir() {
 
             // 受信したメッセージ
             const message = JSON.parse(event.data);
-            
+
             switch (message.type) {
 
                 // postCommentResult
@@ -730,7 +733,7 @@ function newNicoJKAPIBackendONAir() {
 
                     // コメント成功のコールバックを DPlayer に通知
                     options.success();
-                    
+
                     // イベントを解除
                     watchsession.onmessage = null;
 
@@ -743,7 +746,7 @@ function newNicoJKAPIBackendONAir() {
                     // エラーメッセージ
                     let error;
                     switch (message.data.code) {
-                        
+
                         case 'INVALID_MESSAGE':
                             error = 'コメント内容が無効です。';
                         break;
@@ -760,10 +763,10 @@ function newNicoJKAPIBackendONAir() {
 
                     // コメント失敗のコールバックを DPlayer に通知
                     options.error(error);
-                    
+
                     // イベントを解除
                     watchsession.onmessage = null;
-                    
+
                 break;
             }
         }
@@ -781,7 +784,7 @@ function newNicoJKAPIBackendONAir() {
         dp.danmaku.dan = [];
         dp.danmaku.clear();
         dp.danmaku.load();
-        
+
         // イベント自身を削除
         document.getElementById('status').removeEventListener('update', restart);
     }
@@ -878,7 +881,7 @@ function newNicoJKAPIBackendONAir() {
 
                 // 視聴セッションを取得できなかった
                 } else {
-        
+
                     // 接続失敗のコールバックを DPlayer に通知
                     console.error('Error: ' + commentsession_info);
                     if (dp.danmaku.showing) {
@@ -918,10 +921,10 @@ function newNicoJKAPIBackendFile() {
     // 各要素
     // コメントボックス
     let comment_draw_box = null;
-    
+
     // コメントボックスの実際の描画領域
     let comment_draw_box_real = null;
-    
+
     // コメントスクロールボタン
     let comment_scroll = null;
 
@@ -961,7 +964,7 @@ function newNicoJKAPIBackendFile() {
 
         // コメントリストが表示されている場合のみ
         if (settings['comment_show']) {
-            
+
             // 各要素を取得
             comment_draw_box = document.getElementById('comment-draw-box');
             comment_draw_box_real = comment_draw_box.getElementsByTagName('tbody')[0];
@@ -975,10 +978,10 @@ function newNicoJKAPIBackendFile() {
             // コメント時間が入る配列
             // 現在の再生時間に一番近いコメントを探すのに使う
             let comment_time = [];
-            
+
             // コメントの読み込みが完了したときのイベント
             dp.on('danmaku_load_end', (event) => {
-            
+
                 let html = [];
 
                 // コメント数を表示
@@ -1013,7 +1016,7 @@ function newNicoJKAPIBackendFile() {
 
                 // 標準モード
                 if (settings['comment_list_performance'] !== 'light') {
-                
+
                     // コメントをコメントリストに一気に挿入
                     comment_draw_box_real.innerHTML = html.join('');
 
@@ -1081,7 +1084,7 @@ function newNicoJKAPIBackendFile() {
 
                     // 動画をシーク
                     dp.seek(event.detail);
-    
+
                     // 自動スクロール中
                     scroll_instance.is_autoscroll_mode = true;
 
@@ -1122,10 +1125,10 @@ function newNicoJKAPIBackendFile() {
 
                 // コメントリストが手動スクロールされたときのイベントを設定
                 scroll_instance.manualScrollEvent();
-    
+
                 // コメントスクロールボタンがクリックされたときのイベントを設定
                 scroll_instance.clickScrollButtonEvent();
-    
+
                 // ウインドウがリサイズされたときのイベントを設定
                 scroll_instance.windowResizeEvent();
             });
@@ -1142,6 +1145,8 @@ function newNicoJKAPIBackendFile() {
             try {
                 comment = await $.ajax({
                     url: '/api/jikkyo/' + stream,
+                    type: 'post',
+                    data: {_csrf_token: Cookies.get('tvrp_csrf_token')},
                     dataType: 'json',
                     cache: false,
                 });

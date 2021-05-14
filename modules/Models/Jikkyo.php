@@ -19,9 +19,9 @@ class Jikkyo {
 
     // ニコニコのメールアドレス
     private string $nicologin_mail;
-    
+
     // ニコニコのパスワード
-    private string $nicologin_password;    
+    private string $nicologin_password;
 
     // 変換テーブル
     // ch は公式チャンネル・co はコミュニティ
@@ -36,16 +36,17 @@ class Jikkyo {
         'jk9' => 'ch2646485', // TOKYO MX
         'jk10' => 'co5253063', // テレ玉
         'jk11' => 'co5215296', // tvk
-        'jk101' => 'co5214081', // NHK BS1 
+        'jk12' => 'co5359761', // チバテレビ
+        'jk101' => 'co5214081', // NHK BS1
         'jk103' => 'co5175227', // NHK BSプレミアム
         'jk141' => 'co5175341', // BS日テレ
         'jk151' => 'co5175345', // BS朝日
         'jk161' => 'co5176119', // BS-TBS
         'jk171' => 'co5176122', // BSテレ東
         'jk181' => 'co5176125', // BSフジ
-        'jk191' => 'co5251972', // WOWOW_Prime
-        'jk192' => 'co5251976', // WOWOW_Live
-        'jk193' => 'co5251983', // WOWOW_Cinema
+        'jk191' => 'co5251972', // WOWOW PRIME
+        'jk192' => 'co5251976', // WOWOW LIVE
+        'jk193' => 'co5251983', // WOWOW CINEMA
         'jk211' => 'ch2646846', // BS11
         'jk222' => 'co5193029', // BS12
         'jk236' => 'co5296297', // BSアニマックス
@@ -61,14 +62,14 @@ class Jikkyo {
      * @return void
      */
     public function __construct(string $nicologin_mail, string $nicologin_password) {
-        
+
         // require.php 内の変数をインスタンス変数に設定
         require ('require.php');
 
         $this->cookie_file = $cookiefile;
         $this->jikkyo_channels_file = $jikkyo_channels_file;
         $this->jikkyo_ikioi_file = $jikkyo_ikioi_file;
-        
+
         // メールアドレス・パスワードが空ならゲスト利用と判定
         $this->is_guest = (empty($nicologin_mail) or empty($nicologin_password));
 
@@ -76,7 +77,7 @@ class Jikkyo {
         $this->nicologin_mail = $nicologin_mail;
         $this->nicologin_password = $nicologin_password;
     }
-    
+
 
     /**
      * ニコニコにログインし、Cookie を保存する
@@ -136,7 +137,7 @@ class Jikkyo {
 
             // 抽出したチャンネル名
             $channel_field = $channel_record['Channel'];
-            
+
             // 正規表現用の文字をエスケープ
             $channel_field_escape = str_replace('/', '\/', preg_quote($channel_field));
 
@@ -209,7 +210,7 @@ class Jikkyo {
 
         // アイテムごとに回す
         foreach ($response['data']['items'] as $item) {
-            
+
             // アイテムの category が current（放送中）であれば
             if ($item['category'] === 'current') {
 
@@ -255,7 +256,7 @@ class Jikkyo {
             $nicolive_html = curl_exec($curl);  // リクエストを実行
             $status_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);  // ステータスコードを取得
             curl_close($curl);
-    
+
             // ステータスコードを判定
             switch ($status_code) {
                 // 200：OK
@@ -274,7 +275,7 @@ class Jikkyo {
                 default:
                     return ['error' => "現在、ニコニコ実況でエラーが発生しています。(HTTP Error {$status_code})"];
             }
-            
+
             // json をスクレイピング
             preg_match('/<script id="embedded-data" data-props="(.*?)"><\/script>/s', $nicolive_html, $result);
 
@@ -307,7 +308,7 @@ class Jikkyo {
         if ($nicolive_json['user']['isLoggedIn'] === true or $this->is_guest) {
 
             // 今のところ処理なし
-        
+
         // ログイン利用だが実際にはログインされていない（セッション切れなど）
         } else {
 
@@ -356,7 +357,7 @@ class Jikkyo {
         ];
     }
 
-    
+
     /**
      * ニコニコ実況の過去ログを取得する
      * 過去ログが取得できたら DPlayer 互換フォーマットの過去ログを、取得できなければエラーメッセージを返す
@@ -409,7 +410,7 @@ class Jikkyo {
                 return null;
             }
         };
-    
+
         /**
          * ニコニコの位置指定を DPlayer の位置指定に置換する
          * @param string $position ニコニコの位置指定
@@ -512,7 +513,7 @@ class Jikkyo {
             } else {
                 $user_id = '';
             }
-            
+
             // コメント時間（秒単位）を算出
             $time = floatval(($kakolog['date'] - $start_timestamp).'.'.($kakolog['date_usec'] ?? '0'));
 
@@ -549,58 +550,70 @@ class Jikkyo {
         // jikkyo_ikioi.json を更新
         $update = function($table, $jikkyo_ikioi_file): void {
 
-            $chikuran_url = 'http://www.chikuwachan.com/live/index.cgi?search=%E3%83%8B%E3%82%B3%E3%83%8B%E3%82%B3%E5%AE%9F%E6%B3%81';
+            $namami_url = 'http://jk.from.tv/api/v2_app/getchannels';
 
-            // ちくランの検索結果から実況勢いを取得
+            // namami から実況勢いを取得
             $curl = curl_init();
-            curl_setopt($curl, CURLOPT_URL, $chikuran_url);
+            curl_setopt($curl, CURLOPT_URL, $namami_url);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); // これがないと HTTPS で接続できない
             curl_setopt($curl, CURLOPT_USERAGENT, Utils::getUserAgent()); // ユーザーエージェントを送信
             $response = curl_exec($curl);  // リクエストを実行
+            $status_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);  // ステータスコードを取得
             curl_close($curl);
 
-            // HTML を解析
-            $document = new Document($response);
+            // 成功時のみ
+            if ($status_code === 200) {
 
-            // 配列を用意
-            $jikkyo_ikioi = [];
+                // HTML を解析
+                $document = new SimpleXMLElement($response);
 
-            // 実況チャンネルごとに勢いを取得
-            foreach ($table as $nicojikkyo_id => $nicochannel_id) {
+                // 配列を用意
+                $jikkyo_ikioi = [];
 
-                // 実況勢いを取得
-                $jikkyo_ikioi_elem = $document->querySelector("div#comm_{$nicochannel_id} div.counts div.active");
+                // 実況チャンネルごとに勢いを取得
+                foreach ($table as $nicojikkyo_id => $nicochannel_id) {
 
-                // 実況勢いを配列に追加
-                if ($jikkyo_ikioi_elem !== null) {
-                    $jikkyo_ikioi[$nicojikkyo_id] = strval($jikkyo_ikioi_elem->textContent);
-                } else {
-                    // 実況勢いはないけど、.box_active は存在する
-                    if ($document->querySelector("div#comm_{$nicochannel_id} div.counts div.box_active") !== null) {
-                        $jikkyo_ikioi[$nicojikkyo_id] = '0';  // 常に 0 に設定
+                    // 実況勢いを取得
+                    $jikkyo_ikioi_elem = $document->xpath("/channels//video[text()=\"{$nicojikkyo_id}\"]/..")[0];
+
+                    if ($jikkyo_ikioi_elem !== null) {
+
+                        // 実況勢いを配列に追加
+                        // プロパティは SimpleXMLObject なので、文字列に変換してあげる必要がある
+                        $jikkyo_ikioi[$nicojikkyo_id] = strval($jikkyo_ikioi_elem->thread->force);
+
                     } else {
-                        $jikkyo_ikioi[$nicojikkyo_id] = '-';  // その実況チャンネルの勢いが取得できなかった
+
+                        // その実況チャンネルの勢いが取得できなかった（存在しないチャンネルなど）
+                        $jikkyo_ikioi[$nicojikkyo_id] = '-';
                     }
                 }
+
+            } else {
+
+                // 取得失敗
+                foreach ($table as $nicojikkyo_id => $nicochannel_id) {
+                    $jikkyo_ikioi[$nicojikkyo_id] = "取得失敗 ({$status_code} Error)";
+                }
             }
-            
+
             // jikkyo_ikioi.json に保存
-            file_put_contents($jikkyo_ikioi_file, json_encode($jikkyo_ikioi, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT));
+            file_put_contents($jikkyo_ikioi_file, json_encode($jikkyo_ikioi, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT), LOCK_EX);
         };
 
-        // jikkyo_ikioi.json が存在しない or 更新されてから 1 分以上経っている
+        // jikkyo_ikioi.json が存在しない or 更新されてから 20 秒以上経っている
         clearstatcache();  // キャッシュを削除（重要）
         if ((file_exists($this->jikkyo_ikioi_file) === false) or
-            (time() - filemtime($this->jikkyo_ikioi_file) >= 60)) {
+            (time() - filemtime($this->jikkyo_ikioi_file) >= 20)) {
 
             // jikkyo_ikioi.json を更新
             $update($this->table, $this->jikkyo_ikioi_file);
         }
 
         // jikkyo_ikioi.json から実況勢いを取得
-        $jikkyo_ikioi = json_decode(file_get_contents($this->jikkyo_ikioi_file), true);
+        $jikkyo_ikioi = json_decode(file_get_contents_lock_sh($this->jikkyo_ikioi_file), true);
 
         // 指定された実況チャンネルのものを返す
         if (isset($jikkyo_ikioi[$nicojikkyo_id])) {

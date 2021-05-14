@@ -68,4 +68,3 @@ Thumbs.db
 *.tmp
 # Vagrant specific
 .vagrant/
-.vscode/settings.json

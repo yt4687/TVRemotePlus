@@ -9,18 +9,6 @@
 	// ヘッダー読み込み
 	require_once ('../modules/header.php');
 
-	echo '    <pre id="debug">';
-
-	// BonDriverとチャンネルを取得
-	list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, $BonDriver_dll_SPHD, // BonDriver
-		$ch, $ch_T, $ch_S, $ch_CS, $ch_SPHD, $ch_SPSD, // チャンネル番号
-		$sid, $sid_T, $sid_S, $sid_CS, $sid_SPHD, $sid_SPSD, // SID
-		$onid, $onid_T, $onid_S, $onid_CS, $onid_SPHD, $onid_SPSD, // ONID(NID)
-		$tsid, $tsid_T, $tsid_S, $tsid_CS, $tsid_SPHD, $tsid_SPSD) // TSID
-		= initBonChannel($BonDriver_dir);
-
-	echo '</pre>';
-
 ?>
 
 
@@ -79,6 +67,7 @@
         <div id="search-stream-info"></div>
         <form id="setting-form" action="/settings/" method="post">
 
+          <input type="hidden" name="_csrf_token" value="<?= $csrf_token ?>">
           <input type="hidden" name="state" value="File">
           <input id="stream-filepath" type="hidden" name="filepath" value="">
           <input id="stream-filetitle" type="hidden" name="filetitle" value="">
@@ -143,7 +132,7 @@
             <span>動画の画質：</span>
             <div class="select-wrap">
             	<select name="quality">
-                <option name="quality_default" value="<?= $quality_default; ?>" data-value="<?= $quality_default; ?>" data-text="デフォルト (<?= $quality_default; ?>)">デフォルト (<?= $quality_default; ?>)</option>
+                <option name="quality_default" value="<?= getQualityDefault(); ?>" data-value="<?= getQualityDefault(); ?>" data-text="デフォルト (<?= getQualityDefault(); ?>)">デフォルト (<?= getQualityDefault(); ?>)</option>
                 <option value="1080p-high">1080p-high (1920×1080)</option>
                 <option value="1080p">1080p (1440×1080)</option>
                 <option value="810p">810p (1440×810)</option>
@@ -213,15 +202,16 @@
 
 	// ファイルを四階層まで検索する
 	// MP4・MKVファイルも検索する
-	$search = array_merge(glob($TSfile_dir.'/*{.ts,.mts,.m2t,.m2ts,.mp4,.mkv}', GLOB_BRACE),
-						  glob($TSfile_dir.'/*/*{.ts,.mts,.m2t,.m2ts,.mp4,.mkv}', GLOB_BRACE),
-						  glob($TSfile_dir.'/*/*/*{.ts,.mts,.m2t,.m2ts,.mp4,.mkv}', GLOB_BRACE),
-						  glob($TSfile_dir.'/*/*/*/*{.ts,.mts,.m2t,.m2ts,.mp4,.mkv}', GLOB_BRACE));
+	$search = @scandir_and_match_files($TSfile_dir, '/.\\.(ts|mts|m2t|m2ts|mp4|mkv)$/i', 4);
+	if ($search === false) {
+		$search = array();
+	}
   
-	if (file_exists($infofile)){
-		$TSfile = json_decode(file_get_contents($infofile), true);
+	$TSfile = file_get_contents_lock_sh($infofile);
+	if ($TSfile !== false) {
+		$TSfile = json_decode($TSfile, true);
 	} else {
-		$TSfile['data'] = array();
+		$TSfile = array('data' => array());
 	}
 
 	// ファイルリストに記録されたファイル数と異なる場合

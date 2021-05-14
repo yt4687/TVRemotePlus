@@ -3,23 +3,25 @@
 	// モジュール読み込み
 	require_once ('../../modules/require.php');
 	require_once ('../../modules/module.php');
+	require_once ('../../modules/classloader.php');
 
 	// かなり長くなることがあるので実行時間制限をオフに
 	ignore_user_abort(true);
 	set_time_limit(0);
 
 	// jsonからデコードして代入
-	if (file_exists($infofile)){
-		$TSfile = json_decode(file_get_contents($infofile), true);
+	$TSfile = file_get_contents_lock_sh($infofile);
+	if ($TSfile !== false) {
+		$TSfile = json_decode($TSfile, true);
 	} else {
-		$TSfile = array();
+		$TSfile = array('data' => array());
 	}
 
 	// リストリセット
 	if (isset($_GET['list_reset'])){
 
-		// jsonを削除
-		@unlink($infofile);
+		// jsonを空にする
+		file_put_contents($infofile, json_encode(array('data' => array()), JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT), LOCK_EX);
 		// ロックファイルを削除
 		@unlink($infofile.'.lock');
 
@@ -37,8 +39,8 @@
 	// 再生履歴を削除
 	if (isset($_GET['history_reset'])){
 
-		// jsonを削除
-		@unlink($historyfile);
+		// jsonを空にする
+		file_put_contents($historyfile, json_encode(array('data' => array()), JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT), LOCK_EX);
 
 		$json = array(
 			'api' => 'listupdate',
@@ -125,10 +127,22 @@
 
 		// ファイルを四階層まで検索する
 		// MP4・MKVファイルも検索する
-		$search = array_merge(glob($TSfile_dir.'/*{.ts,.mts,.m2t,.m2ts,.mp4,.mkv}', GLOB_BRACE),
-							glob($TSfile_dir.'/*/*{.ts,.mts,.m2t,.m2ts,.mp4,.mkv}', GLOB_BRACE),
-							glob($TSfile_dir.'/*/*/*{.ts,.mts,.m2t,.m2ts,.mp4,.mkv}', GLOB_BRACE),
-							glob($TSfile_dir.'/*/*/*/*{.ts,.mts,.m2t,.m2ts,.mp4,.mkv}', GLOB_BRACE));
+		$search_extensions = array('ts', 'mts', 'm2t', 'm2ts', 'mp4', 'mkv');
+		$search = @scandir_and_match_files($TSfile_dir, '/.\\.('.implode('|', $search_extensions).')$/i', 4);
+		if ($search === false) {
+			$search = array();
+		}
+
+		// 拡張子順にソート
+		usort($search, function ($a, $b) use ($search_extensions) {
+			$cmp = array_search(strtolower(substr($a, strrpos($a, '.') + 1)), $search_extensions, true) -
+			       array_search(strtolower(substr($b, strrpos($b, '.') + 1)), $search_extensions, true);
+			return $cmp !== 0 ? $cmp : strcmp($a, $b);
+		});
+
+		$TSfile['data'] = array();
+
+		$rec_info_dict = null;
 
 		foreach ($search as $key => $value) {
 			
@@ -138,18 +152,22 @@
 				  $ffprobe_cmd, $ffprobe_result, $ffprobe_return);
 
 			// 録画ファイル保存フォルダからのパスを含めたファイル名
-			$TSfile['data'][$key]['file'] = str_replace($TSfile_dir, '', $value);
+			$TSfile['data'][$key]['file'] = '/'.$value;
 			// Pathinfo
-			$TSfile['data'][$key]['pathinfo'] = pathinfo($value);
+			$TSfile['data'][$key]['pathinfo'] = pathinfo($TSfile_dir.'/'.$value);
 			// 拡張子なしファイル名を暫定でタイトルにしておく
 			$TSfile['data'][$key]['title'] = decorateMark(str_replace('　', ' ', $TSfile['data'][$key]['pathinfo']['filename']));
 			// タイトル(HTML抜き)
 			$TSfile['data'][$key]['title_raw'] = str_replace('　', ' ', $TSfile['data'][$key]['pathinfo']['filename']);
 			// ファイルの更新日時(Unix時間)
-			$TSfile['data'][$key]['update'] = filemtime($value);
+			$TSfile['data'][$key]['update'] = filemtime($TSfile_dir.'/'.$value);
+
+			// dirnameは削除しておく(セキュリティ上の問題)
+			$pathinfo_dirname = $TSfile['data'][$key]['pathinfo']['dirname'];
+			unset($TSfile['data'][$key]['pathinfo']['dirname']);
 
 			// ファイル名のmd5
-			$md5 = md5($value);
+			$md5 = md5($TSfile_dir.'/'.$value);
 
 			// サムネイルが存在するなら
 			if (file_exists($base_dir.'htdocs/files/thumb/'.$md5.'.jpg')){
@@ -171,7 +189,7 @@
 				$TSfile['data'][$key]['thumb'] = 'thumb_default.jpg'; // サムネイル画像のパス
 
 				// ffmpegでサムネイルを生成
-				$ffmpeg_cmd = '"'.$ffmpeg_path.'" -y -ss 72 -i "'.$value.'" -vframes 1 -f image2 -s 480x270 "'.$base_dir.'htdocs/files/thumb/'.$md5.'.jpg" 2>&1';
+				$ffmpeg_cmd = '"'.$ffmpeg_path.'" -y -ss 72 -i "'.$TSfile_dir.'/'.$value.'" -vframes 1 -f image2 -s 480x270 "'.$base_dir.'htdocs/files/thumb/'.$md5.'.jpg" 2>&1';
 				exec($ffmpeg_cmd, $ffmpeg_result, $ffmpeg_return);
 
 				// 生成成功
@@ -216,7 +234,7 @@
 				$TSfile['data'][$key] = $TSfile['info'][$TSfile['data'][$key]['pathinfo']['filename']];
 
 				// ファイルパスがTSのものに上書きされてしまうのでここで戻しておく
-				$TSfile['data'][$key]['file'] = str_replace($TSfile_dir, '', $value);
+				$TSfile['data'][$key]['file'] = '/'.$value;
 
 				// 拡張子も.tsとして上書きされてしまうのでこれも戻しておく（ついでに小文字化）
 				$TSfile['data'][$key]['pathinfo']['extension'] = strtolower($extension);
@@ -229,7 +247,7 @@
 			} else if ($TSfile['data'][$key]['pathinfo']['extension'] != 'mp4' and $TSfile['data'][$key]['pathinfo']['extension'] != 'mkv'){
 
 				// rplsinfoでファイル情報を取得
-				$rplsinfo_cmd = '"'.$rplsinfo_path.'" -C -dtpcbieg -l 10 "'.$value.'" 2>&1';
+				$rplsinfo_cmd = '"'.$rplsinfo_path.'" -C -dtpcbieg -l 10 "'.$TSfile_dir.'/'.$value.'" 2>&1';
 				exec($rplsinfo_cmd, $rplsinfo_result, $rplsinfo_return);
 
 				// 取得成功
@@ -271,38 +289,57 @@
 			// この時点で番組情報を取得できていない場合、.ts.program.txt からの取得を試みる
 			if ($TSfile['data'][$key]['duration'] === '30?' and !isset($TSfile['data'][$key]['tsinfo_state'])){
 
-				// .ts.program.txt の場所
-				// 録画情報フォルダがセット済み
-				if (!empty($TSinfo_dir)){
-
-					$program_file = $TSinfo_dir.'/'.$TSfile['data'][$key]['pathinfo']['filename'].'.ts.program.txt';
-					$program_file_ = str_replace('\\', '/', $TSfile['data'][$key]['pathinfo']['dirname']).'/'.$TSfile['data'][$key]['pathinfo']['filename'].'.ts.program.txt';
-
-				// 録画情報フォルダが空（録画ファイルと同じフォルダに設定）
-				} else {
-
-					$program_file = str_replace('\\', '/', $TSfile['data'][$key]['pathinfo']['dirname']).'/'.$TSfile['data'][$key]['pathinfo']['filename'].'.ts.program.txt';
-					$program_file_ = $program_file;
+				if (!isset($rec_info_dict)) {
+					$rec_info_dict = array();
+					// 録画済み一覧を取得
+					$cmd = new CtrlCmdUtil;
+					if (isset($ctrlcmd_addr) && $ctrlcmd_addr !== '') {
+						$cmd->setNWSetting($ctrlcmd_addr);
+					}
+					// 拡張子つき/なしのファイル名をキーとする辞書化
+					foreach ($cmd->sendEnumRecInfoBasic2() ?? array() as $info) {
+						if (!empty($info['recFilePath'])) {
+							$rec_info_dict[strtoupper(pathinfo($info['recFilePath'], PATHINFO_BASENAME))] = $info;
+							$rec_info_dict[strtoupper(pathinfo($info['recFilePath'], PATHINFO_FILENAME))] = $info;
+						}
+					}
 				}
 
-				// 実際に .ts.program.txt があれば取得を実行
-				// 録画情報フォルダがセットされていた場合でも録画フォルダのほうにあればそれを使う（念のため）
-				if (file_exists($program_file) or file_exists($program_file_)){
-
-					// .ts.program.txt を解析
-					$program = programToArray($program_file);
-
-					$TSfile['data'][$key]['title'] = decorateMark($program['title']); // 取得した番組名の方が正確なので修正
-					$TSfile['data'][$key]['title_raw'] = $program['title']; // 取得した番組名の方が正確なので修正
-					$TSfile['data'][$key]['date'] = $program['date']; // 録画日付
+				// 拡張子を除いたファイル名が録画済み一覧と一致するものを探す
+				$info = $rec_info_dict[strtoupper($TSfile['data'][$key]['pathinfo']['filename'])] ?? null;
+				if (isset($info)) {
+					$TSfile['data'][$key]['title'] = decorateMark(htmlspecialchars(mb_convert_kana($info['title'], 'asv', 'UTF-8'))); // 取得した番組名の方が正確なので修正
+					$TSfile['data'][$key]['title_raw'] = mb_convert_kana($info['title'], 'asv', 'UTF-8'); // 取得した番組名の方が正確なので修正
+					$TSfile['data'][$key]['date'] = date('Y/m/d', $info['startTime']); // 録画日付
 					$TSfile['data'][$key]['info_state'] = 'generated'; // 番組情報取得フラグ
-					$TSfile['data'][$key]['info'] = $program['info']; // 番組情報
-					$TSfile['data'][$key]['channel'] = $program['channel']; //チャンネル名
-					$TSfile['data'][$key]['start'] = $program['start']; // 番組の開始時刻
-					$TSfile['data'][$key]['end'] = $program['end']; // 番組の終了時刻
-					$TSfile['data'][$key]['duration'] = $program['duration']; // ファイルの時間を算出
-					$TSfile['data'][$key]['start_timestamp'] = $program['start_timestamp']; // 開始時刻のタイムスタンプ
-					$TSfile['data'][$key]['end_timestamp'] = $program['end_timestamp']; // 終了時刻のタイムスタンプ
+
+					// 詳細情報も含めて取得する
+					$exinfo = $cmd->sendGetRecInfo2($info['id']);
+					if (isset($exinfo) && $exinfo['programInfo'] !== '') {
+						// .program.txt が見つかった
+						$TSfile['data'][$key]['info'] = htmlspecialchars(programToArray($exinfo['programInfo'])['info'] ?? ''); // 番組情報
+					} elseif ($info['eid'] !== 0xFFFF) {
+						// プログラム予約でなければ過去番組情報を探してみる
+						$exinfo = $cmd->sendEnumPgArc(array(0, (($info['onid'] * 0x10000) + $info['tsid']) * 0x10000 + $info['sid'],
+						                                    CtrlCmdUtil::unixTimeToJstFileTime($info['startTime'] - 1),
+						                                    CtrlCmdUtil::unixTimeToJstFileTime($info['startTime'] + 1)));
+						if (!empty($exinfo) && !empty($exinfo[0]['eventList'])) {
+							// 過去番組情報が見つかった
+							$exinfo = $exinfo[0]['eventList'][0];
+						} else {
+							// 番組情報を探してみる
+							$exinfo = $cmd->sendGetPgInfo($info['onid'], $info['tsid'], $info['sid'], $info['eid']);
+						}
+						if (isset($exinfo['shortInfo'])) {
+							$TSfile['data'][$key]['info'] = htmlspecialchars(mb_convert_kana($exinfo['shortInfo']['text_char'], 'asv', 'UTF-8')); // 番組情報
+						}
+					}
+					$TSfile['data'][$key]['channel'] = mb_convert_kana($info['serviceName'], 'asv', 'UTF-8'); //チャンネル名
+					$TSfile['data'][$key]['start'] = date('H:i', $info['startTime']); // 番組の開始時刻
+					$TSfile['data'][$key]['end'] = date('H:i', $info['startTime'] + $info['durationSecond']); // 番組の終了時刻
+					$TSfile['data'][$key]['duration'] = intval(round($info['durationSecond'] / 60)); // ファイルの時間を算出
+					$TSfile['data'][$key]['start_timestamp'] = $info['startTime']; // 開始時刻のタイムスタンプ
+					$TSfile['data'][$key]['end_timestamp'] = $info['startTime'] + $info['durationSecond']; // 終了時刻のタイムスタンプ
 
 					unset($TSfile['data'][$key]['tsinfo_state']);
 
@@ -313,7 +350,7 @@
 				} else {
 				
 					// コマンドを実行
-					$ffprobe_cmd = '"'.$ffprobe_path.'" -i "'.$value.'" -loglevel quiet -show_streams -print_format json';
+					$ffprobe_cmd = '"'.$ffprobe_path.'" -i "'.$TSfile_dir.'/'.$value.'" -loglevel quiet -show_streams -print_format json';
 					exec($ffprobe_cmd, $ffprobe_result, $ffprobe_return);
 
 					if ($ffprobe_return === 0){
@@ -337,9 +374,6 @@
 					}
 				}
 			}
-			
-			// dirnameは削除しておく(セキュリティ上の問題)
-			unset($TSfile['data'][$key]['pathinfo']['dirname']);
 
 			// 無駄な空白や改行を削除
 			if (isset($TSfile['data'][$key]['title'])) $TSfile['data'][$key]['title'] = trim($TSfile['data'][$key]['title']);
@@ -348,8 +382,19 @@
 
 		}
 
+		// もう存在しないファイルの情報を削除
+		if (isset($TSfile['info'])) {
+			$swept_info = array();
+			foreach ($TSfile['data'] as $value) {
+				if (isset($TSfile['info'][$value['pathinfo']['filename']])) {
+					$swept_info[$value['pathinfo']['filename']] = $TSfile['info'][$value['pathinfo']['filename']];
+				}
+			}
+			$TSfile['info'] = $swept_info;
+		}
+
 		// ファイルに保存
-		file_put_contents($infofile, json_encode($TSfile, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT));
+		file_put_contents($infofile, json_encode($TSfile, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT), LOCK_EX);
 
 		// lockファイルを削除
 		@unlink($infofile.'.lock');
@@ -368,6 +413,6 @@
 
 	}
 
-	// 出力 
+	// 出力
 	header('content-type: application/json; charset=utf-8');
 	echo json_encode($json, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT);

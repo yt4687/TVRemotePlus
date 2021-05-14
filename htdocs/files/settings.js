@@ -34,6 +34,7 @@ $(function(){
         settings['comment_delay'] = $('#comment_delay').val();
         settings['comment_file_delay'] = $('#comment_file_delay').val();
         settings['comment_list_performance'] = $('#comment_list_performance').val();
+        settings['quality_user_default'] = $('#quality_user_default').val();
         settings['list_view_number'] = $('#list_view_number').val();
         settings['onclick_stream'] = $('#onclick_stream').prop('checked');
         settings['player_floating'] = $('#player_floating').prop('checked');
@@ -53,7 +54,7 @@ $(function(){
         }
 
         var json = JSON.stringify(settings);
-        Cookies.set('settings', json, { expires: 365 });
+        Cookies.set('tvrp_settings', json, { expires: 365 });
         toastr.success('個人設定を保存しました。');
         setTimeout(function(){
             $('.bluebutton').attr('disabled', false);

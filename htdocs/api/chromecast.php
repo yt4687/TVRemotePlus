@@ -12,19 +12,27 @@
 	$stream = getStreamNumber($_SERVER['REQUEST_URI']);
 
 	// 設定ファイル読み込み
-	$ini = json_decode(file_get_contents($inifile), true);
-	$cast = json_decode(file_get_contents($castfile), true);
+	$ini = json_decode(file_get_contents_lock_sh($inifile), true);
+	$cast = json_decode(file_get_contents_lock_sh($castfile), true);
 
 	$json = array(
 		'api' => 'chromecast'
 	);
 
+	if (!isset($_COOKIE['tvrp_csrf_token']) || !is_string($_COOKIE['tvrp_csrf_token']) ||
+	    !isset($_POST['_csrf_token']) || $_POST['_csrf_token'] !== $_COOKIE['tvrp_csrf_token']) {
+		trigger_error('Csrf token error', E_USER_ERROR);
+	}
+
+	$start_ip = filter_var($_POST['ip'] ?? null, FILTER_VALIDATE_IP);
+	$start_port = filter_var($_POST['port'] ?? null, FILTER_VALIDATE_INT);
+	$cast['cmd'] = (string)filter_var($_POST['cmd'] ?? null);
+
 	// コマンド確認
-	if (isset($_GET['cmd'])){
-		$cast['cmd'] = $_GET['cmd'];
+	if (preg_match('/^[a-z]+$/', $cast['cmd'])){
 
 		// スタートならChromecast起動
-		if ($cast['cmd'] == 'start' and isset($_GET['ip']) and isset($_GET['port'])){
+		if ($cast['cmd'] == 'start' and $start_ip !== false and $start_port !== false){
 
 			if ($ini[$stream]['state'] == 'File' and $ini[$stream]['fileext'] != 'ts' and $ini[$stream]['encoder'] == 'Progressive'){
 				$streamurl = 'http://'.$_SERVER['SERVER_NAME'].':'.$http_port.'/api/stream/'.$stream;
@@ -35,7 +43,7 @@
 			}
 
 			$cmd = 'pushd "'.str_replace('/', '\\', $base_dir).'bin\Apache\bin\" && start "Chromecast Connect" /min '.
-				   '..\..\php\php.exe -c "'.$base_dir.'bin/PHP/php.ini" "'.$base_dir.'modules/Cast/cast.php" '.$streamurl.' '.$streamtype.' '.$_GET['ip'].' '.$_GET['port'];
+				   '..\..\php\php.exe -c "'.$base_dir.'bin/PHP/php.ini" "'.$base_dir.'modules/Cast/cast.php" '.$streamurl.' '.$streamtype.' '.$start_ip.' '.$start_port;
 			// echo $cmd."\n";
 			win_exec($cmd);
 			$cast['cast'] = true;
@@ -90,7 +98,7 @@
 				}
 
 				// 取得できなかった時用に結果を保存しておく
-				file_put_contents($scanfile, json_encode($scandata, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT));
+				file_put_contents($scanfile, json_encode($scandata, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT), LOCK_EX);
 			}
 
 		}
@@ -105,25 +113,26 @@
 		$scanflg = false;
 
 		// 保存されてあれば読み込む
-		if (file_exists($scanfile)){
-			$scandata = json_decode(file_get_contents($scanfile), true);
+		$scandata = file_get_contents_lock_sh($scanfile);
+		if ($scandata !== false) {
+			$scandata = json_decode($scandata, true);
 		} else {
 			$scandata = array();
 		}
 	}
 
 	// 引数確認
-	if (isset($_GET['arg'])){
-		$cast['arg'] = $_GET['arg'];
+	if (isset($_POST['arg'])){
+		$cast['arg'] = (string)round((float)$_POST['arg'], 3);
 	} else {
 		$cast['arg'] = '';
 	}
 
 	// JSON
 	$json['cmd'] = $cast['cmd'];
-	if ($cast['cmd'] == 'start' and isset($_GET['host']) and isset($_GET['ip']) and isset($_GET['port'])){
-		$json['ip'] = $_GET['ip'];
-		$json['port'] = $_GET['port'];
+	if ($cast['cmd'] == 'start' and isset($_POST['host']) and $start_ip !== false and $start_port !== false){
+		$json['ip'] = $start_ip;
+		$json['port'] = (string)$start_port;
 	}
 	$json['arg'] = $cast['arg'];
 	if ($cast['cmd'] == 'scan'){
@@ -145,12 +154,12 @@
 	// スタート時のみ Play になるまで待つ
 	$i = 0;
 
-	if ($cast['cmd'] == 'start' and isset($_GET['ip']) and isset($_GET['port'])){
+	if ($cast['cmd'] == 'start' and $start_ip !== false and $start_port !== false){
 		while (true){
 			
 			// 0.5秒ごとに読み込み
 			usleep(500000);
-			$cast_ = json_decode(file_get_contents($castfile), true);
+			$cast_ = json_decode(file_get_contents_lock_sh($castfile), true);
 			// 再生が開始されたらbreak
 			if ($cast_['status'] == 'play'){
 				$cast['status'] = 'play';
@@ -172,6 +181,6 @@
 
 	// 出力
 	header('content-type: application/json; charset=utf-8');
-	file_put_contents($castfile, json_encode($cast, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT));
+	file_put_contents($castfile, json_encode($cast, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT), LOCK_EX);
 	echo json_encode($json, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT);
 

@@ -8,16 +8,16 @@
   
 	// モジュール読み込み
 	require_once ('../modules/stream.php');
+	require_once ('../modules/classloader.php');
 
 	echo '    <pre id="debug">';
 
-	// BonDriverとチャンネルを取得
-	list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, $BonDriver_dll_SPHD, // BonDriver
-		$ch, $ch_T, $ch_S, $ch_CS, $ch_SPHD, $ch_SPSD, // チャンネル番号
-		$sid, $sid_T, $sid_S, $sid_CS, $sid_SPHD, $sid_SPSD, // SID
-		$onid, $onid_T, $onid_S, $onid_CS, $onid_SPHD, $onid_SPSD, // ONID(NID)
-		$tsid, $tsid_T, $tsid_S, $tsid_CS, $tsid_SPHD, $tsid_SPSD) // TSID
-	= initBonChannel($BonDriver_dir);
+	// チャンネルを取得
+	$cmd = new CtrlCmdUtil;
+	if (isset($ctrlcmd_addr) && $ctrlcmd_addr !== '') {
+		$cmd->setNWSetting($ctrlcmd_addr);
+	}
+	$ch = initBonChannel($cmd);
 	
 	// 時計
 	$clock = date('Y/m/d H:i:s');
@@ -25,15 +25,20 @@
 	// POSTでフォームが送られてきた場合
 	if ($_SERVER['REQUEST_METHOD'] == 'POST'){
 
+		if (!isset($_POST['_csrf_token']) || $_POST['_csrf_token'] !== $csrf_token) {
+			trigger_error('Csrf token error', E_USER_ERROR);
+		}
+
 		// ストリーム番号を取得
-		if (!empty($_POST['stream'])){
-			$stream = strval($_POST['stream']);
+		$stream = filter_var($_POST['stream'] ?? null, FILTER_VALIDATE_INT);
+		if ($stream !== false && $stream >= 1 && $stream <= 99) {
+			$stream = strval($stream);
 		} else {
 			$stream = '1';
 		}
 
 		// 設定ファイル読み込み
-		$ini = json_decode(file_get_contents($inifile), true);
+		$ini = json_decode(file_get_contents_lock_sh($inifile), true);
 
 		// POSTデータ読み込み
 		// もし存在するなら$iniの連想配列に格納
@@ -43,14 +48,6 @@
 		// 2行目の条件文は重複してストリームを再起動しないための措置
 		if ((!isset($_POST['restart']) and !isset($_POST['setting-env'])) or 
 			(isset($_POST['restart']) and !isset($_POST['setting-env']) and time() - filemtime($segment_folder.'stream'.$stream.'.m3u8') > 20)){
-
-			// 一旦現在のストリームを終了する
-			// state に関わらず実行
-			if (isset($_POST['allstop'])) {
-				stream_stop($stream, true);
-			} else {
-				stream_stop($stream, false);
-			}
 
 			// File
 			if ($ini[$stream]['state'] == 'File'){
@@ -65,21 +62,23 @@
 				if ($_POST['start_timestamp']) $ini[$stream]['start_timestamp'] = $_POST['start_timestamp'];
 				if ($_POST['end_timestamp']) $ini[$stream]['end_timestamp'] = $_POST['end_timestamp'];
 				if ($_POST['quality']) $ini[$stream]['quality'] = $_POST['quality'];
-				else $ini[$stream]['quality'] = $quality_default;
+				else $ini[$stream]['quality'] = getQualityDefault();
 				if ($_POST['encoder']) $ini[$stream]['encoder'] = $_POST['encoder'];
 				else $ini[$stream]['quality'] = $encoder_default;
 				if ($_POST['subtitle']) $ini[$stream]['subtitle'] = $_POST['subtitle'];
 				else $ini[$stream]['quality'] = $subtitle_default;
 
 				// jsonからデコードして代入
-				if (file_exists($infofile)){
-					$TSfile = json_decode(file_get_contents($infofile), true);
+				$TSfile = file_get_contents_lock_sh($infofile);
+				if ($TSfile !== false) {
+					$TSfile = json_decode($TSfile, true);
 				} else {
-					$TSfile = array();
+					$TSfile = array('data' => array());
 				}
 
-				if (file_exists($historyfile)){
-					$history = json_decode(file_get_contents($historyfile), true);
+				$history = file_get_contents_lock_sh($historyfile);
+				if ($history !== false) {
+					$history = json_decode($history, true);
 				} else {
 					$history = array(
 						'data' => array()
@@ -107,7 +106,7 @@
 				}
 
 				// 再生履歴をファイルに保存
-				file_put_contents($historyfile, json_encode($history, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT));
+				file_put_contents($historyfile, json_encode($history, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT), LOCK_EX);
 
 				// MP4・MKV(progressive)は除外
 				if (!(($ini[$stream]['fileext'] == 'mp4' or $ini[$stream]['fileext'] == 'mkv') and $ini[$stream]['encoder'] == 'Progressive')){
@@ -133,27 +132,14 @@
 				// 連想配列に格納
 				if (isset($_POST['channel'])) $ini[$stream]['channel'] = strval($_POST['channel']);
 				if (isset($_POST['quality'])) $ini[$stream]['quality'] = $_POST['quality'];
-				else $ini[$stream]['quality'] = $quality_default;
+				else $ini[$stream]['quality'] = getQualityDefault();
 				if (isset($_POST['encoder'])) $ini[$stream]['encoder'] = $_POST['encoder'];
 				else $ini[$stream]['encoder'] = $encoder_default;
 				if (isset($_POST['subtitle'])) $ini[$stream]['subtitle'] = $_POST['subtitle'];
 				else $ini[$stream]['subtitle'] = $subtitle_default;
-				if (isset($_POST['BonDriver'])) $ini[$stream]['BonDriver'] = $_POST['BonDriver'];
-
-				// BonDriverのデフォルトを要求される or 何故かBonDriverが空
-				if ($ini[$stream]['BonDriver'] == 'default' or empty($ini[$stream]['BonDriver'])){
-					// ネットワークIDが10かどうか(スカパーか)
-					if (intval($onid[$ini[$stream]['channel']]) == 10 or intval($onid[$ini[$stream]['channel']]) == 1){
-						$ini[$stream]['BonDriver'] = $BonDriver_default_SPHD;
-					}else if (intval($ini[$stream]['channel']) >= 100 or intval($ini[$stream]['channel']) === 55){ // チャンネルの値が100より上(=BS・CSか・ショップチャンネルは055なので例外指定)
-						$ini[$stream]['BonDriver'] = $BonDriver_default_S;
-					} else { // 地デジなら
-						$ini[$stream]['BonDriver'] = $BonDriver_default_T;
-					}
-				}
 
 				// ストリーミング開始
-				list($stream_cmd, $tstask_cmd) = stream_start($stream, $ini[$stream]['channel'], $sid[$ini[$stream]['channel']], $onid[$ini[$stream]['channel']], $tsid[$ini[$stream]['channel']], $ini[$stream]['BonDriver'], $ini[$stream]['quality'], $ini[$stream]['encoder'], $ini[$stream]['subtitle']);
+				list($stream_cmd, $source_cmd) = stream_start($stream, $ch[$ini[$stream]['channel']], $ini[$stream]['quality'], $ini[$stream]['encoder'], $ini[$stream]['subtitle']);
 
 				// 準備中用の動画を流すためにm3u8をコピー
 				if ($silent == 'true'){
@@ -165,7 +151,11 @@
 			// Offline
 			} else if ($_POST['state'] == 'Offline'){
 
+				// このストリームを終了
 				if (!isset($_POST['allstop'])){
+					
+					// 現在のストリームを終了する
+					stream_stop($stream);
 
 					// Offline に設定する
 					$ini[$stream]['state'] = 'Offline';
@@ -185,7 +175,11 @@
 						@unlink($base_dir.'htdocs/stream/stream'.$stream.'.m3u8');
 					}
 
+				// 全てのストリームを終了
 				} else {
+
+					// 全てのストリームを終了する
+					stream_stop($stream, true);
 
 					// ストリーム番号ごとに実行
 					foreach ($ini as $key => $value) {
@@ -213,11 +207,32 @@
 				}
 			}
 
-			// 昇順にソート
-			ksort($ini);
-
 			// iniファイル書き込み
-			file_put_contents($inifile, json_encode($ini, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT));
+			$fp = fopen($inifile, 'c+');
+			if ($fp) {
+				if (flock($fp, LOCK_EX)) {
+					// 全てのストリームを終了、でなければ
+					if ($_POST['state'] != 'Offline' || !isset($_POST['allstop'])) {
+						$merged_ini = json_decode(stream_get_contents($fp), true);
+						if (isset($merged_ini) && is_array($merged_ini)) {
+							// 対象ストリームの情報だけ更新する
+							if (isset($ini[$stream])) {
+								$merged_ini[$stream] = $ini[$stream];
+							} else {
+								unset($merged_ini[$stream]);
+							}
+							$ini = $merged_ini;
+						}
+					}
+					// 昇順にソート
+					ksort($ini);
+
+					ftruncate($fp, 0);
+					rewind($fp);
+					fwrite($fp, json_encode($ini, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT));
+				}
+				fclose($fp);
+			}
 
 			// リダイレクトが有効なら
 			if ($setting_redirect == 'true'){
@@ -243,10 +258,8 @@
 				// 配列で回す
 				foreach ($_POST as $key => $value) {
 
-					// シングルクォーテーションを取る（セキュリティ対策）
-					$value = str_replace('\'', '', $value);
-					// ダブルクォーテーションを取る（セキュリティ対策）
-					$value = str_replace('"', '', $value);
+					// PHPの文字列リテラルにあると面倒な文字を取り除く
+					$value = str_replace(array("\n", "\r", '\'', '"'), '', $value);
 
 					// 数値化できるものは数値に変換しておく
 					if (is_numeric($value) and mb_substr($value, 0, 1) != '0'){
@@ -260,8 +273,11 @@
 						$set = str_replace('\\', '/', $set);
 					}
 					
-					// config.php を書き換え
-					$tvrp_conf = preg_replace("/^\\$$key =.*;/m", '$'.$key.' = '.$set.';', $tvrp_conf); // 置換
+					// キーに不正な文字がなければ
+					if (preg_match('/[^0-9A-Za-z_]/', $key) === 0) {
+						// config.php を書き換え
+						$tvrp_conf = preg_replace("/^\\$$key =.*;/m", '$'.$key.' = '.$set.';', $tvrp_conf); // 置換
+					}
 
 				}
 				
@@ -290,7 +306,7 @@
           </h2>
 
           <p>
-            <?= $site_title; ?> の設定を Web 上から行えます。<br>
+            <?= $site_title; ?> の設定ができます。<br>
           </p>
           
           <form id="setting-user" class="setting-form-wrap">
@@ -307,6 +323,7 @@
             </h3>
 
             <p>個人設定はブラウザ・端末ごとに反映されます。</p>
+            <p>(＊) … PC・タブレットのみ適用される設定</p>
 
             <h4><i class="fas fa-eye"></i>表示</h4>
 
@@ -323,7 +340,7 @@
             </div>
 
             <div class="setting-form">
-              <span>コメントリスト</span>
+              <span>コメントリスト (＊)</span>
               <div class="toggle-switch">
 <?php	if (isSettingsItem('comment_show', true, true) !== false){ ?>
                 <input id="comment_show" class="toggle-input" type="checkbox" value="true" checked />
@@ -383,7 +400,7 @@
             </div>
 
             <div class="setting-form">
-              <span>ナビゲーションメニューを垂直に配置（PCのみ）</span>
+              <span>ナビゲーションメニューを垂直に配置 (＊)</span>
               <div class="toggle-switch">
 <?php	if (isSettingsItem('vertical_navmenu', true, false) !== false){ ?>
                 <input id="vertical_navmenu" class="toggle-input" type="checkbox" value="true" checked />
@@ -444,20 +461,38 @@
               <div class="select-wrap">
                 <select id="comment_list_performance" required>
 <?php	if (isSettingsItem('comment_list_performance', 'normal') !== false){ ?>
-                  <option value="normal" selected>標準</option>
                   <option value="light">軽量</option>
+                  <option value="normal" selected>標準</option>
 <?php	} else if (isSettingsItem('comment_list_performance', 'light') !== false){ ?>
-                  <option value="normal">標準</option>
                   <option value="light" selected>軽量</option>
+                  <option value="normal">標準</option>
 <?php	} else { ?>
-                  <option value="normal" selected>標準</option>
-                  <option value="light">軽量</option>
+                  <option value="light" selected>軽量</option>
+                  <option value="normal">標準</option>
 <?php	} // 括弧終了 ?>
                 </select>
               </div>
             </div>
 
             <h4><i class="fas fa-sliders-h"></i>機能</h4>
+
+            <div class="setting-form setting-select">
+              <span>デフォルトの動画の画質（環境設定よりも優先されます）</span>
+              <div class="select-wrap">
+                <select id="quality_user_default" required>
+                  <?php $quality_user_default = isSettingsItem('quality_user_default'); ?>
+                  <option value="environment"<?php if ($quality_user_default == 'environment') echo ' selected'; ?>>環境設定を引き継ぐ</option>
+                  <option value="1080p-high"<?php if ($quality_user_default == '1080p-high') echo ' selected'; ?>>1080p-high (1920×1080)</option>
+                  <option value="1080p"<?php if ($quality_user_default == '1080p') echo ' selected'; ?>>1080p (1440×1080)</option>
+                  <option value="810p"<?php if ($quality_user_default == '810p') echo ' selected'; ?>>810p (1440×810)</option>
+                  <option value="720p"<?php if ($quality_user_default == '720p') echo ' selected'; ?>>720p (1280×720)</option>
+                  <option value="540p"<?php if ($quality_user_default == '540p') echo ' selected'; ?>>540p (960×540)</option>
+                  <option value="360p"<?php if ($quality_user_default == '360p') echo ' selected'; ?>>360p (640×360)</option>
+                  <option value="240p"<?php if ($quality_user_default == '240p') echo ' selected'; ?>>240p (426×240)</option>
+                  <option value="144p"<?php if ($quality_user_default == '144p') echo ' selected'; ?>>144p (256×144)</option>
+                </select>
+              </div>
+            </div>
 
             <div class="setting-form setting-select">
               <span>一度に表示する録画番組リストの番組数（件）</span>
@@ -481,7 +516,7 @@
             </div>
 
             <div class="setting-form">
-              <span>番組表へスクロールした時にプレイヤーをフローティング表示する</span>
+              <span>番組表へスクロールした時にプレイヤーをフローティング表示する (＊)</span>
               <div class="toggle-switch">
 <?php	if (isSettingsItem('player_floating', true) !== false){ ?>
                 <input id="player_floating" class="toggle-input" type="checkbox" value="true" checked />
@@ -497,6 +532,7 @@
 
           <form id="setting-env" class="setting-form-wrap">
           
+            <input type="hidden" name="_csrf_token" value="<?= $csrf_token ?>">
             <input type="hidden" name="setting-env" value="true" />
 
             <h3 class="red">
@@ -553,75 +589,6 @@
                   <option value="QSVEncC"<?php if ($encoder_default == 'QSVEncC') echo ' selected'; ?>>QSVEncC (ハードウェアエンコーダー)</option>
                   <option value="NVEncC"<?php if ($encoder_default == 'NVEncC') echo ' selected'; ?>>NVEncC (ハードウェアエンコーダー)</option>
                   <option value="VCEEncC"<?php if ($encoder_default == 'VCEEncC') echo ' selected'; ?>>VCEEncC (ハードウェアエンコーダー)</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="setting-form setting-input">
-              <div class="setting-content">
-                <span>デフォルトの BonDriver (地デジ用)</span>
-                <p>
-                  デフォルトで利用する BonDriver (地デジ用) です<br>
-                  うまく再生出来ない場合、BonDriver_Spinel もしくは BonDriver_Proxy を利用すると安定して視聴できる場合があります<br>
-                  導入している場合は BonDriver_Spinel か BonDriver_Proxy を利用することをおすすめします<br>
-                  Spinel よりも BonDriverProxyEx の方がストリーム開始にかかる時間は短くなります<br>
-                </p>
-              </div>
-              <div class="select-wrap">
-                <select name="BonDriver_default_T">
-<?php		foreach ($BonDriver_dll_T as $i => $value){ //chの数だけ繰り返す ?>
-<?php			if ($value == $BonDriver_default_T){ ?>
-                  <option value="<?= $value; ?>" selected><?= $value; ?></option>
-<?php			} else { ?>
-                  <option value="<?= $value; ?>"><?= $value; ?></option>
-<?php			} //括弧終了 ?>
-<?php		} //括弧終了 ?>
-                </select>
-              </div>
-            </div>
-
-            <div class="setting-form setting-input">
-              <div class="setting-content">
-                <span>デフォルトの BonDriver (BS・CS用)</span>
-                <p>
-                  デフォルトで利用する BonDriver (BS・CS用) です<br>
-                  うまく再生出来ない場合、BonDriver_Spinel もしくは BonDriver_Proxy を利用すると安定して視聴できる場合があります<br>
-                  導入している場合は BonDriver_Spinel か BonDriver_Proxy を利用することをおすすめします<br>
-                  BonDriver_Spinel よりも BonDriver_Proxy の方がストリーム開始にかかる時間は短くなります<br>
-                </p>
-              </div>
-              <div class="select-wrap">
-                <select name="BonDriver_default_S">
-<?php		foreach ($BonDriver_dll_S as $i => $value){ //chの数だけ繰り返す ?>
-<?php			if ($value == $BonDriver_default_S){ ?>
-                  <option value="<?= $value; ?>" selected><?= $value; ?></option>
-<?php			} else { ?>
-                  <option value="<?= $value; ?>"><?= $value; ?></option>
-<?php			} //括弧終了 ?>
-<?php		} //括弧終了 ?>
-                </select>
-              </div>
-            </div>
-
-            <div class="setting-form setting-input">
-              <div class="setting-content">
-                <span>デフォルトの BonDriver (スカパー！用)</span>
-                <p>
-                  デフォルトで利用する BonDriver (スカパー！) です<br>
-                  うまく再生出来ない場合、BonDriver_Spinel もしくは BonDriver_Proxy を利用すると安定して視聴できる場合があります<br>
-                  導入している場合は BonDriver_Spinel か BonDriver_Proxy を利用することをおすすめします<br>
-                  BonDriver_Spinel よりも BonDriver_Proxy の方がストリーム開始にかかる時間は短くなります<br>
-                </p>
-              </div>
-              <div class="select-wrap">
-                <select name="BonDriver_default_SPHD" required>
-<?php		foreach ($BonDriver_dll_SPHD as $i => $value){ //chの数だけ繰り返す ?>
-<?php			if ($value == $BonDriver_default_SPHD){ ?>
-                  <option value="<?php echo $value; ?>" selected><?php echo $value; ?></option>
-<?php			} else { ?>
-                  <option value="<?php echo $value; ?>"><?php echo $value; ?></option>
-<?php			} //括弧終了 ?>
-<?php		} //括弧終了 ?>
                 </select>
               </div>
             </div>
@@ -721,26 +688,27 @@
 
             <div class="setting-form setting-input">
               <div class="setting-content">
-                <span>番組情報ファイルのあるフォルダ</span>
+                <span>EDCB の EpgTimerSrv プロセスとの通信用のアドレス</span>
                 <p>
-                  ファイル再生の際、番組情報が録画ファイルから取得できない場合 ( MP4 ファイル等) に利用します<br>
-                  フォルダを指定しない場合、録画ファイルと同じファイル名の .ts.program.txt を参照します<br>
+                  チャンネルリスト、番組表、録画番組情報の取得に利用します<br>
+                  TVRemotePlus を EpgTimerSrv と異なる PC で使用する場合、EpgTimerSrv 設定の [ネットワーク接続を許可する (EpgTimerNW 用)] にチェックして、
+                  EpgTimerSrv のある PC のアドレスとポート番号を指定します<br>
+                  EpgTimerSrv と同一の PC で使用する場合、指定する必要ありません<br>
                 </p>
               </div>
-              <input class="text-box" name="TSinfo_dir" type="text" value="<?= $TSinfo_dir; ?>" placeholder="E:/TV-Record/録画情報/" />
+              <input class="text-box" name="ctrlcmd_addr" type="text" value="<?= $ctrlcmd_addr; ?>" placeholder="192.168.x.xx:4510" />
             </div>
 
             <div class="setting-form setting-input">
               <div class="setting-content">
-                <span>EDCB Material WebUI (EMWUI) のある URL</span>
+                <span>局ロゴ情報 (LogoData.ini) のあるフォルダ</span>
                 <p>
-                  番組表取得などで利用します<br>
-                  この機能を利用する場合、予め <a href="https://github.com/EMWUI/EDCB_Material_WebUI" target="_blank">EDCB Material WebUI</a> を導入しておいてください<br>
-                  以前は http://192.168.x.xx:5510/api/ のように指定していましたが、変更になりました<br>
-                  TVRock 等を利用している場合、<a href="http://vb45wb5b.seesaa.net/" target="_blank">TVRemoteViewer_VB</a> 2.93m（再うｐ版）以降を導入し TVRemoteViewer_VB の URL（例：http://192.168.x.xx:40003/ ）を代わりに設定することで番組情報が表示できるようになります<br>
+                  局ロゴの表示に利用します<br>
+                  TVTest (設定の [BMP 形式のロゴを保存する] にチェックが必要) のフォルダや、
+                  EpgDataCap_Bon (設定の [ロゴデータを保存する] にチェックが必要) の Setting フォルダを指定します<br>
                 </p>
               </div>
-              <input class="text-box" name="EDCB_http_url" type="url" value="<?= $EDCB_http_url; ?>" placeholder="http://192.168.x.xx:5510/" />
+              <input class="text-box" name="logo_dir" type="text" value="<?= $logo_dir; ?>" placeholder="E:/TVTest/" />
             </div>
 
             <div class="setting-form setting-input">
@@ -1031,57 +999,6 @@
 
             <div class="setting-form setting-input">
               <div class="setting-content">
-                <span>TSTask の起動時に TSTaskCentre も起動する</span>
-                <p>
-                  この設定がオンの場合、TSTask の起動時に TSTaskCentre（TSTask のクライアントプログラム）も一緒に起動します（デフォルトはオフです）<br>
-                  正常に放送が受信できているか、TSTask が起動できているか確認したい場合などにオンにしてみてください<br>
-                </p>
-              </div>
-              <div class="toggle-switch">
-                <input type="hidden" name="TSTask_window" value="false" />
-<?php	if ($TSTask_window == 'true'){ ?>
-                <input id="TSTask_window" name="TSTask_window" class="toggle-input" type="checkbox" value="true" checked />
-<?php	} else { ?>
-                <input id="TSTask_window" name="TSTask_window" class="toggle-input" type="checkbox" value="true" />
-<?php	} // 括弧終了 ?>
-                <label for="TSTask_window" class="toggle-label"></label>
-              </div>
-            </div>
-
-            <div class="setting-form setting-input">
-              <div class="setting-content">
-                <span>ストリーム終了時に TSTask を強制終了する</span>
-                <p>
-                  TSTask が終了できない・ゾンビプロセス化する場合のみオンにしてください<br>
-                  強制終了させると TSTaskCentre の動作がおかしくなる場合があるので、できるだけオフにしておく事をおすすめします<br>
-                </p>
-              </div>
-              <div class="toggle-switch">
-                <input type="hidden" name="TSTask_shutdown" value="false" />
-<?php	if ($TSTask_shutdown == 'true'){ ?>
-                <input id="TSTask_shutdown" name="TSTask_shutdown" class="toggle-input" type="checkbox" value="true" checked />
-<?php	} else { ?>
-                <input id="TSTask_shutdown" name="TSTask_shutdown" class="toggle-input" type="checkbox" value="true" />
-<?php	} // 括弧終了 ?>
-                <label for="TSTask_shutdown" class="toggle-label"></label>
-              </div>
-            </div>
-
-            <div class="setting-form setting-input">
-              <div class="setting-content">
-                <span>UDP 送信時の開始ポート番号</span>
-                <p>
-                  通常は変更する必要はありません<br>
-                  実際に利用されるポート番号は（ここで設定したポート番号）+（選択したストリーム番号）になります<br>
-                  エンコーダーがすぐ落ちてしまう場合、UDP 送信ポートが他のソフトとバッティングしている可能性があります<br>
-                  その場合は、UDP 送信ポートを空いているポートに変更してください<br>
-                </p>
-              </div>
-              <input class="text-box" name="udp_port" type="number" min="1" max="40000" placeholder="8200" value="<?= $udp_port; ?>" required />
-            </div>
-
-            <div class="setting-form setting-input">
-              <div class="setting-content">
                 <span>HLS セグメントあたりの秒数 (ライブ配信時)</span>
                 <p>
                   通常は変更する必要はありませんが、外出先から視聴する場合など回線が不安定な場合、
@@ -1135,7 +1052,7 @@
                   PWA (Progressive Web Apps) 機能を利用する場合は、HTTPS でのアクセスが必須です<br>
                   そのため、インストール時に作成した自己署名証明書を予め TVRemotePlus を利用する端末にインポートしておく必要があります<br>
                   右 or 下のダウンロードボタンから証明書 (server.crt) をダウンロードしてください<br>
-                  証明書のインストール手順は <a href="https://github.com/tsukumijima/TVRemotePlus#PWA%20%E3%81%AE%E3%82%A4%E3%83%B3%E3%82%B9%E3%83%88%E3%83%BC%E3%83%AB%E6%89%8B%E9%A0%86" target="_blank">こちら</a> を参照してください<br>
+                  証明書のインストール手順は <a href="https://github.com/tsukumijima/TVRemotePlus#pwa-%E3%81%AE%E3%82%A4%E3%83%B3%E3%82%B9%E3%83%88%E3%83%BC%E3%83%AB%E6%89%8B%E9%A0%86" target="_blank">こちら</a> を参照してください<br>
                 </p>
               </div>
               <a class="download" href="/files/TVRemotePlus.crt" download>
@@ -1214,9 +1131,8 @@
             <p>動画の画質：<?= $ini[$stream]['quality']; ?></p>
             <p>エンコーダー：<?= $ini[$stream]['encoder']; ?></p>
             <p>字幕の表示：<?= $ini[$stream]['subtitle']; ?></p>
-            <p>使用 BonDriver：<?= $ini[$stream]['BonDriver']; ?></p>
             <p>エンコードコマンド：<?= $stream_cmd; ?></p>
-            <p>TSTask 起動コマンド：<?= $tstask_cmd; ?></p>
+            <p>受信元アプリコマンド：<?= $source_cmd; ?></p>
 
 <?php			} else if ($_POST['state'] == 'File'){ ?>
             <p>タイトル：<?= $ini[$stream]['filetitle']; ?></p>

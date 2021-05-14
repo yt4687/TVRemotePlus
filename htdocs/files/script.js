@@ -1,4 +1,4 @@
-$(function(){
+$(function() {
 
     // 生放送・ファイル再生共通
 
@@ -8,16 +8,16 @@ $(function(){
     setInterval(clock, 1000);
 
     // 最初に実行
-    if (Cookies.get('twitter')){
+    if (Cookies.get('tvrp_twitter_settings')) {
         $('#tweet-status').html('<a id="tweet-logout" href="javascript:void(0)"><i class="fas fa-sign-out-alt"></i>ログアウト</a>');
     } else {
         $('#tweet-status').html('<a id="tweet-login" href="/tweet/auth"><i class="fas fa-sign-in-alt"></i>ログイン</a>');
     }
-    
+
     // Twitterアカウント情報を読み込み
     twitter = {account_name:'ログインしていません', account_id:'', account_icon:'/files/account_default.jpg'};
-    if (Cookies.get('twitter') != undefined){ // Cookieがあれば読み込む
-        twitter = JSON.parse(Cookies.get('twitter'));
+    if (Cookies.get('tvrp_twitter_settings') != undefined) { // Cookieがあれば読み込む
+        twitter = JSON.parse(Cookies.get('tvrp_twitter_settings'));
     }
     $('#tweet-account-icon').attr('src', twitter['account_icon']);
     $('#tweet-account-name').text(twitter['account_name']);
@@ -28,7 +28,7 @@ $(function(){
 
     // ***** 視聴数カウント・ストリーム状態把握 *****
 
-    setInterval((function status(){
+    setInterval((function status() {
         $.ajax({
             url: '/api/status/' + stream,
             dataType: 'json',
@@ -40,12 +40,13 @@ $(function(){
 
             var status = document.getElementById('status').textContent;
 
-            if (data['status'] == 'failed' && status != 'failed'){
+            if (data['status'] == 'failed' && status != 'failed') {
                 toastr.error('ストリームの開始に失敗しました…');
                 $.ajax({
                     url: '/settings/',
                     type: 'post',
                     data: {
+                        '_csrf_token': Cookies.get('tvrp_csrf_token'),
                         'state': 'Offline',
                         'stream': stream
                     },
@@ -55,12 +56,13 @@ $(function(){
                 });
             }
 
-            if (data['status'] == 'restart' && status != 'restart'){
+            if (data['status'] == 'restart' && status != 'restart') {
                 toastr.warning('ストリームが途中で中断しました…');
                 $.ajax({
                     url: '/settings/',
                     type: 'post',
                     data: {
+                        '_csrf_token': Cookies.get('tvrp_csrf_token'),
                         'state': 'ONAir',
                         'stream': stream,
                         'restart': 'true'
@@ -68,14 +70,14 @@ $(function(){
                     cache: false,
                 }).done(function(data) {
                     var paused = dp.video.paused;
-                    if (data['streamtype'] == 'progressive'){
+                    if (data['streamtype'] == 'progressive') {
                         dp.video.src = '/api/stream?_=' + time();
                         dp.initVideo(dp.video, 'normal');
                     } else {
                         dp.video.src = '/stream/stream' + stream + '.m3u8';
                         dp.initVideo(dp.video, 'hls');
                     }
-                    if (!paused){
+                    if (!paused) {
                         dp.video.play();
                     } else {
                         dp.video.pause();
@@ -83,23 +85,23 @@ $(function(){
                     toastr.info('ストリームを再起動しています…');
                 });
             }
-            
-            // 状態を隠しHTMLに書き出して変化してたらリロードする
-            if ((data['status'] != status) && status != ''){
 
-                if (document.getElementById('state').value === undefined){
+            // 状態を隠しHTMLに書き出して変化してたらリロードする
+            if ((data['status'] != status) && status != '') {
+
+                if (document.getElementById('state').value === undefined) {
                     document.getElementById('state').value = data['state'];
                 }
 
                 // stateが同じの場合のみ読み込みし直し
                 if ((document.getElementById('state').value == data['state']) &&
-                    (data['state'] == 'ONAir' || (data['state'] == 'File' && data['status'] == 'onair'))){
+                    (data['state'] == 'ONAir' || (data['state'] == 'File' && data['status'] == 'onair'))) {
 
-                    if (data['status'] == 'failed' || data['status'] != 'restart'){
+                    if (data['status'] == 'failed' || data['status'] != 'restart') {
 
                         // ストリームを読み込みし直す
                         var paused = dp.video.paused;
-                        if (data['streamtype'] == 'progressive'){
+                        if (data['streamtype'] == 'progressive') {
                             dp.video.src = '/api/stream?_=' + time();
                             dp.video.load();
                             dp.initVideo(dp.video, 'normal');
@@ -111,7 +113,7 @@ $(function(){
 
                         try {
                             // 読み込みし直す前の再生状態を復元
-                            if (!paused){
+                            if (!paused) {
                                 dp.video.play();
                             } else {
                                 dp.video.pause();
@@ -119,7 +121,7 @@ $(function(){
                         } catch (error) {
                             console.error(error);
                         }
-                        
+
                         // status が standby のみ
                         if (data['status'] === 'standby') {
 
@@ -130,8 +132,8 @@ $(function(){
 
                 // それ以外は諸々問題があるので一旦リロード
                 } else {
-                    if (data['status'] == 'failed'){
-                        setTimeout(function(){
+                    if (data['status'] == 'failed') {
+                        setTimeout(function() {
                             $('#cover').addClass('open');
                             location.reload(true);
                         }, 3000);
@@ -158,7 +160,24 @@ $(function(){
 
     // ***** 番組表・ストリーム一覧表示 *****
 
-    setInterval((function status(){
+    // 要素を一括取得
+    // 最初に全部取得しておいた方が負荷がかからない
+    const epginfo_epg_title = document.getElementById('epg-title');
+    const epginfo_epg_info = document.getElementById('epg-info');
+    const epginfo_epg_channel = document.getElementById('epg-channel');
+    const epginfo_epg_starttime = document.getElementById('epg-starttime');
+    const epginfo_epg_to = document.getElementById('epg-to');
+    const epginfo_epg_endtime = document.getElementById('epg-endtime');
+    const epginfo_epg_next_title = document.getElementById('epg-next-title');
+    const epginfo_epg_next_starttime = document.getElementById('epg-next-starttime');
+    const epginfo_epg_next_to = document.getElementById('epg-next-to');
+    const epginfo_epg_next_endtime = document.getElementById('epg-next-endtime');
+    const epginfo_state = document.getElementById('state');
+    const epginfo_ikioi = document.getElementById('ikioi');
+    const epginfo_progress = document.getElementById('progress');
+    let broadcast_elems = [];
+
+    setInterval((function status() {
         $.ajax({
             url: '/api/epginfo/' + stream,
             dataType: 'json',
@@ -168,8 +187,8 @@ $(function(){
             // 結果をHTMLにぶち込む
 
             // 高さフラグ
-            if (document.getElementsByClassName('broadcast-title-ch1')[0]){
-                if (document.getElementsByClassName('broadcast-title-ch1')[0].textContent == ''){
+            if (document.getElementsByClassName('broadcast-title-ch1')[0]) {
+                if (document.getElementsByClassName('broadcast-title-ch1')[0].textContent == '') {
                     var flg = true;
                 } else {
                     var flg = false;
@@ -177,105 +196,123 @@ $(function(){
             } else {
                 var flg = false;
             }
-            
-            if (data['stream'][stream]['state'] == 'ONAir'){
+
+            if (data['stream'][stream]['state'] == 'ONAir') {
 
                 // 変化がある場合のみ書き換え
-                if (document.getElementById('epg-starttime').innerHTML != data['stream'][stream]['starttime'] ||
-                    document.getElementById('epg-title').innerHTML != data['stream'][stream]['program_name'] ||
-                    document.getElementById('epg-channel').innerHTML != data['stream'][stream]['channel']){
+                if (epginfo_epg_starttime.innerHTML != data['stream'][stream]['starttime'] ||
+                    epginfo_epg_title.innerHTML != data['stream'][stream]['program_name'] ||
+                    epginfo_epg_channel.innerHTML != data['stream'][stream]['channel']) {
 
                     // 現在の番組
-                    document.getElementById('epg-starttime').textContent = data['stream'][stream]['starttime'];
-                    document.getElementById('epg-to').textContent = data['stream'][stream]['to'];
-                    document.getElementById('epg-endtime').textContent = data['stream'][stream]['endtime'];
-                    
-                    if (data['stream'][stream]['ch'] < 55){
-                        document.getElementById('epg-channel').textContent =
+                    epginfo_epg_starttime.textContent = data['stream'][stream]['starttime'];
+                    epginfo_epg_to.textContent = data['stream'][stream]['to'];
+                    epginfo_epg_endtime.textContent = data['stream'][stream]['endtime'];
+
+                    if (data['stream'][stream]['ch'] < 55) {
+                        epginfo_epg_channel.textContent =
                             'Ch: ' + zeroPadding(data['stream'][stream]['ch_str'].replace('_', ''), 3) + ' ' + data['stream'][stream]['channel'];
                     } else {
-                        document.getElementById('epg-channel').textContent =
+                        epginfo_epg_channel.textContent =
                             'Ch: ' + zeroPadding(data['stream'][stream]['ch_str'].replace('_', ''), 3) + ' ' + data['stream'][stream]['channel'];
                     }
-                    document.getElementById('epg-title').innerHTML = data['stream'][stream]['program_name'];
-                    document.getElementById('epg-info').innerHTML = data['stream'][stream]['program_info'];
-            
+                    epginfo_epg_title.innerHTML = data['stream'][stream]['program_name'];
+                    epginfo_epg_info.innerHTML = data['stream'][stream]['program_info'];
+
                     // 次の番組
-                    document.getElementById('epg-next-starttime').textContent = data['stream'][stream]['next_starttime'];
-                    document.getElementById('epg-next-to').textContent = data['stream'][stream]['to'];
-                    document.getElementById('epg-next-endtime').textContent = data['stream'][stream]['next_endtime'];
-                    document.getElementById('epg-next-title').innerHTML = data['stream'][stream]['next_program_name'];
+                    epginfo_epg_next_title.innerHTML = data['stream'][stream]['next_program_name'];
+                    epginfo_epg_next_starttime.textContent = data['stream'][stream]['next_starttime'];
+                    epginfo_epg_next_to.textContent = data['stream'][stream]['to'];
+                    epginfo_epg_next_endtime.textContent = data['stream'][stream]['next_endtime'];
 
                     // ON Air
-                    document.getElementById('state').textContent = '● ON Air';
-                    document.getElementById('state').style.color = '#007cff';
-
-                    // 実況勢い
-                    document.getElementById('ikioi').textContent = `実況勢い: ${data['stream'][stream]['ikioi']}`;
+                    epginfo_state.textContent = '● ON Air';
+                    epginfo_state.style.color = '#007cff';
                 }
+
+                // 実況勢いは変化に関わらず常に更新
+                epginfo_ikioi.textContent = `実況勢い: ${data['stream'][stream]['ikioi']}`;
 
             } else if (data['stream'][stream]['state'] == 'Offline') {
 
                 // Offline
-                document.getElementById('state').textContent = '● Offline';
-                document.getElementById('state').style.color = 'gray';
+                epginfo_state.textContent = '● Offline';
+                epginfo_state.style.color = 'gray';
             }
 
-            // stateを記録しておく
-            document.getElementById('state').value = data['stream'][stream]['state'];
+            // state を記録しておく
+            epginfo_state.value = data['stream'][stream]['state'];
 
-            // progressbarの割合を計算して代入
-            var percent = ((Math.floor(Date.now() / 1000) - data['stream'][stream]['timestamp']) / data['stream'][stream]['duration']) * 100;
-            document.getElementById('progress').style.width = percent + '%';
+            // progressbar の割合を計算して代入
+            let percentage = ((Math.floor(Date.now() / 1000) - data['stream'][stream]['timestamp']) / data['stream'][stream]['duration']) * 100;
+            epginfo_progress.style.width = `${percentage}%`;
 
-            // チャンネルごとに実行
-            for (key in data['onair']){
+            // **** チャンネルリストの更新 ****
+            for (key in data['onair']) {
+
+                // そのチャンネルの要素が取得されていないなら取得
+                if (!broadcast_elems[`ch${key}`]) {
+                    broadcast_elems[`ch${key}`] = {
+                        'wrap': document.querySelector(`#ch${key}`),
+                        'content': document.querySelector(`#ch${key} .broadcast-content`),
+                        'progress': document.querySelector(`#ch${key} .progress`),
+                    };
+                }
 
                 // 変化がある場合のみ書き換え
-                // 特に内容変わってもいないのにDOM再構築するの無駄じゃんやめろ
-                if (document.querySelector('#ch' + key + ' .broadcast-start').innerHTML != data['onair'][key]['starttime'] ||
-                        document.querySelector('#ch' + key + ' .broadcast-title').innerHTML != data['onair'][key]['program_name']){
+                // 特に内容変わってもいないのに DOM を再構築するのはリソースの無駄
+                if (broadcast_elems[`ch${key}`]['wrap'].dataset.starttime != data['onair'][key]['starttime'] ||
+                    broadcast_elems[`ch${key}`]['wrap'].dataset.endtime != data['onair'][key]['endtime'] ||
+                    broadcast_elems[`ch${key}`]['wrap'].dataset.title != data['onair'][key]['program_name']) {
 
                     // 書き換え用html
-                    var html = 
+                    let html = 
                         `<div class="broadcast-channel-box">
-                            <div class="broadcast-channel">` + document.getElementById('ch' + key).dataset.channel + `</div>
-                                <div class="broadcast-name-box">
-                                    <div class="broadcast-name">` + document.getElementById('ch' + key).dataset.name + `</div>
-                                    <div class="broadcast-jikkyo">実況勢い: <span class="broadcast-ikioi">` + data['onair'][key]['ikioi'] + `</span></div>
-                                </div>
+                            <div class="broadcast-channel">` + broadcast_elems[`ch${key}`]['wrap'].dataset.channel + `</div>
+                            <div class="broadcast-name-box">
+                                <div class="broadcast-name">` + broadcast_elems[`ch${key}`]['wrap'].dataset.name + `</div>
+                                <div class="broadcast-jikkyo">実況勢い: <span class="broadcast-ikioi">` + data['onair'][key]['ikioi'] + `</span></div>
                             </div>
-                            <div class="broadcast-title">
-                                <span class="broadcast-start">` + data['onair'][key]['starttime'] + `</span>
-                                <span class="broadcast-to">` + data['onair'][key]['to'] + `</span>
-                                <span class="broadcast-end">` + data['onair'][key]['endtime'] + `</span>
-                                <span class="broadcast-title-id">` + data['onair'][key]['program_name'] + `</span>
-                            </div>
-                            <div class="broadcast-next">
-                                <span>` + data['onair'][key]['next_starttime'] + `</span>
-                                <span>` + data['onair'][key]['to'] + `</span>
-                                <span>` + data['onair'][key]['next_endtime'] + `</span>
-                                <span>` + data['onair'][key]['next_program_name'] + `</span>
-                            </div>
+                        </div>
+                        <div class="broadcast-title">
+                            <span class="broadcast-start">` + data['onair'][key]['starttime'] + `</span>
+                            <span class="broadcast-to">` + data['onair'][key]['to'] + `</span>
+                            <span class="broadcast-end">` + data['onair'][key]['endtime'] + `</span>
+                            <span class="broadcast-title-id">` + data['onair'][key]['program_name'] + `</span>
+                        </div>
+                        <div class="broadcast-next">
+                            <span>` + data['onair'][key]['next_starttime'] + `</span>
+                            <span>` + data['onair'][key]['to'] + `</span>
+                            <span>` + data['onair'][key]['next_endtime'] + `</span>
+                            <span>` + data['onair'][key]['next_program_name'] + `</span>
                         </div>`;
 
                     // 番組情報を書き換え
-                    document.querySelector('#ch' + key + ' .broadcast-content').innerHTML = html;
+                    broadcast_elems[`ch${key}`]['content'].innerHTML = html;
+
+                    // 番組情報を保存
+                    broadcast_elems[`ch${key}`]['wrap'].dataset.starttime = data['onair'][key]['starttime'];
+                    broadcast_elems[`ch${key}`]['wrap'].dataset.endtime = data['onair'][key]['endtime'];
+                    broadcast_elems[`ch${key}`]['wrap'].dataset.title =  data['onair'][key]['program_name'];
+
+                } else {
+
+                    // 実況勢いは変化に関わらず常に更新
+                    broadcast_elems[`ch${key}`]['wrap'].querySelector('.broadcast-ikioi').textContent = data['onair'][key]['ikioi'];
                 }
 
                 // プログレスバー
-                var percent = ((Math.floor(Date.now() / 1000) - data['onair'][key]['timestamp']) / data['onair'][key]['duration']) * 100;
-                document.querySelector('#ch' + key + ' .progress').style.width = percent + '%';
-
+                let percentage_channel = ((Math.floor(Date.now() / 1000) - data['onair'][key]['timestamp']) / data['onair'][key]['duration']) * 100;
+                broadcast_elems[`ch${key}`]['progress'].style.width = `${percentage_channel}%`;
             }
 
-            // ストリーム番号ごとに実行
-            for (key in data['stream']){
+            // **** ストリームリストの更新 ****
+            for (key in data['stream']) {
 
                 var elem = document.getElementsByClassName('stream-view-' + key)[0];
-                
-                switch (data['stream'][key]['state']){
-                    
+
+                switch (data['stream'][key]['state']) {
+
                     case 'ONAir':
                         var state = '● ON Air'
                         var color = 'blue';
@@ -297,9 +334,9 @@ $(function(){
 
                 // 要素が存在しない・変化がある場合のみ書き換え
                 if ((data['stream'][key]['state'] != 'Offline' || key == '1') &&
-                        (elem === undefined || elem.getElementsByClassName('stream-title')[0].innerHTML != data['stream'][key]['program_name'])){
+                        (elem === undefined || elem.getElementsByClassName('stream-title')[0].innerHTML != data['stream'][key]['program_name'])) {
 
-                    // 書き換え用html
+                    // 書き換え用 html
                     var streamview = 
                         `<div class="stream-box">
                             <div class="stream-number-title">Stream</div><div class="stream-number">` + key + `</div>
@@ -315,7 +352,7 @@ $(function(){
                         </div>`;
 
                     // 番組情報を書き換え
-                    if (elem === undefined){
+                    if (elem === undefined) {
 
                         // 親要素を追加
                         streamview = `<div class="stream-view stream-view-` + key + `" type="button" data-num="` + key + `" data-url="/` + key + `/" style="display: none; opacity: 0;">` + streamview + `</div>`;
@@ -336,7 +373,7 @@ $(function(){
                     }
 
                 // オフラインかつ要素が存在する場合
-                } else if (elem !== undefined && data['stream'][key]['state'] == 'Offline' && key != '1'){
+                } else if (elem !== undefined && data['stream'][key]['state'] == 'Offline' && key != '1') {
 
                     // 要素を削除する
                     $('.stream-view-' + key).slideUp(400).animate(
@@ -345,7 +382,6 @@ $(function(){
                     ).queue(function() {
                         $('.stream-view-' + key).remove();
                     });
-
                 }
             }
 
@@ -355,70 +391,50 @@ $(function(){
         }).fail(function(data, status, error) {
 
             // エラーメッセージ
-            message = 'failed to get epginfo. status: ' + status + '\nerror: ' + error.message;
-            console.error(message);
-
+            console.error(`failed to get epginfo. status: ${status}\nerror: ${error.message}`);
         });
         return status;
-    }()), 10000);
+    }()), 8000);
 
 
     // ***** ストリーム開始 *****
 
     // 再生開始ボックス
-    $('body').on('click','.broadcast-wrap',function(){
+    $('body').on('click','.broadcast-wrap',function() {
         var $elem = $(this);
         $('#broadcast-stream-title').html($elem.data('channel') + ' ' + $elem.data('name'));
         $('#broadcast-stream-info').html($elem.find('.broadcast-title-id').html());
         $('#broadcast-stream-channel').val($elem.data('ch'));
         // 地デジ・BSCS判定
-        if ($('.swiper-slide-thumb-active').text() == '地デジ'){
+        if ($('.swiper-slide-thumb-active').text() == '地デジ') {
             $('#broadcast-BonDriver-T').show();
             $('#broadcast-BonDriver-T').find('select').prop('disabled', false);
             $('#broadcast-BonDriver-S').hide();
             $('#broadcast-BonDriver-S').find('select').prop('disabled', true);
-            $('#broadcast-BonDriver-SPHD').hide();
-            $('#broadcast-BonDriver-SPHD').find('select').prop('disabled', true);
-        } else if ($('.swiper-slide-thumb-active').text() == 'スカパー！'){
-            $('#broadcast-BonDriver-SPHD').show();
-            $('#broadcast-BonDriver-SPHD').find('select').prop('disabled', false);
-            $('#broadcast-BonDriver-S').hide();
-            $('#broadcast-BonDriver-S').find('select').prop('disabled', true);
-            $('#broadcast-BonDriver-T').hide();
-            $('#broadcast-BonDriver-T').find('select').prop('disabled', true);
-        } else if ($('.swiper-slide-thumb-active').text() == 'スターデジオ'){
-            $('#broadcast-BonDriver-SPHD').show();
-            $('#broadcast-BonDriver-SPHD').find('select').prop('disabled', false);
-            $('#broadcast-BonDriver-S').hide();
-            $('#broadcast-BonDriver-S').find('select').prop('disabled', true);
-            $('#broadcast-BonDriver-T').hide();
-            $('#broadcast-BonDriver-T').find('select').prop('disabled', true);
         } else {
             $('#broadcast-BonDriver-S').show();
             $('#broadcast-BonDriver-S').find('select').prop('disabled', false);
             $('#broadcast-BonDriver-T').hide();
             $('#broadcast-BonDriver-T').find('select').prop('disabled', true);
-            $('#broadcast-BonDriver-SPHD').hide();
-            $('#broadcast-BonDriver-SPHD').find('select').prop('disabled', true);
         }
         // 開閉
         $('#nav-close').addClass('open');
         $('#broadcast-stream-box').addClass('open');
         $('html').addClass('open');
         // ワンクリックでストリーム開始する場合
-        if (settings['onclick_stream']){
+        if (settings['onclick_stream']) {
             $('#broadcast-stream-box').hide();
             $('.bluebutton').click();
         }
     });
 
     // 再生開始
-    $('#broadcast-stream-box .bluebutton').click(function(){
+    $('#broadcast-stream-box .bluebutton').click(function() {
         $('#broadcast-stream-box .bluebutton').addClass('disabled');
     });
 
     // キャンセル
-    $('.redbutton').click(function(event){
+    $('.redbutton').click(function(event) {
         $('#nav-close').removeClass('open');
         $('#broadcast-stream-box').removeClass('open');
         $('#chromecast-box').removeClass('open');
@@ -430,23 +446,23 @@ $(function(){
 
     // ***** ストリーム終了・遷移 *****
 
-    $('body').on('click','.stream-view',function(event){
+    $('body').on('click','.stream-view',function(event) {
 
         // ストリーム終了ボタン
-        if ($(event.target).hasClass('stream-stop-icon') && !$(event.target).parent().hasClass('disabled')){
+        if ($(event.target).hasClass('stream-stop-icon') && !$(event.target).parent().hasClass('disabled')) {
 
             var streamview = this;
             var streamnum = $(streamview).attr('data-num');
-            
+
             toastr.info('ストリーム ' + streamnum + ' を終了します。');
 
             $.ajax({
                 url: '/settings/',
                 type: 'post',
-                data: {state: 'Offline', stream: streamnum},
+                data: {_csrf_token: Cookies.get('tvrp_csrf_token'), state: 'Offline', stream: streamnum},
                 cache: false,
             }).done(function(data) {
-                    
+
                 toastr.success('ストリーム ' + streamnum + ' を終了しました。');
 
                 // Offlineにする
@@ -462,7 +478,7 @@ $(function(){
                 $('select[name=stream] option[value=' + streamnum + ']').text('Stream ' + streamnum + ' - Offline');
 
                 // 自分のストリームでない&ストリーム1でないなら要素を削除する
-                if (stream != streamnum && streamnum != '1'){
+                if (stream != streamnum && streamnum != '1') {
                     $(streamview).slideUp(400).animate(
                         { opacity: 0 },
                         { queue: false, duration: 400, easing: 'swing' }
@@ -475,7 +491,7 @@ $(function(){
                 toastr.error('ストリーム ' + streamnum + ' の終了に失敗しました…');
             });
 
-        } else if ($(event.target).parent().hasClass('disabled')){
+        } else if ($(event.target).parent().hasClass('disabled')) {
 
             event.preventDefault();
 
@@ -490,42 +506,40 @@ $(function(){
 
 
     // ***** ツイート関連 *****
-    
+
     // キャプチャ画像が入る連想配列
-    window.capture = [];
+    let capture = [];
 
     // 選択したキャプチャが入る配列
-    window.capture_selected = [];
+    let capture_selected = [];
 
     // キャプチャ画像の最大保持数
-    window.capture_maxcount = 10; // 10個
+    let capture_maxcount = 10; // 10個
 
     // キャプチャ画像リストにフォーカスしているか
-    window.capture_list_focus = false;
+    let capture_list_focus = false;
 
     // ツイートの文字数をカウント
     var count;
     var limit = 140;
-    $('#tweet, #tweet-hashtag').on('keydown keyup keypress change',function(event){
+    $('#tweet, #tweet-hashtag').on('keydown keyup keypress change',function(event) {
         tweet_count(event);
     });
-    
+
     // アカウント情報ボックスを表示する
     var clickEventType = ((window.ontouchstart!==null) ? 'mouseenter mouseleave' : 'touchstart');
     $('#tweet-title').on(clickEventType, function(event) {
-        if ($('#tweet-account-box').css('visibility') === 'hidden' && (event.type === 'mouseenter' || event.type === 'touchstart')){
+        if ($('#tweet-account-box').css('visibility') === 'hidden' && (event.type === 'mouseenter' || event.type === 'touchstart')) {
             $('#tweet-account-box').css('visibility', 'visible');
             $('#tweet-account-box').css('opacity', 1);
-            // console.log('visible')
         } else {
             $('#tweet-account-box').css('visibility', 'hidden');
             $('#tweet-account-box').css('opacity', 0);
-            // console.log('hidden')
         }
     });
 
     $('#tweet-account-box').on(clickEventType, function(event) {
-        if (event.type === 'mouseenter'){
+        if (event.type === 'mouseenter') {
             $('#tweet-account-box').css('visibility', 'visible');
             $('#tweet-account-box').css('opacity', 1);
         } else {
@@ -534,27 +548,25 @@ $(function(){
         }
     });
 
-    // スマホの場合にTwitterだけ下にフロート表示
+    // スマホの場合に Twitter フォームだけ下にフロート表示
     $('#tweet').focusin(function(event) {
-        if ($(window).width() <= 500){
+        if ($(window).width() <= 500) {
             $('#top').hide();
             $('#tweet-box').addClass('open');
             $('#tweet-close').addClass('open');
             $('html').addClass('open');
         }
     });
-
     $('#tweet-hashtag').focusin(function(event) {
-        if ($(window).width() <= 500){
+        if ($(window).width() <= 500) {
             $('#top').hide();
             $('#tweet-box').addClass('open');
             $('#tweet-close').addClass('open');
             $('html').addClass('open');
         }
     });
-
     $('#tweet-close').click(function(event) {
-        if ($(window).width() <= 500){
+        if ($(window).width() <= 500) {
             $('#top').show();
             $('#tweet-box').removeClass('open');
             $('#tweet-close').removeClass('open');
@@ -562,24 +574,24 @@ $(function(){
         }
     });
 
-    // キャプチャした画像をblobにして格納する
-    $('#tweet-picture').click(function(event){
+    // キャプチャした画像を blob に格納する
+    $('#tweet-picture').click(function(event) {
         captureVideo(event);
     });
 
-    // キャプチャした画像をコメント付きでblobにして格納する
-    $('#tweet-picture-comment').click(function(event){
+    // キャプチャした画像をコメント付きで blob に格納する
+    $('#tweet-picture-comment').click(function(event) {
         captureVideoWithComment(event);
     });
 
     // フォームをハッシュタグ以外リセット
-    $('#tweet-reset').click(function(event){
+    $('#tweet-reset').click(function(event) {
         // ツイートをリセット
         tweet_reset(event);
     });
 
     // Twitterからログアウト
-    $('#tweet-status').on('click', '#tweet-logout', function(event){
+    $('#tweet-status').on('click', '#tweet-logout', function(event) {
         $.ajax({
             url: "/tweet/logout",
             type: "post",
@@ -597,21 +609,19 @@ $(function(){
     });
 
     // クリップボードの画像を格納する
-    $('#tweet').on('paste', function(event){
-        
+    $('#tweet').on('paste', function(event) {
+
         // event からクリップボードのアイテムを取り出す
         var items = event.originalEvent.clipboardData.items; // ここがミソ
-        
-        for (var i = 0 ; i < items.length ; i++) {
-            
-            var item = items[i];
 
+        for (var i = 0 ; i < items.length ; i++) {
+
+            var item = items[i];
             if (item.type.indexOf('image') != -1) {
-        
+
                 // 画像だけ代入
                 $('#tweet-status').text('取得中…');
                 $('#tweet-submit').prop('disabled', true).addClass('disabled');
-            
                 $('#tweet-status').text('クリップボードの画像を取り込みました。');
 
                 // キャプチャ画像を追加
@@ -626,7 +636,7 @@ $(function(){
         window.isShiftKey = event.shiftKey;
     });
 
-    // 現在変換中か
+    // 現在 IME 変換中か
     window.isComposing = false;
     $('#tweet').on('compositionstart', function() {
         window.isComposing = true;
@@ -648,8 +658,8 @@ $(function(){
     });
 
     // ツイートボタンが押された時にツイートを送信する
-    $('#tweet-submit').click(function(event){
-        if (!$('#tweet-submit').prop('disabled')){ // ボタンが無効でなければ
+    $('#tweet-submit').click(function(event) {
+        if (!$('#tweet-submit').prop('disabled')) { // ボタンが無効でなければ
             tweet_send(event);
         }
     });
@@ -658,6 +668,7 @@ $(function(){
     // キーボードショートカット
     //   Ctrl + Enter：ツイートを送信
     //   Tab キー：フォーカス
+    //   E キー：画面全体のフルスクリーンの切り替え
     //   ? キー：ショートカット一覧
     //   Alt + Q キー: キャプチャ画像リストの表示 / 非表示の切り替え
     //   Alt + 1 キー：キャプチャ
@@ -665,16 +676,16 @@ $(function(){
     //   Alt + 3 キー：フォームをリセット
 
     // ページ全体
-    $(document).keydown(function(event){
-        
+    $(document).keydown(function(event) {
+
         // クロスブラウザ対応用
         var event = event || window.event;
 
         // Ctrl + Enter キー
         // Twitter 機能が有効 & 送信ボタンが有効
-        if (settings['twitter_show'] && !$('#tweet-submit').prop('disabled')){
+        if (settings['twitter_show'] && !$('#tweet-submit').prop('disabled')) {
 
-            if ((event.ctrlKey || event.metaKey) && event.key == 'Enter'){
+            if ((event.ctrlKey || event.metaKey) && event.key == 'Enter') {
                 tweet_send(event); // ツイートを送信
             }
         }
@@ -682,9 +693,9 @@ $(function(){
         // Tab キー
         // Twitter 機能が有効 & 変換中でない
         if (settings['twitter_show'] && window.isComposing === false) {
-            
-            if (event.key === 'Tab'){
-                
+
+            if (event.key === 'Tab') {
+
                 // デフォルトの処理を止める
                 event.preventDefault();
 
@@ -697,7 +708,7 @@ $(function(){
                     } else {
                         $('#tweet').focus();
                     }
-                    
+
                 // キャプチャ画像リストが表示されている
                 } else {
 
@@ -713,12 +724,12 @@ $(function(){
                     } else {
                         dp.focus = false;
                         if (document.querySelectorAll('.tweet-capture').length > 0) { // キャプチャ画像があれば
-                    
-                            // コメント入力欄のフォーカスを外す
+
+                            // コメント入力フォームのフォーカスを外す
                             dp.comment.hide();
 
                             // 他のフォーカスがあれば削除
-                            $('.tweet-capture').each(function(index, elem){
+                            $('.tweet-capture').each(function(index, elem) {
                                 elem.classList.remove('focus');
                             });
 
@@ -727,29 +738,40 @@ $(function(){
                         }
                     }
                 }
-
             }
         }
 
-        // ? キー
-        if (document.activeElement.id != 'tweet' && document.activeElement.className != 'dplayer-comment-input' && event.key == '?'){
-            event.preventDefault();
-            $('#hotkey-box').toggleClass('open');
-            $('#nav-close').toggleClass('open');
+        // ツイートフォーム・ハッシュタグフォーム・コメント入力フォームいずれにもフォーカスしていない
+        if (document.activeElement.id != 'tweet' &&
+            document.activeElement.id != 'tweet-hashtag' &&
+            document.activeElement.className != 'dplayer-comment-input') {
+
+            // E キー
+            if (event.key.toUpperCase() == 'E') {
+                event.preventDefault();
+                $('#fullscreen').click();
+            }
+
+            // ? キー
+            if (event.key == '?') {
+                event.preventDefault();
+                $('#hotkey-box').toggleClass('open');
+                $('#nav-close').toggleClass('open');
+            }
         }
 
         // Alt (or option) キー
         // Twitter 機能が有効
         if (settings['twitter_show']) {
 
-            if (event.altKey){
+            if (event.altKey) {
 
                 // デフォルトの処理を止める
                 event.preventDefault();
-                
+
                 // Mac だと Option キーを押しながら入力すると œ など謎の文字が入力されてしまうので、
                 // 敢えて event.keyCode で実装
-                switch (event.keyCode){
+                switch (event.keyCode) {
 
                     // Alt + Q
                     case 81:
@@ -774,7 +796,6 @@ $(function(){
                         // フォームをリセット
                         tweet_reset(event);
                     break;
-
                 }
             }
         }
@@ -788,7 +809,7 @@ $(function(){
 
             // ボックス
             let box_elem = document.getElementById('tweet-capture-box');
-            
+
             // 要素
             let focus_elems = document.querySelectorAll('.tweet-capture.focus');
             let focus_elem = focus_elems[0];
@@ -807,29 +828,28 @@ $(function(){
 
                 // スクロールにかける時間
                 var focus_elem_scroll_time = 350; // 350 (ミリ秒)
-
             }
 
-            switch (event.key){
+            switch (event.key) {
 
                 // Space
                 case ' ':
 
+                    // イベントをキャンセル
                     event.preventDefault();
 
-                    // コメント入力欄のフォーカスを外す
+                    // コメント入力フォームのフォーカスを外す
                     dp.comment.hide();
 
                     // focus_elem があれば
                     if (exists_focus_elem) {
-                        
+
                         // 選択されてなかったら選択、選択されてたら選択解除
                         if (focus_elem.classList.contains('selected')) {
                             deselectCaptureImage(focus_elem);
                         } else {
                             selectCaptureImage(focus_elem);
                         }
-
                     }
 
                 break;
@@ -837,9 +857,10 @@ $(function(){
                 // ←
                 case 'ArrowLeft':
 
+                    // イベントをキャンセル
                     event.preventDefault();
-                    
-                    // コメント入力欄のフォーカスを外す
+
+                    // コメント入力フォームのフォーカスを外す
                     dp.comment.hide();
 
                     // focus_elem があれば
@@ -853,7 +874,7 @@ $(function(){
 
                             // 自分のフォーカスを解除
                             focus_elem.classList.remove('focus');
-            
+
                             // tweet-capture-box の左端（絶対座標）
                             let box_elem_leftedge = box_elem.getBoundingClientRect().left;
 
@@ -875,23 +896,21 @@ $(function(){
                                 if (box_elem_scrollLeft > box_elem_scrollableWidth) {
                                     box_elem_scrollLeft = box_elem_scrollableWidth; // スクロール可能な幅で制限
                                 }
-                                
+
                                 // 今までのスクロール幅を引く
                                 $(box_elem).animate({scrollLeft: box_elem.scrollLeft - box_elem_scrollLeft}, focus_elem_scroll_time, 'swing');
-
                             }
                         }
-                    
+
                     } else {
 
                         // 他のフォーカスがあれば削除
-                        $('.tweet-capture').each(function(index, elem){
+                        $('.tweet-capture').each(function(index, elem) {
                             elem.classList.remove('focus');
                         });
 
                         // 最初の要素にフォーカス
                         document.getElementsByClassName('tweet-capture')[0].classList.add('focus');
-
                     }
 
                 break;
@@ -899,9 +918,10 @@ $(function(){
                 // →
                 case 'ArrowRight':
 
+                    // イベントをキャンセル
                     event.preventDefault();
-                    
-                    // コメント入力欄のフォーカスを外す
+
+                    // コメント入力フォームのフォーカスを外す
                     dp.comment.hide();
 
                     // focus_elem があれば
@@ -915,7 +935,7 @@ $(function(){
 
                             // 自分のフォーカスを解除
                             focus_elem.classList.remove('focus');
-            
+
                             // tweet-capture-box の右端（絶対座標）
                             let box_elem_rightedge = (box_elem.getBoundingClientRect().left + box_elem.getBoundingClientRect().width);
 
@@ -937,45 +957,43 @@ $(function(){
                                 if (box_elem_scrollLeft > box_elem_scrollableWidth) {
                                     box_elem_scrollLeft = box_elem_scrollableWidth; // スクロール可能な幅で制限
                                 }
-                                
+
                                 // 今までのスクロール幅を足す
                                 $(box_elem).animate({scrollLeft: box_elem.scrollLeft + box_elem_scrollLeft}, focus_elem_scroll_time, 'swing');
-
                             }
                         }
-                    
+
                     } else {
 
                         // 他のフォーカスがあれば削除
-                        $('.tweet-capture').each(function(index, elem){
+                        $('.tweet-capture').each(function(index, elem) {
                             elem.classList.remove('focus');
                         });
 
                         // 最初の要素にフォーカス
                         document.getElementsByClassName('tweet-capture')[0].classList.add('focus');
-
                     }
 
                 break;
-
             }
         }
-
     });
 
 
     // ***** キャプチャ画像リスト *****
 
+    // キャプチャ画像表示用の Luminous インスタンス
+    let luminous = null;
+
     // キャプチャした画像の一覧を表示
-    $('#tweet-capture-list').click(function(event){
+    $('#tweet-capture-list').click(function(event) {
 
         // キャプチャ画像リストを表示/非表示
         tweet_capture_list(event);
-
     });
 
     // キャプチャした画像をクリック
-    $(document).on('click', '.tweet-capture', function(event){
+    $(document).on('click', '.tweet-capture', function(event) {
 
         // フォーカスを解除
         if (document.querySelectorAll('.tweet-capture.focus').length === 1) {
@@ -986,22 +1004,22 @@ $(function(){
 
             // 4枚まで
             if (capture_selected.length < 4) {
-        
+
                 // 選択されたキャプチャ画像を追加
                 selectCaptureImage(this);
-
             }
 
         } else {
-        
+
             // 選択解除されたキャプチャ画像を削除
             deselectCaptureImage(this);
-        
         }
-
     });
 
-    // キャプチャした画像をリストに追加する関数
+    /**
+     * キャプチャした画像をリストに追加する
+     * @param {Blob} blob 
+     */
     function addCaptureImage(blob) {
 
         // キャプチャ画像が capture_maxcount を超えていたら
@@ -1014,7 +1032,7 @@ $(function(){
             // 削除する要素
             let removeelemlist = document.getElementsByClassName('tweet-capture');
             let removeelem = removeelemlist[removeelemlist.length -1];
-            
+
             // blob URL を無効化
             URL.revokeObjectURL(removeelem.dataset.url);
 
@@ -1023,14 +1041,13 @@ $(function(){
 
             // 要素を削除
             removeelem.remove();
-        
         }
 
         // blob URL を生成
         let bloburl = URL.createObjectURL(blob);
 
         // キャプチャした画像を格納
-        capture.unshift(blob); // ISO8601のタイムスタンプをキーにする
+        capture.unshift(blob); // ISO8601 のタイムスタンプをキーにする
 
         // html を追加
         document.getElementById('tweet-capture-box').insertAdjacentHTML('afterbegin', `
@@ -1042,28 +1059,46 @@ $(function(){
         );
 
         // 追加したキャプチャを自動選択
-        $('.tweet-capture').each(function(index, elem){
+        $('.tweet-capture').each(function(index, elem) {
 
             // 先頭の要素でなければ
             if (index !== 0) {
-                
+
                 // 自動選択を解除
                 deselectCaptureImage(elem, true);
-                
+
                 // インデックスを書き換え
                 elem.dataset.index++; 
             }
-        
         });
 
         // 自動選択
         selectCaptureImage(document.getElementsByClassName('tweet-capture')[0], true);
 
+        // Luminous がすでに初期化されていたら一旦破棄
+        if (luminous !== null) {
+            luminous.destroy();
+            luminous = null;
+        }
+
+        // Luminous を初期化
+        const luminousTrigger = document.querySelectorAll('.tweet-capture');
+        if (luminousTrigger !== null) {
+            luminous = new LuminousGallery(luminousTrigger, {
+                arrowNavigation: true,  // 左右のボタンを表示する
+            }, {
+                sourceAttribute: 'data-url',  // 拡大画像の URL がある属性
+                openTrigger: 'contextmenu',  // 右クリックで開く
+                closeTrigger: 'click',  // 普通のクリックで閉じる
+            });
+        }
     }
 
-    // キャプチャ画像を選択する関数
-    // 第1引数: 選択された要素を指定
-    // 第2引数: true を指定すると data-autoselect を付与する
+    /**
+     * キャプチャ画像を選択する
+     * @param {HTMLElement} elem 選択された要素
+     * @param {Boolean} autoselect true を指定すると data-autoselect を付与する
+     */
     function selectCaptureImage(elem, autoselect = false) {
 
         // 4枚未満なら実行（まだ追加されていないため「未満」）
@@ -1081,7 +1116,7 @@ $(function(){
                 elem.dataset.autoselect = true;
             }
 
-            $('.tweet-capture').each(function(index, elem){
+            $('.tweet-capture').each(function(index, elem) {
 
                 // 手動選択だったら自動選択を解除
                 if (autoselect === false) {
@@ -1095,13 +1130,11 @@ $(function(){
                     if (typeof elem.dataset === 'undefined' || typeof elem.dataset.order === 'undefined') {
                         elem.classList.add('disabled'); // 無効化
                     }
-
                 }
-
             });
 
             // ツイートが limit 内なら送信ボタンを有効化する
-            if (limit >= 0){
+            if (limit >= 0) {
                 document.getElementById('tweet-submit').disabled = false;
                 document.getElementById('tweet-submit').classList.remove('disabled');
             }
@@ -1116,16 +1149,18 @@ $(function(){
             if (!autoselect || capture_selected.length > 1) {
                 document.getElementById('tweet-status').textContent = capture_selected.length + ' 枚の画像を選択しました。';
             }
-        
+
         // 5枚以上は無効化
         } else {
             elem.classList.add('disabled');
         }
     }
 
-    // キャプチャ画像を選択解除する関数
-    // 第1引数: 選択された要素を指定
-    // 第2引数: true を指定すると data-autoselect が付与されている要素のみ選択を解除
+    /**
+     * キャプチャ画像を選択解除する
+     * @param {HTMLElement} elem 選択された要素
+     * @param {Boolean} autoselect true を指定すると data-autoselect が付与されている要素のみ選択を解除
+     */
     function deselectCaptureImage(this_, autoselect = false) {
 
         // order が定義されていれば
@@ -1136,26 +1171,24 @@ $(function(){
 
                 // 選択解除されたキャプチャを配列から削除
                 capture_selected.splice(this_.dataset.order, 1);
-                
+
                 // order を書き換え
-                $('.tweet-capture').each(function(index, elem){
-    
+                $('.tweet-capture').each(function(index, elem) {
+
                     // そのキャプチャの order が削除された order よりも大きければ
                     if (elem.dataset.order > this_.dataset.order) {
-                        
+
                         // 配列に合わせて orderを詰める
                         elem.dataset.order--;
                         $(elem).find('.tweet-capture-cover').text(parseInt(elem.dataset.order) + 1);
-    
                     }
-                    
+
                     // キャプチャを有効化
-                    if (elem.classList.contains('disabled')){
+                    if (elem.classList.contains('disabled')) {
                         elem.classList.remove('disabled');
                     }
-    
                 });
-    
+
                 // data-order を削除
                 delete this_.dataset.order;
                 $(this_).find('.tweet-capture-cover').text('');
@@ -1166,11 +1199,11 @@ $(function(){
                 }
 
                 // 本文が空でかつ選択されている画像が 0 なら送信ボタンを無効化する
-                if (document.getElementById('tweet').value.length === 0 && capture_selected.length === 0){
+                if (document.getElementById('tweet').value.length === 0 && capture_selected.length === 0) {
                     document.getElementById('tweet-submit').disabled = true;
                     document.getElementById('tweet-submit').classList.add('disabled');
                 }
-    
+
                 // カバーを非表示
                 this_.classList.remove('selected');
 
@@ -1185,12 +1218,13 @@ $(function(){
                         document.getElementById('tweet-status').textContent = capture_selected.length + ' 枚の画像を選択しました。';
                     }
                 }
-
             }
         }
     }
 
-    // キャプチャ画像をすべて選択解除する関数
+    /**
+     * キャプチャ画像をすべて選択解除する
+     */
     function deselectAllCaptureImage() {
 
         // 配列を空にする
@@ -1203,11 +1237,11 @@ $(function(){
         }
 
         // 要素ごとに実行
-        $('.tweet-capture').each(function(index, elem){
+        $('.tweet-capture').each(function(index, elem) {
 
             // order が定義されていれば
             if (typeof elem.dataset !== 'undefined' && typeof elem.dataset.order !== 'undefined') {
-    
+
                 // data-order を削除
                 delete elem.dataset.order;
                 $(elem).find('.tweet-capture-cover').text('');
@@ -1216,29 +1250,26 @@ $(function(){
                 if (typeof elem.dataset.autoselect !== 'undefined') {
                     delete elem.dataset.autoselect;
                 }
-    
+
                 // カバーを非表示
                 elem.classList.remove('selected');
-                    
-            }
-                    
-            // キャプチャを有効化
-            if (elem.classList.contains('disabled')){
-                elem.classList.remove('disabled');
             }
 
+            // キャプチャを有効化
+            if (elem.classList.contains('disabled')) {
+                elem.classList.remove('disabled');
+            }
         });
 
         // 枚数を表示
         document.getElementById('tweet-capture-num').textContent = '0/4';
-
     }
 
 
     // ***** ツイート関連の関数 *****
 
     // ツイートの文字数をカウントする関数
-    function tweet_count(event){
+    function tweet_count(event) {
 
         // 現在のカウント数
         count_tweet = Array.from($('#tweet').val()).length;
@@ -1247,40 +1278,41 @@ $(function(){
         limit = 140 - count;
 
         if (limit <= 140) {
-            
+
             // 初期化
             $('#tweet-num').text(limit);
             $('#tweet-num').removeClass('over');
             $('#tweet-num').removeClass('warn');
 
             // 送信中 or キャプチャ中でないなら
-            if ($('#tweet-status').text() != 'ツイートを送信中…' && $('#tweet-status').text() != 'コメント付きでキャプチャ中…' && $('#tweet-status').text() != 'キャプチャ中…'){
+            if ($('#tweet-status').text() != 'ツイートを送信中…' &&
+                $('#tweet-status').text() != 'キャプチャ中…' &&
+                $('#tweet-status').text() != 'コメント付きでキャプチャ中…') {
                 $('#tweet-submit').prop('disabled', false).removeClass('disabled'); // 一旦ボタンを有効化
             }
 
             // ハッシュタグ以外のツイート文が空
             if (count_tweet === 0) {
-                if (capture_selected.length === 0){ // キャプチャがない（ハッシュタグ以外送信するものがない）場合はボタンを無効に
+                if (capture_selected.length === 0) { // キャプチャがない（ハッシュタグ以外送信するものがない）場合はボタンを無効に
                     $('#tweet-submit').prop('disabled', true).addClass('disabled');
                 }
             }
-            
+
             // 残り20字以下
             if (limit <= 20) {
                 $('#tweet-num').addClass('warn');
             }
-            
+
             // 残り0文字
             if (limit == 0) {
                 $('#tweet-num').addClass('over');
             }
-            
+
             // 文字数オーバー
             if (limit < 0) {
                 $('#tweet-num').addClass('over');
                 $('#tweet-submit').prop('disabled', true).addClass('disabled'); // エラーになるので送信できないよう無効化
             }
-            
         }
     }
 
@@ -1357,10 +1389,10 @@ $(function(){
             $('#tweet-capture-box').removeClass('show');
 
             // 0.1 秒遅らせてから display: none; を適用
-            setTimeout(function(){
+            setTimeout(function() {
                 $('#tweet-capture-box').removeClass('display'); // 必ず後
             }, 100);
-        
+
         // キャプチャ画像リストを表示
         } else {
 
@@ -1372,19 +1404,18 @@ $(function(){
 
             // プレイヤーのホットキー機能を無効にする
             dp.options.hotkey = false;
-            
+
             // 先に display: none; を解除
             $('#tweet-capture-box').addClass('display'); // 必ず先
 
-            setTimeout(function(){
+            setTimeout(function() {
                 $('#tweet-capture-box').addClass('show');
             }, 10); // 0.01 秒遅らせるのがポイント
-        
         }
     }
 
     // フォームをハッシュタグ以外リセットする関数
-    function tweet_reset(event){
+    function tweet_reset(event) {
 
         // キャプチャ画像の選択をすべて解除
         deselectAllCaptureImage();
@@ -1404,19 +1435,19 @@ $(function(){
         $('#tweet').val(null);
         $('#content-box').show();
         $('#footer').show();
-        
-        if (Cookies.get('twitter')){
+
+        if (Cookies.get('tvrp_twitter_settings')) {
             $('#tweet-status').html('<a id="tweet-logout" href="javascript:void(0)"><i class="fas fa-sign-out-alt"></i>ログアウト</a>');
         } else {
             $('#tweet-status').html('<a id="tweet-login" href="/tweet/auth"><i class="fas fa-sign-in-alt"></i>ログイン</a>');
         }
     }
-    
-    
+
+
     // ***** キャプチャ関連の関数 *****
 
     // キャプチャした画像をblobにして格納する関数
-    function captureVideo(event){
+    function captureVideo(event) {
 
         $('#tweet-status').text('キャプチャ中…');
         $('#tweet-submit').prop('disabled', true).addClass('disabled');
@@ -1426,20 +1457,20 @@ $(function(){
 
         // キャプチャを実行する
         videoToCanvas(video).then(({canvas}) => {
-            canvas.toBlob(function(blob){
-            
+            canvas.toBlob(function(blob) {
+
                 $('#tweet-status').text('キャプチャしました。');
-                
+
                 // キャプチャした画像を格納
                 console.log('Render Blob: ' + URL.createObjectURL(blob));
                 addCaptureImage(blob);
-            
+
             }, 'image/jpeg', 1);
         });
     }
 
     // キャプチャした画像をコメント付きでblobにして格納する関数
-    function captureVideoWithComment(event){
+    function captureVideoWithComment(event) {
 
         $('#tweet-status').text('コメント付きでキャプチャ中…');
         $('#tweet-submit').prop('disabled', true).addClass('disabled');
@@ -1450,21 +1481,21 @@ $(function(){
         let html = document.querySelector('.dplayer-danmaku').outerHTML;
 
         // このままだと SVG 化に失敗するため修正する
-        for (let i = 0; i < danmaku.length; i++){ // コメントの数だけ置換
+        for (let i = 0; i < danmaku.length; i++) { // コメントの数だけ置換
             // コメント位置を計算
             let position = danmaku[i].getBoundingClientRect().left - video.getBoundingClientRect().left;
             html = html.replace(/transform: translateX\(.*?\)\;/, 'left: ' + position + 'px;');
         }
 
         nicoVideoToCanvas({video, html}).then(({canvas}) => {
-            canvas.toBlob(function(blob){
+            canvas.toBlob(function(blob) {
 
                 $('#tweet-status').text('コメント付きでキャプチャしました。');
-                
+
                 // キャプチャした画像を格納
                 console.log('Render Blob: ' + URL.createObjectURL(blob));
                 addCaptureImage(blob);
-            
+
             }, 'image/jpeg', 1);
         });
     }
@@ -1474,7 +1505,7 @@ $(function(){
     // https://developer.mozilla.org/ja/docs/Web/HTML/Canvas/Drawing_DOM_objects_into_a_canvas
     // Chrome だと toBlob した際に汚染されるので DataURI に変換する
     // https://qiita.com/kjunichi/items/f5993d34838e1623daf5
-    
+
     const htmlToSvg = function(html, width = 640, height = 360) {
         let scale = 1;
         const data =
@@ -1663,12 +1694,12 @@ $(function(){
     // ***** Utils *****
 
     // 0埋めする関数
-    function zeroPadding(num, length){
+    function zeroPadding(num, length) {
         return ('0000000000' + num).slice(-length);
     }
 
     // 時計用
-    function clock(){
+    function clock() {
 
         // 曜日を表す各文字列の配列
         var weeks = new Array("Sun","Mon","Thu","Wed","Thr","Fri","Sat");
@@ -1692,9 +1723,9 @@ $(function(){
 
         $('#clock').text(y + '/' + mo + '/' + d + ' ' + h + ':' + mi + ':' + s);
     }
-    
+
     // タイムスタンプ取得
-    function time(){
+    function time() {
         var date = new Date();
         return Math.floor( date.getTime() / 1000 );
     }

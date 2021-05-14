@@ -63,10 +63,6 @@ $OAUTH_CALLBACK = $site_url.'tweet/callback.php';
 // htdocs からのパス
 $icon_file = '/files/TVRemotePlus.svg';
 
-// BonDriver のあるディレクトリ(フォルダ)
-// デフォルトは TSTask のあるフォルダ/BonDriver/ フォルダです
-$BonDriver_dir = $base_dir.'bin/TSTask/BonDriver/';
-
 // セグメントを一時的に保管するフォルダのパス
 // 変更すると作動しなくなります
 // HDD など別のドライブに変更したい場合は、Windows のシンボリックリンク機能を利用して下さい
@@ -107,20 +103,12 @@ $htaccess = $base_dir.'htdocs/.htaccess';
 // .htpasswd のパス
 $htpasswd = $base_dir.'htdocs/.htpasswd';
 
-// 一時的に書き出すCSVプロセスリストのパス
-$process_csv = $base_dir.'data/process.csv';
-
 
 // ***** 各種exeファイルのパス *****
 
-// TSTask の名前とパス
-$tstask_exe = 'TSTask-tvrp.exe';
-$tstask_path = $base_dir.'bin/TSTask/';
-$tstask_SPHD_exe = 'TSTask_SPHD-tvrp.exe';
-
-// TSTaskCentreEx の名前とパス
-$tstaskcentreex_exe = 'TSTaskCentreEx.exe';
-$tstaskcentreex_path = $base_dir.'bin/TSTaskCentreEx/'.$tstaskcentreex_exe;
+// arib-subtitle-timedmetadater の名前とパス
+$arib_subtitle_timedmetadater_exe = 'arib-subtitle-timedmetadater-udpin.exe';
+$arib_subtitle_timedmetadater_path = $base_dir.'bin/arib-subtitle-timedmetadater/'.$arib_subtitle_timedmetadater_exe;
 
 // rplsinfo の名前とパス
 $rplsinfo_exe =  'rplsinfo-tvrp.exe';
@@ -151,9 +139,6 @@ $vceencc_path =  $base_dir.'bin/VCEEncC/'.$vceencc_exe;
 
 // config.php を読み込む
 require ($base_dir.'/config.php');
-
-// EDCB_http_url の書き換え (互換用)
-$EDCB_http_url = str_replace('api/', '', rtrim($EDCB_http_url, '/').'/'); // 常に末尾にスラッシュをつける
 
 // $reverse_proxy_url が空でないかを確かめるため
 // 敢えて設定を読み込んだ後に処理を行う

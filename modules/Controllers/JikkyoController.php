@@ -8,7 +8,7 @@ class JikkyoController {
     /**
      * コンストラクタ
      */
-    public function __construct() {
+    public function __construct($live_id = null) {
 
         require ('module.php');
         require ('require.php');
@@ -17,7 +17,7 @@ class JikkyoController {
         $stream = getStreamNumber($_SERVER['REQUEST_URI']);
 
         // 設定ファイル読み込み
-        $settings = json_decode(file_get_contents($inifile), true);
+        $settings = json_decode(file_get_contents_lock_sh($inifile), true);
 
         // ストリームが存在する
         if (isset($settings[$stream])) {
@@ -28,30 +28,26 @@ class JikkyoController {
                 // モデルを初期化
                 $instance = new Jikkyo($nicologin_mail, $nicologin_password);
 
-                // クエリに放送 ID が存在する場合はそれを使う
-                if (isset($_GET['live_id']) and !empty($_GET['live_id'])) {
+                // 放送 ID が指定された場合はそれを使う
+                if (isset($live_id)) {
 
                     // ニコニコチャンネル/コミュニティ ID として設定　lv から始まる ID が入る場合もあるが、
                     // getNicoliveSession() はいずれの ID も処理できるので問題はない
-                    $nicochannel_id = $_GET['live_id'];
+                    $nicochannel_id = $live_id;
 
                 // ストリーム番号から現在放送中のチャンネルの実況 ID を使う
                 } else {
     
-                    // BonDriver とチャンネルを取得
-                    // 実際はチャンネルしか使わないのでこんなにいらない（👈技術的負債）
-		list($BonDriver_dll, $BonDriver_dll_T, $BonDriver_dll_S, $BonDriver_dll_SPHD, // BonDriver
-			$ch, $ch_T, $ch_S, $ch_CS, $ch_SPHD, $ch_SPSD, // チャンネル番号
-			$sid, $sid_T, $sid_S, $sid_CS, $sid_SPHD, $sid_SPSD, // SID
-			$onid, $onid_T, $onid_S, $onid_CS, $onid_SPHD, $onid_SPSD, // ONID(NID)
-			$tsid, $tsid_T, $tsid_S, $tsid_CS, $tsid_SPHD, $tsid_SPSD) // TSID
-			= initBonChannel($BonDriver_dir);
+                    // チャンネルを取得
+                    $cmd = new CtrlCmdUtil;
+                    if (isset($ctrlcmd_addr) && $ctrlcmd_addr !== '') {
+                        $cmd->setNWSetting($ctrlcmd_addr);
+                    }
+                    $ch = initBonChannel($cmd);
         
                     // 実況 ID を取得
                     if (isset($ch[$settings[$stream]['channel']])){
-                        $nicojikkyo_id = $instance->getNicoJikkyoID($ch[$settings[$stream]['channel']]);
-                    } else if ($ch[intval($settings[$stream]['channel']).'_1']){
-                        $nicojikkyo_id = $instance->getNicoJikkyoID($ch[intval($settings[$stream]['channel']).'_1']);
+                        $nicojikkyo_id = $instance->getNicoJikkyoID($ch[$settings[$stream]['channel']]['name']);
                     } else {
                         $nicojikkyo_id = null;
                     }
