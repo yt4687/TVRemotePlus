@@ -107,9 +107,6 @@ $htaccess = $base_dir.'htdocs/.htaccess';
 // .htpasswd のパス
 $htpasswd = $base_dir.'htdocs/.htpasswd';
 
-// 一時的に書き出すCSVプロセスリストのパス
-$process_csv = $base_dir.'data/process.csv';
-
 
 // ***** 各種exeファイルのパス *****
 
@@ -121,6 +118,10 @@ $tstask_SPHD_exe = 'TSTask_SPHD-tvrp.exe';
 // TSTaskCentreEx の名前とパス
 $tstaskcentreex_exe = 'TSTaskCentreEx.exe';
 $tstaskcentreex_path = $base_dir.'bin/TSTaskCentreEx/'.$tstaskcentreex_exe;
+
+// arib-subtitle-timedmetadater の名前とパス
+$arib_subtitle_timedmetadater_exe = 'arib-subtitle-timedmetadater.exe';
+$arib_subtitle_timedmetadater_path = $base_dir.'bin/arib-subtitle-timedmetadater/'.$arib_subtitle_timedmetadater_exe;
 
 // rplsinfo の名前とパス
 $rplsinfo_exe =  'rplsinfo-tvrp.exe';

@@ -165,7 +165,7 @@
 
 				// このストリームを終了
 				if (!isset($_POST['allstop'])){
-					
+
 					// 現在のストリームを終了する
 					stream_stop($stream);
 
@@ -197,7 +197,7 @@
 					foreach ($ini as $key => $value) {
 
 						$key = strval($key);
-					
+
 						// 全てのストリームを Offline に設定する
 						$ini[$key]['state'] = 'Offline';
 						$ini[$key]['channel'] = '0';

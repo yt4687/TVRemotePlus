@@ -196,11 +196,13 @@
 	// ライブ配信を開始する
 	function stream_start($stream, $ch, $sid, $onid, $tsid, $BonDriver, $quality, $encoder, $subtitle) {
 
-		global $inifile, $udp_port, $ffmpeg_path, $qsvencc_path, $nvencc_path, $vceencc_path, $tstask_path, $tstask_exe, $tstask_SPHD_exe, $tstaskcentreex_path, $segment_folder, $hlslive_time, $hlslive_list, $base_dir, $encoder_log, $encoder_window, $TSTask_window;
+		global $inifile, $udp_port, $ffmpeg_path, $qsvencc_path, $nvencc_path, $vceencc_path, $tstask_path, $tstask_exe, $tstask_SPHD_exe, $tstaskcentreex_path, $arib_subtitle_timedmetadater_path, $segment_folder, $hlslive_time, $hlslive_list, $base_dir, $encoder_log, $encoder_window, $TSTask_window;
 
 		// 設定ファイル読み込み
 		$settings = json_decode(file_get_contents_lock_sh($inifile), true);
 
+		// UDPポート
+		$stream_port = $udp_port + intval($stream);
 		// スカパーとその他の切り替えを判別する手段がないのでこの関数は使わない。方法ができたらそれ込みで元に戻す
 		// 以前の state が ONAir (TSTask を再利用できる)
 		/*if ($settings[strval($stream)]['state'] === 'ONAir') {
@@ -210,40 +212,31 @@
 				stream_stop($stream);
 	
 				// TSTaskCentreEx のコマンド
-				$tstaskcentreex_cmd = '';
+				$tstaskcentreex_cmd = (
+					// チャンネルをセット
+					"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c SetChannel -o \"ServiceID:{$sid}|TransportStreamID:{$tsid}\" && ".
+					// UDP 送信を終了
+					"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c StopStreaming && ".
+					// UDP 送信を開始
+					"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c StartStreaming -o \"Port:{$stream_port}|Address:127.0.0.1\""
+				);
+
+			// BonDriver が違うので BonDriver を読み込み直してからチャンネルを切り替える
 			} else {
 
-				// 事前に前のストリームを終了する
-				// TSTask は再利用するため終了させない
-				stream_stop($stream, false, true);
-
-				// ストリーム番号から TSTask の PID を取得
-				// TaskID だと TVRemotePlus の想定と異なる ID になる可能性があるため
-				$tstask_pid = getTSTaskPID($stream);
-
-				// BonDriver が同じなのでチャンネル切り替えのみ
-				if ($settings[strval($stream)]['BonDriver'] == $BonDriver) {
-
-					// TSTaskCentreEx のコマンド
-					$tstaskcentreex_cmd = (
-						// チャンネルをセット
-						"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c SetChannel -o \"ServiceID:{$sid}|TransportStreamID:{$tsid}\" "
-					);
-				
-			
-				// BonDriver が違うので BonDriver を読み込み直してからチャンネルを切り替える
-				} else {
-
-					// TSTaskCentreEx のコマンド
-					$tstaskcentreex_cmd = (
-						// BonDriver をロード
-						"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c LoadBonDriver -o \"FilePath:'{$BonDriver}'\" && ".
-						// チューナーを開く
-						"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c OpenTuner && ".
-						// チャンネルをセット
-						"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c SetChannel -o \"ServiceID:{$sid}|TransportStreamID:{$tsid}\" "
-					);
-				}
+				// TSTaskCentreEx のコマンド
+				$tstaskcentreex_cmd = (
+					// BonDriver をロード
+					"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c LoadBonDriver -o \"FilePath:'{$BonDriver}'\" && ".
+					// チューナーを開く
+					"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c OpenTuner && ".
+					// チャンネルをセット
+					"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c SetChannel -o \"ServiceID:{$sid}|TransportStreamID:{$tsid}\" && ".
+					// UDP 送信を終了
+					"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c StopStreaming && ".
+					// UDP 送信を開始
+					"\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c StartStreaming -o \"Port:{$stream_port}|Address:127.0.0.1\""
+				);
 			}
 
 		// 以前の state が File か Offline
@@ -257,18 +250,12 @@
 			$tstaskcentreex_cmd = '';
 		//}
 
-		// UDPポート
-		$stream_port = $udp_port + intval($stream);
-
-		// UDP受信スキーム
-		$receive = "udp://127.0.0.1:{$stream_port}?pkt_size=262144&fifo_size=1000000&overrun_nonfatal=1";
-
 		// 字幕切り替え
 		switch ($subtitle) {
 
 			case 'true':
-				$subtitle_ffmpeg_cmd = '-map 0 -ignore_unknown';
-				$subtitle_other_cmd = '--sub-copy asdata';
+				$subtitle_ffmpeg_cmd = '-map 0:d?';
+				$subtitle_other_cmd = '--data-copy timed_id3';
 			break;
 
 			case 'false':
@@ -374,6 +361,9 @@
 			break;
 		}
 
+		// arib-subtitle-timedmetadater
+		$ast_cmd = "\"{$arib_subtitle_timedmetadater_path}\" -u {$stream_port}";
+
 		// 変換コマンド切り替え
 		switch ($encoder) {
 
@@ -408,7 +398,8 @@
 				$stream_cmd = '"'.$ffmpeg_path.'"'.
 
 					// 入力
-					' -f mpegts -probesize 8192 -analyzeduration 0 -dual_mono_mode main -i "'.$receive.'"'.
+					// -probesize / -analyzeduration を短縮しすぎると音声多重+字幕放送で副音声がエンコードされてしまう可能性がある（？）
+					' -f mpegts -probesize 900K -analyzeduration 0.67 -dual_mono_mode main -i -'.
 					// HLS
 					' -f hls'.
 					' -hls_segment_type mpegts'.
@@ -418,14 +409,14 @@
 					' -hls_flags delete_segments'.
 					' -hls_segment_filename stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
-					' -vcodec libx264 -vb '.$vb.' -vf yadif=0:-1:1,scale='.$width.':'.$height.
+					' -map 0:v:0 -vcodec libx264 -vb '.$vb.' -vf yadif=0:-1:1,scale='.$width.':'.$height.
 					' -aspect 16:9 -preset veryfast -r 30000/1001'.
 					// 音声
-					' -acodec aac -ab '.$ab.' -ar '.$samplerate.' -ac 2 -af volume='.$volume.
+					' -map 0:a:0 -acodec aac -ab '.$ab.' -ar '.$samplerate.' -ac 2 -af volume='.$volume.
 					// 字幕
 					' '.$subtitle_ffmpeg_cmd.
 					// その他
-					' -flags +loop+global_header -movflags +faststart -threads auto'.
+					' -flags +loop+global_header -movflags +faststart -threads auto -max_interleave_delta 5M'.
 					// 出力
 					' stream'.$stream.'.m3u8';
 
@@ -437,7 +428,7 @@
 				$stream_cmd = '"'.$qsvencc_path.'"'.
 
 					// 入力
-					' --input-format mpegts --input-analyze 0 -i "'.$receive.'"'.
+					' --input-format mpegts --fps 30000/1001 --input-probesize 900K --input-analyze 0.67 -i -'.
 					// avhw エンコード
 					' --avhw'.
 					// HLS
@@ -447,15 +438,15 @@
 					' -m hls_flags:delete_segments'.
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
-					' --vbr '.$vb.' --qp-max 24:26:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
+					' --vbr '.$vb.' --qp-max 26:27:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
 					' --quality fastest --profile main --vpp-deinterlace normal --tff'.
 					// 音声
-					' --audio-codec aac#dual_mono_mode=main --audio-stream :stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
+					' --audio-codec 1?aac#dual_mono_mode=main --audio-stream 1?:stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
 					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30 --audio-ignore-notrack-error'.
 					// 字幕
 					' '.$subtitle_other_cmd.
 					// その他
-					' --avsync forcecfr --fallback-rc --max-procfps 90 --output-thread 0'.
+					' --avsync forcecfr --fallback-rc --max-procfps 90 -m max_interleave_delta:1M'.
 					// 出力
 					' -o stream'.$stream.'.m3u8';
 
@@ -467,7 +458,7 @@
 				$stream_cmd = '"'.$nvencc_path.'"'.
 
 					// 入力
-					' --input-format mpegts --input-analyze 0 -i "'.$receive.'"'.
+					' --input-format mpegts --fps 30000/1001 --input-probesize 900K --input-analyze 0.67 -i -'.
 					// avhw エンコード
 					' --avhw'.
 					// HLS
@@ -477,15 +468,15 @@
 					' -m hls_flags:delete_segments'.
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
-					' --vbr '.$vb.' --qp-max 24:26:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
+					' --vbr '.$vb.' --qp-max 26:27:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
 					' --preset performance --profile main --cabac --vpp-deinterlace normal --tff'.
 					// 音声
-					' --audio-codec aac#dual_mono_mode=main --audio-stream :stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
+					' --audio-codec 1?aac#dual_mono_mode=main --audio-stream 1?:stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
 					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30 --audio-ignore-notrack-error'.
 					// 字幕
 					' '.$subtitle_other_cmd.
 					// その他
-					' --avsync forcecfr --max-procfps 90 --output-thread 0'.
+					' --avsync forcecfr --max-procfps 90 -m max_interleave_delta:1M'.
 					// 出力
 					' -o stream'.$stream.'.m3u8';
 
@@ -497,7 +488,7 @@
 				$stream_cmd = '"'.$vceencc_path.'"'.
 
 					// 入力
-					' --input-format mpegts --input-analyze 0 -i "'.$receive.'"'.
+					' --input-format mpegts --fps 30000/1001 --input-probesize 900K --input-analyze 0.67 -i -'.
 					// avhw エンコード
 					' --avhw'.
 					// HLS
@@ -507,15 +498,15 @@
 					' -m hls_flags:delete_segments'.
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
-					' --vbr '.$vb.' --qp-max 24:26:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
+					' --vbr '.$vb.' --qp-max 26:27:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
 					' --quality fast --profile main --interlace tff --vpp-afs preset=default'.
 					// 音声
-					' --audio-codec aac#dual_mono_mode=main --audio-stream :stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
+					' --audio-codec 1?aac#dual_mono_mode=main --audio-stream 1?:stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
 					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30'.
 					// 字幕
 					' '.$subtitle_other_cmd.
 					// その他
-					' --avsync forcecfr --max-procfps 90'.
+					' --avsync forcecfr --max-procfps 90 -m max_interleave_delta:1M'.
 					// 出力
 					' -o stream'.$stream.'.m3u8';
 
@@ -543,8 +534,7 @@
 			} else {
 				$tstask_cmd = '"'.$tstask_path2.'" '.($TSTask_window == 'true' ? '/xclient' : '/min /xclient-').' /udp /port '.$stream_port.' /sid '.$sid.' /tsid '.$tsid.
 						' /d '.$BonDriver.' /sendservice 1 /logfile '.$base_dir.'logs/stream'.$stream.'.tstask.log';
-			}
-			$tstask_cmd = 'start "TSTask Process" /B /min cmd.exe /C "'.win_exec_escape($tstask_cmd).'"';
+			$tstask_cmd = 'start "TSTask Process" /B /min cmd.exe /C "'.win_exec_escape($tstask_cmd).' & rem TVRP('.$udp_port.'):TSTask('.$stream.')"';
 			win_exec($tstask_cmd);
 
 		// TSTask にチャンネル切り替えのコマンドを送信
@@ -555,7 +545,10 @@
 			win_exec($tstaskcentreex_cmd);
 		}
 
-		// ストリームを開始する（エンコーダーを起動する）
+		// エンコードコマンド
+		$stream_cmd = 'start "'.$encoder.' Encoding..." '.($encoder_window == 'true' ? '' : '/B /min').' cmd.exe /C "'.win_exec_escape($ast_cmd).' | '.win_exec_escape($stream_cmd);
+
+		// ログを書き出すかどうか
 		if ($encoder_log == 'true') {
 
 			// 既にエンコーダーのログがあれば削除する
@@ -564,13 +557,14 @@
 				exec("del {$base_dir}logs/stream{$stream}.encoder.log");
 			}
 
-			$stream_cmd = 'start "'.$encoder.' Encoding..." '.($encoder_window == 'true' ? '' : '/B /min').' cmd.exe /C "'.win_exec_escape($stream_cmd).
-			              ' > '.$base_dir.'logs/stream'.$stream.'.encoder.log 2>&1"';
-		} else {
-			$stream_cmd = 'start "'.$encoder.' Encoding..." '.($encoder_window == 'true' ? '' : '/B /min').' cmd.exe /C "'.win_exec_escape($stream_cmd).'"';
+			$stream_cmd .= " > {$base_dir}logs/stream{$stream}.encoder.log 2>&1";
 		}
 
-		win_exec('pushd "'.$segment_folder.'" && '.$stream_cmd);
+		// エンコーダー検索用コメントを含める
+		$stream_cmd .= " & rem TVRP({$udp_port}):Encoder({$stream})\"";
+
+		// ストリームを開始する
+		win_exec("pushd \"{$segment_folder}\" && {$stream_cmd}");
 
 		// エンコードコマンドと TSTask のコマンドを返す
 		if (empty($tstaskcentreex_cmd)) {
@@ -584,7 +578,7 @@
 	// ファイル再生を開始する
 	function stream_file($stream, $filepath, $extension, $quality, $encoder, $subtitle) {
 
-		global $ffmpeg_path, $qsvencc_path, $nvencc_path, $vceencc_path, $segment_folder, $hlsfile_time, $base_dir, $encoder_log, $encoder_window;
+		global $udp_port, $ffmpeg_path, $qsvencc_path, $nvencc_path, $vceencc_path, $arib_subtitle_timedmetadater_path, $segment_folder, $hlsfile_time, $base_dir, $encoder_log, $encoder_window;
 
 		// 事前に前のストリームを終了する
 		stream_stop($stream);
@@ -602,8 +596,8 @@
 		switch ($subtitle) {
 
 			case 'true':
-				$subtitle_ffmpeg_cmd = '-map 0 -ignore_unknown';
-				$subtitle_other_cmd = '--sub-copy asdata';
+				$subtitle_ffmpeg_cmd = '-map 0:d?';
+				$subtitle_other_cmd = '--data-copy timed_id3';
 			break;
 
 			case 'false':
@@ -709,6 +703,9 @@
 			break;
 		}
 
+		// arib-subtitle-timedmetadater
+		$ast_cmd = "\"{$arib_subtitle_timedmetadater_path}\" -i \"{$filepath}\"";
+
 		// 変換コマンド切り替え
 		switch ($encoder) {
 
@@ -718,7 +715,7 @@
 				$stream_cmd = '"'.$ffmpeg_path.'"'.
 
 					// 入力
-					' '.$dual_mono_mode_ffmpeg.' -i "'.$filepath.'"'.
+					' '.$dual_mono_mode_ffmpeg.' -i -'.
 					// HLS
 					' -f hls'.
 					' -hls_segment_type mpegts'.
@@ -728,10 +725,10 @@
 					' -hls_flags delete_segments'.
 					' -hls_segment_filename stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
-					' -vcodec libx264 -vb '.$vb.' -vf yadif=0:-1:1,scale='.$width.':'.$height.
+					' -map 0:v:0 -vcodec libx264 -vb '.$vb.' -vf yadif=0:-1:1,scale='.$width.':'.$height.
 					' -aspect 16:9 -preset veryfast -r 30000/1001'.
 					// 音声
-					' -acodec aac -ab '.$ab.' -ar '.$samplerate.' -ac 2 -af volume='.$volume.
+					' -map 0:a:0 -acodec aac -ab '.$ab.' -ar '.$samplerate.' -ac 2 -af volume='.$volume.
 					// 字幕
 					' '.$subtitle_ffmpeg_cmd.
 					// その他
@@ -747,7 +744,7 @@
 				$stream_cmd = '"'.$qsvencc_path.'"'.
 
 					// 入力
-					' -i "'.$filepath.'"'.
+					' -i -'.
 					// avqsvエンコード
 					' --avqsv'.
 					// HLS
@@ -757,15 +754,15 @@
 					' -m hls_flags:delete_segments'.
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
-					' --vbr '.$vb.' --qp-max 24:26:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
+					' --vbr '.$vb.' --qp-max 26:27:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
 					' --quality balanced --profile Main --vpp-deinterlace normal --tff'.
 					// 音声
-					' --audio-codec aac'.$dual_mono_mode_other.' --audio-stream :stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
+					' --audio-codec 1?aac'.$dual_mono_mode_other.' --audio-stream 1?:stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
 					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30 --audio-ignore-notrack-error'.
 					// 字幕
 					' '.$subtitle_other_cmd.
 					// その他
-					' --avsync forcecfr --fallback-rc --max-procfps 90 --output-thread 0'.
+					' --avsync forcecfr --fallback-rc --max-procfps 90'.
 					// 出力
 					' -o stream'.$stream.'.m3u8';
 
@@ -777,7 +774,7 @@
 				$stream_cmd = '"'.$nvencc_path.'"'.
 
 					// 入力
-					' -i "'.$filepath.'"'.
+					' -i -'.
 					// avcuvidエンコード
 					' --avcuvid'.
 					// HLS
@@ -787,15 +784,15 @@
 					' -m hls_flags:delete_segments'.
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
-					' --vbr '.$vb.' --qp-max 24:26:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
+					' --vbr '.$vb.' --qp-max 26:27:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
 					' --preset default --profile Main --cabac --vpp-deinterlace normal --tff'.
 					// 音声
-					' --audio-codec aac'.$dual_mono_mode_other.' --audio-stream :stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
+					' --audio-codec 1?aac'.$dual_mono_mode_other.' --audio-stream 1?:stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
 					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30 --audio-ignore-notrack-error'.
 					// 字幕
 					' '.$subtitle_other_cmd.
 					// その他
-					' --avsync forcecfr --max-procfps 90 --output-thread 0'.
+					' --avsync forcecfr --max-procfps 90'.
 					// 出力
 					' -o stream'.$stream.'.m3u8';
 
@@ -807,7 +804,7 @@
 				$stream_cmd = '"'.$vceencc_path.'"'.
 
 					// 入力
-					' -i "'.$filepath.'"'.
+					' -i -'.
 					// avhwエンコード
 					' --avhw'.
 					// HLS
@@ -817,10 +814,10 @@
 					' -m hls_flags:delete_segments'.
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
-					' --vbr '.$vb.' --qp-max 24:26:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
+					' --vbr '.$vb.' --qp-max 26:27:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
 					' --interlace tff --vpp-afs preset=default --profile Main'.
 					// 音声
-					' --audio-codec aac'.$dual_mono_mode_other.' --audio-stream :stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
+					' --audio-codec 1?aac'.$dual_mono_mode_other.' --audio-stream 1?:stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
 					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30'.
 					// 字幕
 					' '.$subtitle_other_cmd.
@@ -832,6 +829,9 @@
 				break;
 		}
 
+		// エンコードコマンド
+		$stream_cmd = 'start "'.$encoder.' Encoding..." '.($encoder_window == 'true' ? '' : '/B /min').' cmd.exe /C "'.win_exec_escape($ast_cmd).' | '.win_exec_escape($stream_cmd);
+
 		// ログを書き出すかどうか
 		if ($encoder_log == 'true') {
 
@@ -841,14 +841,14 @@
 				exec("del {$base_dir}logs/stream{$stream}.encoder.log");
 			}
 
-			$stream_cmd = 'start "'.$encoder.' Encoding..." '.($encoder_window == 'true' ? '' : '/B /min').' cmd.exe /C "'.win_exec_escape($stream_cmd).
-			              ' > '.$base_dir.'logs/stream'.$stream.'.encoder.log 2>&1"';
-		} else {
-			$stream_cmd = 'start "'.$encoder.' Encoding..." '.($encoder_window == 'true' ? '' : '/B /min').' cmd.exe /C "'.win_exec_escape($stream_cmd).'"';
+			$stream_cmd .= " > {$base_dir}logs/stream{$stream}.encoder.log 2>&1";
 		}
 
+		// エンコーダー検索用コメントを含める
+		$stream_cmd .= " & rem TVRP({$udp_port}):Encoder({$stream})\"";
+
 		// ストリームを開始する
-		win_exec('pushd "'.$segment_folder.'" && '.$stream_cmd);
+		win_exec("pushd \"{$segment_folder}\" && {$stream_cmd}");
 
 		// エンコードコマンドを返す
 		return $stream_cmd;
@@ -859,44 +859,47 @@
 	// $exclude_tstask を true に設定すると終了対象から TSTask を除外する
 	function stream_stop($stream, $allstop = false, $exclude_tstask = false) {
 
-		global $inifile, $udp_port, $process_csv, $ffmpeg_exe, $qsvencc_exe, $nvencc_exe, $vceencc_exe, $tstask_exe, $tstask_SPHD_exe, $tstaskcentreex_path, $segment_folder, $TSTask_shutdown;
+		global $udp_port, $arib_subtitle_timedmetadater_exe, $ffmpeg_exe, $qsvencc_exe, $nvencc_exe, $vceencc_exe, $tstask_exe, $tstask_SPHD_exe, $tstaskcentreex_path, $segment_folder, $TSTask_shutdown;
 
 		// 全てのストリームを終了する
 		if ($allstop) {
 
+			// arib-subtitle-timedmetadater を終了する
+			win_exec("taskkill /F /IM {$arib_subtitle_timedmetadater_exe}");
+
 			// ffmpeg を終了する
-			win_exec('taskkill /F /IM '.$ffmpeg_exe);
+			win_exec("taskkill /F /IM {$ffmpeg_exe}");
 
 			// QSVEncC を終了する
-			win_exec('taskkill /F /IM '.$qsvencc_exe);
+			win_exec("taskkill /F /IM {$qsvencc_exe}");
 
 			// NVEncC を終了する
-			win_exec('taskkill /F /IM '.$nvencc_exe);
+			win_exec("taskkill /F /IM {$nvencc_exe}");
 
 			// VCEEncC を終了する
-			win_exec('taskkill /F /IM '.$vceencc_exe);
+			win_exec("taskkill /F /IM {$vceencc_exe}");
 
 			// TSTask を終了する
 			if ($exclude_tstask === false) { // TSTask を終了する場合のみ実行
 
 				if ($TSTask_shutdown == 'true') { // 強制終了
 
-					win_exec('taskkill /F /IM '.$tstask_exe);
-					win_exec('taskkill /F /IM '.$tstask_SPHD_exe);
+					win_exec("taskkill /F /IM {$tstask_exe}");
+					win_exec("taskkill /F /IM {$tstask_SPHD_exe}");
 
 				} else { // 通常終了
 
 					// 起動している TSTask のプロセスを取得
-					exec($tstaskcentreex_path.' -m '.$tstask_exe.' -c list', $tstask_process_list);
+					exec("\"{$tstaskcentreex_path}\" -m {$tstask_exe} -c list", $tstask_process_list);
 
 					// TSTask のプロセスごとに
-					foreach ($tstask_process_list as $key => $value) {
+					foreach ($tstask_process_list as $value) {
 
 						// PID を（強引に）取得
 						$tstask_pid = intval(str_replace('PID:', '', explode(' ', $value)[0]));
 
 						// TSTaskCentreEx で EndTask コマンドを送信
-						win_exec($tstaskcentreex_path.' -p '.$tstask_pid.' -c EndTask');
+						win_exec("\"{$tstaskcentreex_path}\" -p {$tstask_pid} -c EndTask");
 					}
 
 					// 起動している TSTask のプロセスを取得
@@ -915,63 +918,31 @@
 			}
 
 			// フォルダ内の TS を削除
-			win_exec('pushd "'.$segment_folder.'" && del *.ts /S');
+			exec("pushd \"{$segment_folder}\" && del stream{$stream}*.ts /S");
 
 		// このストリームを終了する
 		} else {
 
-			// UDP ポート
-			$stream_port = $udp_port + intval($stream);
-
-			// 録画ファイルのファイルパス
-			$filepath = @json_decode(file_get_contents_lock_sh($inifile), true)[$stream]['filepath'];
-			if ($filepath === null) $filepath = '';
-
-			// 現在のプロセスのコマンドライン引数とプロセスIDを取得する
-			exec('wmic process get commandline,processid /format:csv > '.$process_csv);
-
-			// CSVをパースして取得
-			$process = getCSV($process_csv, 'UTF-16LE');
-
-			// プロセスごとに該当するかチェックしてKill
-			foreach ($process as $value) {
-
-				// ffmpeg
-				if (strpos($value['CommandLine'], $ffmpeg_exe) !== false and 
-				    (@strpos($value['CommandLine'], strval($stream_port)) !== false or @strpos($value['CommandLine'], $filepath) !== false)) {
-					win_exec('taskkill /F /PID '.$value['ProcessId']);
+			// エンコーダー検索用コメントを使ってエンコーダーを終了させる
+			$parent_pids = array();
+			exec('wmic process where "commandline like \'% [r]em TVRP('.$udp_port.'):Encoder('.$stream.')%\'" get processid 2>nul | findstr /b [1-9]', $parent_pids);
+			foreach ($parent_pids as $parent_pid) {
+				$encoder_pid = (int)exec('wmic process where "parentprocessid = '.(int)$parent_pid.'" get processid 2>nul | findstr /b [1-9]');
+				if ($encoder_pid > 0) {
+					win_exec("taskkill /F /PID {$encoder_pid}");
 				}
+			}
 
-				// QSVEncC
-				if (strpos($value['CommandLine'], $qsvencc_exe) !== false and 
-				    (@strpos($value['CommandLine'], strval($stream_port)) !== false or @strpos($value['CommandLine'], $filepath) !== false)) {
-					win_exec('taskkill /F /PID '.$value['ProcessId']);
-				}
-
-				// NVEncC
-				if (strpos($value['CommandLine'], $nvencc_exe) !== false and 
-				    (@strpos($value['CommandLine'], strval($stream_port)) !== false or @strpos($value['CommandLine'], $filepath) !== false)) {
-					win_exec('taskkill /F /PID '.$value['ProcessId']);
-				}
-
-				// VCEEncC
-				if (strpos($value['CommandLine'], $vceencc_exe) !== false and 
-				    (@strpos($value['CommandLine'], strval($stream_port)) !== false or @strpos($value['CommandLine'], $filepath) !== false)) {
-					win_exec('taskkill /F /PID '.$value['ProcessId']);
-				}
-
-				// TSTask
-				if ($exclude_tstask === false) { // TSTask を終了する場合のみ実行
-
-					if (strpos($value['CommandLine'], $tstask_exe) !== false and 
-					    (@strpos($value['CommandLine'], strval($stream_port)) !== false or @strpos($value['CommandLine'], $filepath) !== false)) {
-
-						if ($TSTask_shutdown == 'true') { // 強制終了
-							win_exec('taskkill /F /PID '.$value['ProcessId']);
-						} else { // 通常終了
-							// TSTaskCentreEx で EndTask コマンドを送信
-							win_exec($tstaskcentreex_path.' -p '.$value['ProcessId'].' -c EndTask');
-						}
+			// TSTask を終了する
+			if ($exclude_tstask === false) { // TSTask を終了する場合のみ実行
+				// 現在のストリームの TSTask の PID
+				$tstask_pid = getTSTaskPID($stream);
+				if ($tstask_pid !== -1) {
+					if ($TSTask_shutdown == 'true') { // 強制終了
+						win_exec("taskkill /F /PID {$tstask_pid}");
+					} else { // 通常終了
+						// TSTaskCentreEx で EndTask コマンドを送信
+						win_exec("\"$tstaskcentreex_path\" -p {$tstask_pid} -c EndTask");
 					}
 					if (strpos($value['CommandLine'], $tstask_SPHD_exe) !== false and 
 					(@strpos($value['CommandLine'], strval($stream_port)) !== false) or (@strpos($value['CommandLine'], $filepath) !== false)) {
@@ -986,10 +957,7 @@
 				}
 			}
 
-			// CSV ファイル自体はもういらないので削除
-			unlink($process_csv);
-
 			// フォルダ内のTSを削除
-			win_exec('pushd "'.$segment_folder.'" && del stream'.$stream.'*.ts /S');
+			exec("pushd \"{$segment_folder}\" && del stream{$stream}*.ts /S");
 		}
 	}
