@@ -83,10 +83,10 @@
         video: {
 <?php	if ($ini[$stream]['state'] == 'File' and $ini[$stream]['fileext'] != 'ts' and $ini[$stream]['encoder'] == 'Progressive'): ?>
             url: '/api/stream/<?= $stream; ?>?_=<?= time(); ?>',
-            type: 'normal'
+            type: 'normal',
 <?php	else: ?>
             url: '/stream/stream<?= $stream; ?>.m3u8',
-            type: 'hls'
+            type: 'hls',
 <?php	endif; ?>
         },
         // コメント設定
@@ -96,12 +96,13 @@
             api: '',
             bottom: '10%',
             height: settings['comment_size'],
-            unlimited: false
+            unlimited: false,
         },
         pluginOptions: {
-            // hls-b24.js
+            // hls.js
             hls: {
-              liveSyncDurationCount: 1
+              enableWorker: true,
+              liveSyncDurationCount: 1,
             },
             // aribb24.js
             aribb24: {
@@ -112,7 +113,7 @@
             }
         },
         subtitle: {
-            type: 'webvtt',
+            type: 'aribb24',
         },
     });
 

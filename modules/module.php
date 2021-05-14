@@ -1,5 +1,5 @@
 <?php
-	
+
 	// ***** 各種モジュール関数 *****
 
 	// 参考: http://www.cattlemute.com/2019/09/14/1830/
@@ -119,7 +119,7 @@
 			'[初]','[生]','[販]','[吹]','[PPV]','[演]','[移]','[他]','[収]','[・]','[英]','[韓]','[中]','[字/日英]','(二)','(字)','(再)',
 			'[3D]','[2K]','[4K]','[8K]','[5.1]','[7.1]','[22.2]','[60P]','[120P]','[d]','[HC]','[HDR]','[SHV]','[UHD]','[VOD]','[配]'
 		);
-		
+
 		foreach ($marktable as $value) {
 			if (strpos($string, $value) !== false){
 				$mark = str_replace('[', '', str_replace(']', '', $value)); // $value から [] を取る
@@ -164,7 +164,7 @@
 					'AuthName "Input your ID and Password."'."\n".
 					'AuthUserFile '.$base_dir.'htdocs/.htpasswd'."\n".
 					'require valid-user'."\n";
-				
+
 				file_put_contents($htaccess, $htaccess_conf);
 			}
 
@@ -215,7 +215,7 @@
 
 	// ストリーム状態を整形して返す関数
 	function getFormattedState($ini, $num, $flg=false){
-		
+
 		$num = strval($num);
 
 		if (isset($ini[$num])){
@@ -281,7 +281,7 @@
 			} else {
 				return $default; // default に指定した値を返す
 			}
-			
+
 		// Cookie が存在しない
 		} else {
 			return $default; // default に指定した値を返す
@@ -378,9 +378,9 @@
 					// 定義しておく
 					if (!isset($program['description'])) $program['description'] = '';
 
-					// ジャンル : が現れるまで足し続ける 
+					// ジャンル : が現れるまで足し続ける
 					$program['description'] = $program['description']."\n".$value;
-					
+
 					break;
 			}
 		}
