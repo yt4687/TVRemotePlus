@@ -420,12 +420,15 @@
 					$tsid = (int)$a[3];
 					$sid = (int)$a[4];
 					// ワンセグ(192)・データ放送(192)・ラジオチャンネル(2)でなく、地上波か15未満の ONID をもつサービス
-					// サブチャンネルはサブチャンネル表示がオンになっている場合のみ
+					// サブチャンネルはサブチャンネル表示がオンになっている場合のみ。BSは101から189まではメインチャンネル以外をサブチャンネルとして格納するようにする(103は条件づけできないので直接書いた)
 					// サービス番号が0以外のものをサブチャンネルとする
-					if ((int)$a[5] !== 192 && (int)$a[5] !== 2 
-					  && ((0x7880 <= $onid && $onid <= 0x7FEF) || $onid < 15) && ($onid < 15 || isSettingsItem('subchannel_show', true) || $sid % 8 === 0)) {
+					if ((int)$a[5] !== 192 && (int)$a[5] !== 2 &&
+					    ((0x7880 <= $onid && $onid <= 0x7FEF) || $onid < 15 && 
+						($onid !=4 || $onid ===4 && ($sid > 190 || $sid === 103 || substr($sid , -1) === '1') || isSettingsItem('subchannel_show', true))) &&
+					    ($onid < 15 || isSettingsItem('subchannel_show', true) || $sid % 8 === 0 )) {
+
 						// 地上波の SID が重複することはないので便宜上、ONID=15 とみなしてキーにする (全チャンネルを整数で識別できるのが利点)
-						$chkey = ($onid < 10 ? $onid : 10) * 0x10000 + $sid;
+						$chkey = ($onid < 15 ? $onid : 15) * 0x10000 + $sid;
 						$ch[$chkey] = ['onid' => $onid, 'tsid' => $tsid, 'sid' => $sid, 'name' => mb_convert_kana($a[0], 'asv', 'UTF-8')];
 						// リモコン番号があれば取得
 						if (isset($services[$onid.'-'.$tsid.'-'.$sid])) {

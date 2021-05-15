@@ -83,10 +83,10 @@
         video: {
 <?php	if ($ini[$stream]['state'] == 'File' and $ini[$stream]['fileext'] != 'ts' and $ini[$stream]['encoder'] == 'Progressive'): ?>
             url: '/api/stream/<?= $stream; ?>?_=<?= time(); ?>',
-            type: 'normal',
+            type: 'normal'
 <?php	else: ?>
             url: '/stream/stream<?= $stream; ?>.m3u8',
-            type: 'hls',
+            type: 'hls'
 <?php	endif; ?>
         },
         // コメント設定
@@ -96,13 +96,12 @@
             api: '',
             bottom: '10%',
             height: settings['comment_size'],
-            unlimited: false,
+            unlimited: false
         },
         pluginOptions: {
-            // hls.js
+            // hls-b24.js
             hls: {
-              enableWorker: true,
-              liveSyncDurationCount: 1,
+              liveSyncDurationCount: 1
             },
             // aribb24.js
             aribb24: {
@@ -113,7 +112,7 @@
             }
         },
         subtitle: {
-            type: 'aribb24',
+            type: 'webvtt',
         },
     });
 
@@ -465,7 +464,7 @@
 
             <nav class="broadcast-nav swiper-slide">
 <?php	$ch_SPHD = array_filter($ch, function ($value) { return $value['onid'] === 10; }); ?>
-<?php	foreach ($ch_SPHD as $i => $value): // スカパーchの数だけ繰り返す ?>
+<?php	foreach ($ch_SPHD as $i => $value): // CSchの数だけ繰り返す ?>
 <?php		$ch_SPHD_channel = 'Ch: '.sprintf('%03d', $value['sid']); ?>
               <div id="ch<?= $i; ?>" class="broadcast-wrap" data-ch="<?= $i; ?>"
                     data-channel="<?= $ch_SPHD_channel; ?>" data-name="<?= $value['name']; ?>"
@@ -508,7 +507,7 @@
 
             <nav class="broadcast-nav swiper-slide">
 <?php	$ch_SPSD = array_filter($ch, function ($value) { return $value['onid'] === 1; }); ?>
-<?php	foreach ($ch_SPSD as $i => $value): // スターデジオchの数だけ繰り返す ?>
+<?php	foreach ($ch_SPSD as $i => $value): // CSchの数だけ繰り返す ?>
 <?php		$ch_SPSD_channel = 'Ch: '.sprintf('%03d', $value['sid']); ?>
               <div id="ch<?= $i; ?>" class="broadcast-wrap" data-ch="<?= $i; ?>"
                     data-channel="<?= $ch_SPSD_channel; ?>" data-name="<?= $value['name']; ?>"

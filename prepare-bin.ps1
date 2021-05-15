@@ -22,15 +22,15 @@ $ffmpegBin = "FFmpeg-4.1.6-64bit-Shared.7z"
 $ffmpegBinSHA256 = "c998b8112e5ac6ffa0e07fe9c261ec8afe647b85587b8a4cb2054fd63ce0febb"
 
 # https://drive.google.com/drive/folders/0BzA4dIFteM2dS1ZUT1FjTnF3Q0E (rigaya氏のGoogleDrive) より。必須でない
-$nvencBin = "NVEncC_5.31_x64.7z"
+$nvencBin = "NVEnc_5.29_7zip.7z"
 $nvencBinSHA256 = "5d610d9ad0165969219bf905c778c7e39fde23153d1efa6692b601f593e9868a"
 
 # https://drive.google.com/drive/folders/0BzA4dIFteM2dVGZ5dE5lSE5mYVk (rigaya氏のGoogleDrive) より。必須でない
-$qsvencBin = "QSVEnc_5.01_x64.7z"
+$qsvencBin = "QSVEnc_4.13_7zip.7z"
 $qsvencBinSHA256 = "5e4364fbb96ded409a44d9f8d49612f389d1ae563aa6fc4f34ca2952338038ef"
 
 # https://drive.google.com/drive/folders/0BzA4dIFteM2dazcxNnYwRXpvNFU (rigaya氏のGoogleDrive) より。必須でない
-$vceencBin = "VCEEncC_6.11_x64.7z"
+$vceencBin = "VCEEnc_6.09_7zip.7z"
 $vceencBinSHA256 = "f3d123969280e865ae1c15cf56b784a7eaa3e51660e9d43842eefab029ee6f3b"
 
 # 7z.exe のあるフォルダを PATH に追加

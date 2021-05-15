@@ -424,7 +424,7 @@ $(function() {
         // ワンクリックでストリーム開始する場合
         if (settings['onclick_stream']) {
             $('#broadcast-stream-box').hide();
-            $('#broadcast-stream-box .bluebutton').click();
+            $('.bluebutton').click();
         }
     });
 
@@ -1570,7 +1570,7 @@ $(function() {
         // 動画のキャンバス
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
-        const caption = dp.plugins.aribb24.getRawCanvas();
+        const caption = video.nextElementSibling;
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         // 描画
