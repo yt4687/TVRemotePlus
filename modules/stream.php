@@ -273,96 +273,104 @@
 		switch ($quality) {
 
 			case '1080p-high':
-				$width = 1920; // 動画の横幅
-				$height = 1080; // 動画の高さ
+				$width = 1920; // 映像の横幅
+				$height = 1080; // 映像の縦幅
 
-				$vb = '6500k'; // 動画のビットレート
-				$ab = '192k'; // 音声のビットレート
-				$sar = '1:1'; // アスペクト比(SAR)
+				$vb = '6500K'; // 映像のビットレート
+				$vb_max = '9000K'; // 映像の最大ビットレート
+				$ab = '192K'; // 音声のビットレート
+				$sar = '1:1'; // アスペクト比 (SAR)
 				$samplerate = 48000; // 音声のサンプルレート
-				$volume = 2.0; // 音量(元の音量の何倍か)
+				$volume = 2.0; // 音量 (元の音量の何倍か)
 			break;
 
 			case '1080p':
-				$width = 1440; // 動画の横幅
-				$height = 1080; // 動画の高さ
+				$width = 1440; // 映像の横幅
+				$height = 1080; // 映像の縦幅
 
-				$vb = '6500k'; // 動画のビットレート
-				$ab = '192k'; // 音声のビットレート
-				$sar = '4:3'; // アスペクト比(SAR)
+				$vb = '6500K'; // 映像のビットレート
+				$vb_max = '9000K'; // 映像の最大ビットレート
+				$ab = '192K'; // 音声のビットレート
+				$sar = '4:3'; // アスペクト比 (SAR)
 				$samplerate = 48000; // 音声のサンプルレート
-				$volume = 2.0; // 音量(元の音量の何倍か)
+				$volume = 2.0; // 音量 (元の音量の何倍か)
 			break;
 
 			case '810p':
-				$width = 1440; // 動画の横幅
-				$height = 810; // 動画の高さ
+				$width = 1440; // 映像の横幅
+				$height = 810; // 映像の縦幅
 
-				$vb = '5500k'; // 動画のビットレート
-				$ab = '192k'; // 音声のビットレート
-				$sar = '1:1'; // アスペクト比(SAR)
+				$vb = '5500K'; // 映像のビットレート
+				$vb_max = '7600K'; // 映像の最大ビットレート
+				$ab = '192K'; // 音声のビットレート
+				$sar = '1:1'; // アスペクト比 (SAR)
 				$samplerate = 48000; // 音声のサンプルレート
-				$volume = 2.0; // 音量(元の音量の何倍か)
+				$volume = 2.0; // 音量 (元の音量の何倍か)
 			break;
 
 			case '720p':
-				$width = 1280; // 動画の横幅
-				$height = 720; // 動画の高さ
+				$width = 1280; // 映像の横幅
+				$height = 720; // 映像の縦幅
 
-				$vb = '4500k'; // 動画のビットレート
-				$ab = '192k'; // 音声のビットレート
-				$sar = '1:1'; // アスペクト比(SAR)
+				$vb = '4500K'; // 映像のビットレート
+				$vb_max = '6200K'; // 映像の最大ビットレート
+				$ab = '192K'; // 音声のビットレート
+				$sar = '1:1'; // アスペクト比 (SAR)
 				$samplerate = 48000; // 音声のサンプルレート
-				$volume = 2.0; // 音量(元の音量の何倍か)
+				$volume = 2.0; // 音量 (元の音量の何倍か)
 			break;
 
 			case '540p':
-				$width = 960; // 動画の横幅
-				$height = 540; // 動画の高さ
+				$width = 960; // 映像の横幅
+				$height = 540; // 映像の縦幅
 
-				$vb = '3000k'; // 動画のビットレート
-				$ab = '192k'; // 音声のビットレート
-				$sar = '1:1'; // アスペクト比(SAR)
+				$vb = '3000K'; // 映像のビットレート
+				$vb_max = '4100K'; // 映像の最大ビットレート
+				$ab = '192K'; // 音声のビットレート
+				$sar = '1:1'; // アスペクト比 (SAR)
 				$samplerate = 48000; // 音声のサンプルレート
-				$volume = 2.0; // 音量(元の音量の何倍か)
+				$volume = 2.0; // 音量 (元の音量の何倍か)
 			break;
 
 			case '360p':
-				$width = 640; // 動画の横幅
-				$height = 360; // 動画の高さ
+				$width = 640; // 映像の横幅
+				$height = 360; // 映像の縦幅
 
-				$vb = '1500k'; // 動画のビットレート
-				$ab = '128k'; // 音声のビットレート
-				$sar = '1:1'; // アスペクト比(SAR)
+				$vb = '1500K'; // 映像のビットレート
+				$vb_max = '2000K'; // 映像の最大ビットレート
+				$ab = '128K'; // 音声のビットレート
+				$sar = '1:1'; // アスペクト比 (SAR)
 				$samplerate = 48000; // 音声のサンプルレート
-				$volume = 2.0; // 音量(元の音量の何倍か)
+				$volume = 2.0; // 音量 (元の音量の何倍か)
 			break;
 
 			case '240p':
-				$width = 426; // 動画の横幅
-				$height = 240; // 動画の高さ
+				$width = 426; // 映像の横幅
+				$height = 240; // 映像の縦幅
 
-				$vb = '300k'; // 動画のビットレート
-				$ab = '128k'; // 音声のビットレート
-				$sar = '1:1'; // アスペクト比(SAR)
+				$vb = '300K'; // 映像のビットレート
+				$vb_max = '400K'; // 映像の最大ビットレート
+				$ab = '128K'; // 音声のビットレート
+				$sar = '1:1'; // アスペクト比 (SAR)
 				$samplerate = 48000; // 音声のサンプルレート
-				$volume = 2.0; // 音量(元の音量の何倍か)
+				$volume = 2.0; // 音量 (元の音量の何倍か)
 			break;
 
 			case '144p':
-				$width = 256; // 動画の横幅
-				$height = 144; // 動画の高さ
+				$width = 256; // 映像の横幅
+				$height = 144; // 映像の縦幅
 
-				$vb = '280k'; // 動画のビットレート
-				$ab = '128k'; // 音声のビットレート
-				$sar = '1:1'; // アスペクト比(SAR)
+				$vb = '280K'; // 映像のビットレート
+				$vb_max = '380K'; // 映像の最大ビットレート
+				$ab = '128K'; // 音声のビットレート
+				$sar = '1:1'; // アスペクト比 (SAR)
 				$samplerate = 48000; // 音声のサンプルレート
-				$volume = 2.0; // 音量(元の音量の何倍か)
+				$volume = 2.0; // 音量 (元の音量の何倍か)
 			break;
 		}
 
 		// arib-subtitle-timedmetadater
-		$ast_cmd = "\"{$arib_subtitle_timedmetadater_path}\" -u {$stream_port}";
+		$ast_cmd = "\"{$arib_subtitle_timedmetadater_path}\" -t {$stream_port}";
 
 		// 変換コマンド切り替え
 		switch ($encoder) {
@@ -399,7 +407,7 @@
 
 					// 入力
 					// -probesize / -analyzeduration を短縮しすぎると音声多重+字幕放送で副音声がエンコードされてしまう可能性がある（？）
-					' -f mpegts -probesize 900K -analyzeduration 0.67 -dual_mono_mode main -i -'.
+					' -f mpegts -probesize 1000K -analyzeduration 0.7 -dual_mono_mode main -i -'.
 					// HLS
 					' -f hls'.
 					' -hls_segment_type mpegts'.
@@ -409,14 +417,14 @@
 					' -hls_flags delete_segments'.
 					' -hls_segment_filename stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
-					' -map 0:v:0 -vcodec libx264 -vb '.$vb.' -vf yadif=0:-1:1,scale='.$width.':'.$height.
-					' -aspect 16:9 -preset veryfast -r 30000/1001'.
+					' -map 0:v:0 -vcodec libx264 -vb '.$vb.' -maxrate '.$vb_max.' -r 30000/1001 -aspect 16:9'.
+					' -preset veryfast -profile:v main -vf yadif=0:-1:1,scale='.$width.':'.$height.
 					// 音声
-					' -map 0:a:0 -acodec aac -ab '.$ab.' -ar '.$samplerate.' -ac 2 -af volume='.$volume.
+					' -map 0:a:0 -acodec aac -ac 2 -ab '.$ab.' -ar '.$samplerate.' -af volume='.$volume.
 					// 字幕
 					' '.$subtitle_ffmpeg_cmd.
 					// その他
-					' -flags +loop+global_header -movflags +faststart -threads auto -max_interleave_delta 5M'.
+					' -flags +loop+global_header -movflags +faststart -threads auto -max_interleave_delta 2M'.
 					// 出力
 					' stream'.$stream.'.m3u8';
 
@@ -428,7 +436,7 @@
 				$stream_cmd = '"'.$qsvencc_path.'"'.
 
 					// 入力
-					' --input-format mpegts --fps 30000/1001 --input-probesize 900K --input-analyze 0.67 -i -'.
+					' --input-format mpegts --fps 30000/1001 --input-probesize 1000K --input-analyze 0.7 -i -'.
 					// avhw エンコード
 					' --avhw'.
 					// HLS
@@ -438,15 +446,15 @@
 					' -m hls_flags:delete_segments'.
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
-					' --vbr '.$vb.' --qp-max 26:27:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
-					' --quality fastest --profile main --vpp-deinterlace normal --tff'.
+					' --vbr '.$vb.' --max-bitrate '.$vb_max.' --output-res '.$width.'x'.$height.' --sar '.$sar.
+					' --quality balanced --profile main --interlace tff --vpp-deinterlace normal'.
 					// 音声
 					' --audio-codec 1?aac#dual_mono_mode=main --audio-stream 1?:stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
-					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30 --audio-ignore-notrack-error'.
+					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30'.
 					// 字幕
 					' '.$subtitle_other_cmd.
 					// その他
-					' --avsync forcecfr --fallback-rc --max-procfps 90 -m max_interleave_delta:1M'.
+					' --avsync forcecfr --max-procfps 90 --fallback-rc -m max_interleave_delta:1M'.
 					// 出力
 					' -o stream'.$stream.'.m3u8';
 
@@ -458,7 +466,7 @@
 				$stream_cmd = '"'.$nvencc_path.'"'.
 
 					// 入力
-					' --input-format mpegts --fps 30000/1001 --input-probesize 900K --input-analyze 0.67 -i -'.
+					' --input-format mpegts --fps 30000/1001 --input-probesize 1000K --input-analyze 0.7 -i -'.
 					// avhw エンコード
 					' --avhw'.
 					// HLS
@@ -468,11 +476,11 @@
 					' -m hls_flags:delete_segments'.
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
-					' --vbr '.$vb.' --qp-max 26:27:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
-					' --preset performance --profile main --cabac --vpp-deinterlace normal --tff'.
+					' --vbr '.$vb.' --max-bitrate '.$vb_max.' --output-res '.$width.'x'.$height.' --sar '.$sar.
+					' --preset default --profile main --interlace tff --vpp-deinterlace normal --cabac'.
 					// 音声
 					' --audio-codec 1?aac#dual_mono_mode=main --audio-stream 1?:stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
-					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30 --audio-ignore-notrack-error'.
+					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30'.
 					// 字幕
 					' '.$subtitle_other_cmd.
 					// その他
@@ -488,7 +496,7 @@
 				$stream_cmd = '"'.$vceencc_path.'"'.
 
 					// 入力
-					' --input-format mpegts --fps 30000/1001 --input-probesize 900K --input-analyze 0.67 -i -'.
+					' --input-format mpegts --fps 30000/1001 --input-probesize 1000K --input-analyze 0.7 -i -'.
 					// avhw エンコード
 					' --avhw'.
 					// HLS
@@ -498,8 +506,8 @@
 					' -m hls_flags:delete_segments'.
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
-					' --vbr '.$vb.' --qp-max 26:27:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
-					' --quality fast --profile main --interlace tff --vpp-afs preset=default'.
+					' --vbr '.$vb.' --max-bitrate '.$vb_max.' --output-res '.$width.'x'.$height.' --sar '.$sar.
+					' --preset default --profile main --interlace tff --vpp-afs preset=default'.
 					// 音声
 					' --audio-codec 1?aac#dual_mono_mode=main --audio-stream 1?:stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
 					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30'.
@@ -529,10 +537,10 @@
 			}
 
 			if($onid == 1 or $sid == 531){//スターデジオと放送大学ラジオ(531)用
-				$tstask_cmd = '"'.$tstask_path2.'" '.($TSTask_window == 'true' ? '/xclient' : '/min /xclient-').' /udp /port '.$stream_port.' /sid '.$sid.' /tsid '.$tsid.
+				$tstask_cmd = '"'.$tstask_path2.'" '.($TSTask_window == 'true' ? '/xclient' : '/min /xclient-').' /tcp /port '.$stream_port.' /sid '.$sid.' /tsid '.$tsid.
 						' /d '.$BonDriver.' /sendservice 1 /logfile '.$base_dir.'logs/stream'.$stream.'.tstask.log'.' /ini TSTask_radio-tvrp.ini';
 			} else {
-				$tstask_cmd = '"'.$tstask_path2.'" '.($TSTask_window == 'true' ? '/xclient' : '/min /xclient-').' /udp /port '.$stream_port.' /sid '.$sid.' /tsid '.$tsid.
+				$tstask_cmd = '"'.$tstask_path2.'" '.($TSTask_window == 'true' ? '/xclient' : '/min /xclient-').' /tcp /port '.$stream_port.' /sid '.$sid.' /tsid '.$tsid.
 						' /d '.$BonDriver.' /sendservice 1 /logfile '.$base_dir.'logs/stream'.$stream.'.tstask.log';
 			$tstask_cmd = 'start "TSTask Process" /B /min cmd.exe /C "'.win_exec_escape($tstask_cmd).' & rem TVRP('.$udp_port.'):TSTask('.$stream.')"';
 			win_exec($tstask_cmd);
@@ -616,91 +624,99 @@
 		// 画質切り替え
 		switch ($quality) {
 			case '1080p-high':
-				$width = 1920; // 動画の横幅
-				$height = 1080; // 動画の高さ
+				$width = 1920; // 映像の横幅
+				$height = 1080; // 映像の縦幅
 
-				$vb = '6800k'; // 動画のビットレート
-				$ab = '192k'; // 音声のビットレート
-				$sar = '1:1'; // アスペクト比(SAR)
+				$vb = '6800K'; // 映像のビットレート
+				$vb_max = '9300K'; // 映像の最大ビットレート
+				$ab = '192K'; // 音声のビットレート
+				$sar = '1:1'; // アスペクト比 (SAR)
 				$samplerate = 48000; // 音声のサンプルレート
-				$volume = 2.0; // 音量(元の音量の何倍か)
+				$volume = 2.0; // 音量 (元の音量の何倍か)
 			break;
 
 			case '1080p':
-				$width = 1440; // 動画の横幅
-				$height = 1080; // 動画の高さ
+				$width = 1440; // 映像の横幅
+				$height = 1080; // 映像の縦幅
 
-				$vb = '6800k'; // 動画のビットレート
-				$ab = '192k'; // 音声のビットレート
-				$sar = '4:3'; // アスペクト比(SAR)
+				$vb = '6800K'; // 映像のビットレート
+				$vb_max = '9300K'; // 映像の最大ビットレート
+				$ab = '192K'; // 音声のビットレート
+				$sar = '4:3'; // アスペクト比 (SAR)
 				$samplerate = 48000; // 音声のサンプルレート
-				$volume = 2.0; // 音量(元の音量の何倍か)
+				$volume = 2.0; // 音量 (元の音量の何倍か)
 			break;
 
 			case '810p':
-				$width = 1440; // 動画の横幅
-				$height = 810; // 動画の高さ
+				$width = 1440; // 映像の横幅
+				$height = 810; // 映像の縦幅
 
-				$vb = '5800k'; // 動画のビットレート
-				$ab = '192k'; // 音声のビットレート
-				$sar = '1:1'; // アスペクト比(SAR)
+				$vb = '5800K'; // 映像のビットレート
+				$vb_max = '8000K'; // 映像の最大ビットレート
+				$ab = '192K'; // 音声のビットレート
+				$sar = '1:1'; // アスペクト比 (SAR)
 				$samplerate = 48000; // 音声のサンプルレート
-				$volume = 2.0; // 音量(元の音量の何倍か)
+				$volume = 2.0; // 音量 (元の音量の何倍か)
 			break;
 
 			case '720p':
-				$width = 1280; // 動画の横幅
-				$height = 720; // 動画の高さ
+				$width = 1280; // 映像の横幅
+				$height = 720; // 映像の縦幅
 
-				$vb = '4800k'; // 動画のビットレート
-				$ab = '192k'; // 音声のビットレート
-				$sar = '1:1'; // アスペクト比(SAR)
+				$vb = '4800K'; // 映像のビットレート
+				$vb_max = '6600K'; // 映像の最大ビットレート
+				$ab = '192K'; // 音声のビットレート
+				$sar = '1:1'; // アスペクト比 (SAR)
 				$samplerate = 48000; // 音声のサンプルレート
-				$volume = 2.0; // 音量(元の音量の何倍か)
+				$volume = 2.0; // 音量 (元の音量の何倍か)
 			break;
 
 			case '540p':
-				$width = 960; // 動画の横幅
-				$height = 540; // 動画の高さ
+				$width = 960; // 映像の横幅
+				$height = 540; // 映像の縦幅
 
-				$vb = '3000k'; // 動画のビットレート
-				$ab = '192k'; // 音声のビットレート
-				$sar = '1:1'; // アスペクト比(SAR)
+				$vb = '3000K'; // 映像のビットレート
+				$vb_max = '4100K'; // 映像の最大ビットレート
+				$ab = '192K'; // 音声のビットレート
+				$sar = '1:1'; // アスペクト比 (SAR)
 				$samplerate = 48000; // 音声のサンプルレート
-				$volume = 2.0; // 音量(元の音量の何倍か)
+				$volume = 2.0; // 音量 (元の音量の何倍か)
 			break;
 
 			case '360p':
-				$width = 640; // 動画の横幅
-				$height = 360; // 動画の高さ
+				$width = 640; // 映像の横幅
+				$height = 360; // 映像の縦幅
 
-				$vb = '1500k'; // 動画のビットレート
-				$ab = '128k'; // 音声のビットレート
-				$sar = '1:1'; // アスペクト比(SAR)
+				$vb = '1500K'; // 映像のビットレート
+				$vb_max = '2000K'; // 映像の最大ビットレート
+				$ab = '128K'; // 音声のビットレート
+				$sar = '1:1'; // アスペクト比 (SAR)
 				$samplerate = 48000; // 音声のサンプルレート
-				$volume = 2.0; // 音量(元の音量の何倍か)
+				$volume = 2.0; // 音量 (元の音量の何倍か)
 			break;
 
 			case '240p':
-				$width = 426; // 動画の横幅
-				$height = 240; // 動画の高さ
+				$width = 426; // 映像の横幅
+				$height = 240; // 映像の縦幅
 
-				$vb = '300k'; // 動画のビットレート
-				$ab = '128k'; // 音声のビットレート
-				$sar = '1:1'; // アスペクト比(SAR)
+				$vb = '300K'; // 映像のビットレート
+				$vb_max = '400K'; // 映像の最大ビットレート
+				$ab = '128K'; // 音声のビットレート
+				$sar = '1:1'; // アスペクト比 (SAR)
 				$samplerate = 48000; // 音声のサンプルレート
-				$volume = 2.0; // 音量(元の音量の何倍か)
+				$volume = 2.0; // 音量 (元の音量の何倍か)
 			break;
 
 			case '144p':
-				$width = 256; // 動画の横幅
-				$height = 144; // 動画の高さ
+				$width = 256; // 映像の横幅
+				$height = 144; // 映像の縦幅
 
-				$vb = '280k'; // 動画のビットレート
-				$ab = '128k'; // 音声のビットレート
-				$sar = '1:1'; // アスペクト比(SAR)
+				$vb = '280K'; // 映像のビットレート
+				$vb_max = '380K'; // 映像の最大ビットレート
+				$ab = '128K'; // 音声のビットレート
+				$sar = '1:1'; // アスペクト比 (SAR)
 				$samplerate = 48000; // 音声のサンプルレート
-				$volume = 2.0; // 音量(元の音量の何倍か)
+				$volume = 2.0; // 音量 (元の音量の何倍か)
 			break;
 		}
 
@@ -726,10 +742,10 @@
 					' -hls_flags delete_segments'.
 					' -hls_segment_filename stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
-					' -map 0:v:0 -vcodec libx264 -vb '.$vb.' -vf yadif=0:-1:1,scale='.$width.':'.$height.
-					' -aspect 16:9 -preset veryfast -r 30000/1001'.
+					' -map 0:v:0 -vcodec libx264 -vb '.$vb.' -maxrate '.$vb_max.' -r 30000/1001 -aspect 16:9'.
+					' -preset veryfast -profile:v main -vf yadif=0:-1:1,scale='.$width.':'.$height.
 					// 音声
-					' -map 0:a:0 -acodec aac -ab '.$ab.' -ar '.$samplerate.' -ac 2 -af volume='.$volume.
+					' -map 0:a:0 -acodec aac -ac 2 -ab '.$ab.' -ar '.$samplerate.' -af volume='.$volume.
 					// 字幕
 					' '.$subtitle_ffmpeg_cmd.
 					// その他
@@ -746,8 +762,8 @@
 
 					// 入力
 					' -i -'.
-					// avqsvエンコード
-					' --avqsv'.
+					// avhw エンコード
+					' --avhw'.
 					// HLS
 					' -m hls_time:'.$hlsfile_time.' --gop-len '.($hlsfile_time * 30).
 					' -m hls_list_size:0'.
@@ -755,15 +771,15 @@
 					' -m hls_flags:delete_segments'.
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
-					' --vbr '.$vb.' --qp-max 26:27:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
-					' --quality balanced --profile Main --vpp-deinterlace normal --tff'.
+					' --vbr '.$vb.' --max-bitrate '.$vb_max.' --output-res '.$width.'x'.$height.' --sar '.$sar.
+					' --quality balanced --profile main --interlace tff --vpp-deinterlace normal'.
 					// 音声
 					' --audio-codec 1?aac'.$dual_mono_mode_other.' --audio-stream 1?:stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
-					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30 --audio-ignore-notrack-error'.
+					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30'.
 					// 字幕
 					' '.$subtitle_other_cmd.
 					// その他
-					' --avsync forcecfr --fallback-rc --max-procfps 90'.
+					' --avsync forcecfr --max-procfps 90 --fallback-rc'.
 					// 出力
 					' -o stream'.$stream.'.m3u8';
 
@@ -776,8 +792,8 @@
 
 					// 入力
 					' -i -'.
-					// avcuvidエンコード
-					' --avcuvid'.
+					// avhw エンコード
+					' --avhw'.
 					// HLS
 					' -m hls_time:'.$hlsfile_time.' --gop-len '.($hlsfile_time * 30).
 					' -m hls_list_size:0'.
@@ -785,11 +801,11 @@
 					' -m hls_flags:delete_segments'.
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
-					' --vbr '.$vb.' --qp-max 26:27:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
-					' --preset default --profile Main --cabac --vpp-deinterlace normal --tff'.
+					' --vbr '.$vb.' --max-bitrate '.$vb_max.' --output-res '.$width.'x'.$height.' --sar '.$sar.
+					' --preset default --profile main --interlace tff --vpp-deinterlace normal --cabac'.
 					// 音声
 					' --audio-codec 1?aac'.$dual_mono_mode_other.' --audio-stream 1?:stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
-					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30 --audio-ignore-notrack-error'.
+					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30'.
 					// 字幕
 					' '.$subtitle_other_cmd.
 					// その他
@@ -806,7 +822,7 @@
 
 					// 入力
 					' -i -'.
-					// avhwエンコード
+					// avhw エンコード
 					' --avhw'.
 					// HLS
 					' -m hls_time:'.$hlsfile_time.' --gop-len '.($hlsfile_time * 30).
@@ -815,8 +831,8 @@
 					' -m hls_flags:delete_segments'.
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
-					' --vbr '.$vb.' --qp-max 26:27:28 --output-res '.$width.'x'.$height.' --sar '.$sar.
-					' --interlace tff --vpp-afs preset=default --profile Main'.
+					' --vbr '.$vb.' --max-bitrate '.$vb_max.' --output-res '.$width.'x'.$height.' --sar '.$sar.
+					' --preset default --profile main --interlace tff --vpp-afs preset=default'.
 					// 音声
 					' --audio-codec 1?aac'.$dual_mono_mode_other.' --audio-stream 1?:stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
 					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30'.
