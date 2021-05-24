@@ -497,8 +497,9 @@
 
 					// 入力
 					' --input-format mpegts --fps 30000/1001 --input-probesize 1000K --input-analyze 0.7 -i -'.
-					// avhw エンコード
-					' --avhw'.
+					// avsw エンコード
+					// VCE の HW デコーダーはエラー耐性が低く TS を扱う用途では不安定なので、SW デコーダーを利用する
+					' --avsw'.
 					// HLS
 					' -m hls_time:'.$hlslive_time.' --gop-len '.($hlslive_time * 30).
 					' -m hls_list_size:'.$hlslive_list.
@@ -507,7 +508,7 @@
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
 					' --vbr '.$vb.' --max-bitrate '.$vb_max.' --output-res '.$width.'x'.$height.' --sar '.$sar.
-					' --preset default --profile main --interlace tff --vpp-afs preset=default'.
+					' --preset balanced --profile main --interlace tff --vpp-afs preset=default'.
 					// 音声
 					' --audio-codec 1?aac#dual_mono_mode=main --audio-stream 1?:stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
 					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30'.
@@ -802,7 +803,7 @@
 					' -m hls_segment_filename:stream'.$stream.'-'.date('mdHi').'_%05d.ts'.
 					// 映像
 					' --vbr '.$vb.' --max-bitrate '.$vb_max.' --output-res '.$width.'x'.$height.' --sar '.$sar.
-					' --preset default --profile main --interlace tff --vpp-deinterlace normal --cabac'.
+					' --preset balanced --profile main --interlace tff --vpp-deinterlace normal --cabac'.
 					// 音声
 					' --audio-codec 1?aac'.$dual_mono_mode_other.' --audio-stream 1?:stereo --audio-bitrate '.$ab.' --audio-samplerate '.$samplerate.
 					' --audio-filter volume='.$volume.' --audio-ignore-decode-error 30'.
@@ -822,8 +823,9 @@
 
 					// 入力
 					' -i -'.
-					// avhw エンコード
-					' --avhw'.
+					// avsw エンコード
+					// VCE の HW デコーダーはエラー耐性が低く TS を扱う用途では不安定なので、SW デコーダーを利用する
+					' --avsw'.
 					// HLS
 					' -m hls_time:'.$hlsfile_time.' --gop-len '.($hlsfile_time * 30).
 					' -m hls_list_size:0'.
