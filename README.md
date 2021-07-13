@@ -640,13 +640,13 @@ TS 抜きチューナーで録画した番組を普通のテレビで気軽に�
 - PHP (7.4.4・実行環境)
 - TSTask (0.2.0(patch)・テレビ放送の受信 → UDP 送信)
 - TSTaskCentreEx (1.2.0・TSTask へのコマンド送信)
-- arib-subtitle-timedmetadater (4.0.5・ARIB 字幕を ID3 メタデータに変換)
+- arib-subtitle-timedmetadater (4.0.7・ARIB 字幕を ID3 メタデータに変換)
 - rplsinfo (1.5.1・TS ファイル内の番組情報の取得に利用)
-- ffmpeg (4.1.6・UDP 受信 → エンコード)
-- ffprobe (4.1.6・録画ファイルの動画情報の取得に利用)
-- QSVEncC (5.02・UDP 受信 → ハードウェアエンコード)
-- NVEncC (5.31・UDP 受信 → ハードウェアエンコード)
-- VCEEncC (6.11・UDP 受信 → ハードウェアエンコード)
+- ffmpeg (4.4・UDP 受信 → エンコード)
+- ffprobe (4.4・録画ファイルの動画情報の取得に利用)
+- QSVEncC (5.05・UDP 受信 → ハードウェアエンコード)
+- NVEncC (5.34・UDP 受信 → ハードウェアエンコード)
+- VCEEncC (6.12・UDP 受信 → ハードウェアエンコード)
 
 ## 利用ライブラリ
 

@@ -188,8 +188,8 @@ select {
     width: 100%;
 }
 
-#setting-user .select-wrap, #setting-user .text-box {
-    max-width: 200px;
+.select-wrap, .text-box {
+    flex-shrink: 0;
 }
 
 .download, .download:link, .download:visited {
@@ -273,6 +273,7 @@ select {
     -moz-appearance: none;
     height: 35px;
     padding: 6px 12px;
+    padding-right: 45px;
     border: 1.5px solid var(--color-border);
     background-color: var(--color-white);
     color: var(--color-text);
